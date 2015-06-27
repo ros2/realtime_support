@@ -61,11 +61,13 @@ extern "C"
   };
 
   /// \brief Initialize rttest with arguments
+  /// \return Error code to propagate to main
   int rttest_read_args(int argc, char** argv);
 
   /// \brief Initialize rttest. Preallocate the sample buffer, store user
   /// parameters, lock memory if necessary
   /// Not real time safe.
+  /// \return Error code to propagate to main
   int rttest_init(unsigned long iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
       int plot, int write, char *filename);
@@ -74,12 +76,14 @@ extern "C"
   /// iterations. rttest_spin will attempt to time the 
   /// \param[in] user_function Function pointer to execute on wakeup
   /// \param[out] Error code to propagate to main function.
+  /// \return Error code to propagate to main
   int rttest_spin(void *(*user_function)(void *), void *args);
 
   /// \brief Spin at the specified wakeup period for the specified number of
   /// iterations. rttest_spin will attempt to time the 
   /// \param[in] user_function Function pointer to execute on wakeup.
   /// \param[out] Error code to propagate to main function.
+  /// \return Error code to propagate to main
   int rttest_spin_period(void *(*user_function)(void *), void *args,
       const struct timespec *update_period, const unsigned long iterations);
 
@@ -89,31 +93,33 @@ extern "C"
   /// \param[in] user_function Function pointer to execute on interrupt.
   /// \param[in] absolute_wakeup Scheduled interrupt time.
   /// \param[out] Error code to propagate to main function.
+  /// \return Error code to propagate to main
   int rttest_schedule_wakeup(void *(*user_function)(void *), void *args,
       const struct timespec *absolute_wakeup);
 
   /// \brief Lock dynamic memory allocations.
+  /// \return Error code to propagate to main
   int rttest_lock_memory();
 
   /// \brief Prefault the stack.
   /// \param stack_size The size of the stack
-  /// \brief Error code to propagate to main
+  /// \return Error code to propagate to main
   int rttest_prefault_stack_size(const size_t stack_size);
 
   /// \brief Prefault the stack using default stack size.
-  /// \brief Error code to propagate to main
+  /// \return Error code to propagate to main
   int rttest_prefault_stack();
 
   /// \brief Set the priority and scheduling policy for this thread. Uses
   /// pthread idiom
   /// \param[in] sched_priority The scheduling priority. Max is 99.
   /// \param[in] policy The scheduling policy (FIFO, Round Robin, etc.)
-  /// \brief Error code to propagate to main
+  /// \return Error code to propagate to main
   int rttest_set_sched_priority(const size_t sched_priority, const int policy);
 
   /// \brief Set the priority and scheduling policy for this thread using
   /// default parameters.
-  /// \brief Error code to propagate to main
+  /// \return Error code to propagate to main
   int rttest_set_thread_default_priority();
 
   /// \brief Calculate statistics and fill the given results struct.
@@ -122,12 +128,15 @@ extern "C"
   int rttest_calculate_statistics(struct rttest_results *results)
 
   /// \brief Write the sample buffer to a file.
+  /// \return Error code to propagate to main
   int rttest_write_results();
 
   /// \brief Produce plots.
+  /// \return Error code to propagate to main
   int rttest_plot();
 
   /// \brief Free memory
+  /// \return Error code to propagate to main
   int rttest_finish();
 }
 
