@@ -14,3 +14,5 @@ Command line arguments:
 -p --plot: Enable plotting.
 
 -tp --thread-priority: Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the RTTEST_SET_PRIORITY macro.
+
+-r --repeat: Repeat tests
