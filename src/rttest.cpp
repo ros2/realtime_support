@@ -335,6 +335,9 @@ int rttest_finish()
 
 int rttest_write_results()
 {
+  // Format:
+  // iteration  timestamp  latency  missed_deadline? (1/0)
+
   if (!_rttest_params.write)
   {
     return -1;
@@ -350,7 +353,6 @@ int rttest_write_results()
     return -1;
   }
 
-  
 
   return 0;
 }
