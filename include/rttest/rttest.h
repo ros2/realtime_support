@@ -125,7 +125,7 @@ extern "C"
   /// \brief Calculate statistics and fill the given results struct.
   /// \param[in] results The results struct to fill with statistics.
   /// \return Error code if results struct is NULL or if calculations invalid
-  int rttest_calculate_statistics(struct rttest_results *results)
+  int rttest_calculate_statistics(struct rttest_results *results);
 
   /// \brief Write the sample buffer to a file.
   /// \return Error code to propagate to main
