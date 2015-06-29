@@ -145,6 +145,8 @@ int rttest_write_results_file(char *filename);
 /// \brief Free memory
 /// \return Error code to propagate to main
 int rttest_finish();
+
+#ifdef __cplusplus
 }
 #endif
 
