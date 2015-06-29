@@ -17,6 +17,7 @@
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <fstream>
 #include <sched.h>
 #include <string.h>
 #include <sstream>
@@ -147,6 +148,8 @@ int rttest_init(unsigned long iterations, struct timespec update_period,
       (bool *) std::malloc(iterations*sizeof(bool));
   memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
   _rttest_sample_buffer.buffer_size = iterations;
+
+  return 0;
 }
 
 int rttest_spin(void *(*user_function)(void *), void *args)
@@ -335,8 +338,6 @@ int rttest_finish()
 
 int rttest_write_results()
 {
-  // Format:
-  // iteration  timestamp  latency  missed_deadline? (1/0)
 
   if (!_rttest_params.write)
   {
@@ -353,6 +354,24 @@ int rttest_write_results()
     return -1;
   }
 
+  std::ofstream fstream(_rttest_params.filename, std::ios::out);
+
+  if (!fstream.is_open())
+  {
+    return -1;
+  }
+
+  // Format:
+  // iteration  timestamp (ns)  latency  missed_deadline? (1/0)
+  fstream << "iteration timestamp latency missed_deadline" << std::endl;
+  for (unsigned long i = 0; i < _rttest_sample_buffer.buffer_size; ++i)
+  {
+    fstream << i << " " << timespec_to_long(&_rttest_params.update_period) * i
+            << " " << _rttest_sample_buffer.latency_samples[i] << " "
+            << _rttest_sample_buffer.missed_deadlines[i] << std::endl;
+  }
+
+  fstream.close();
 
   return 0;
 }

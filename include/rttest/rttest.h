@@ -79,8 +79,9 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_spin(void *(*user_function)(void *), void *args);
 
+  // TODO maybe user function should return an error code
   /// \brief Spin at the specified wakeup period for the specified number of
-  /// iterations. rttest_spin will attempt to time the 
+  /// iterations. rttest_spin will attempt to time the
   /// \param[in] user_function Function pointer to execute on wakeup.
   /// \param[out] Error code to propagate to main function.
   /// \return Error code to propagate to main
@@ -131,7 +132,8 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_write_results();
 
-  /// \brief Produce plots.
+  /// \brief Produce plots. For now this is going to be a wrapper around a
+  /// python script for plotting the data.
   /// \return Error code to propagate to main
   int rttest_plot();
 
