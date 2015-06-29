@@ -23,8 +23,10 @@
 #include <sstream>
 #include <sys/mman.h>
 #include <sys/rusage.h>
+#include <unistd.h>
 #include <vector>
 
+#include <utils.h>
 #include <rttest.h>
 
 
@@ -32,60 +34,6 @@
 struct rttest_params _rttest_params;
 struct rttest_sample_buffer _rttest_sample_buffer;
 struct rttest_results _rttest_results;
-
-
-static inline bool timespec_gt(const struct timespec *t1,
-    const struct timespec *t2)
-{
-  if (t1->tv_sec > t2->tv_sec)
-  {
-    return true;
-  }
-  if (t1->tv_sec < t2->tv_sec)
-  {
-    return false;
-  }
-  return t1->tv_nsec > t2->tv_nsec;
-}
-
-static inline void normalize_timespec(struct timespec *t)
-{
-  // TODO: maybe could use some work
-  while (t->tv_nsec >= NSEC_PER_SEC) {
-    t->tv_nsec -= NSEC_PER_SEC;
-    t->tv_sec++;
-  }
-}
-
-static inline void add_timespecs(const struct timespec *t1,
-    const struct timespec *t2,
-    struct timespec *dst)
-{
-  dst->tv_sec = t1->tv_sec + t2->tv_sec;
-  dst->tv_nsec = t1->tv_nsec + t2->tv_nsec;
-  normalize_timespec(dst);
-}
-
-static inline bool subtract_timespecs(const struct timespec *t1,
-    const struct timespec *t2,
-    struct timespec *dst)
-{
-  if (timespec_gt(t2, t1))
-  {
-    return subtract_timespecs(t2, t1, dst);
-  }
-
-  dst->tv_sec = t1->tv_sec - t2->tv_sec;
-  dst->tv_nsec = t1->tv_nsec - t2->tv_nsec;
-
-  normalize_timespec(dst);
-  return true;
-}
-
-static inline unsigned long timespec_to_long(const struct timespec *t)
-{
-  return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
-}
 
 int rttest_record_missed_deadline(struct timespec *deadline,
     struct timespec *result_time, int iteration)
@@ -125,11 +73,83 @@ int rttest_record_jitter(struct timespec *deadline,
 int rttest_read_args(int argc, char** argv)
 {
   //parse arguments
+  // -i,--iterations
+  unsigned long iterations = 1000;
+  // -u,--update-period
+  struct timespec update_period;
+  update_period.tv_sec = 0;
+  update_period.tv_nsec = 1000000;
+  // -p,--plot
+  int plot = 0;
+  // -t,--thread-priority
+  int sched_priority = 80;
+  // -s,--sched-policy
+  size_t sched_policy = SCHED_RR;
+  // -m,--memory-size
+  // Don't lock memory unless stack size specified
+  int lock_memory = 0;
+  size_t stack_size = 1024*1024;
+  // -f,--filename
+  // Don't write a file unless filename specified
+  int write = 0;
+  char *filename = "out";
+  // -r, --repeat
+  unsigned int repetitions = 1;
+  int index;
+  int c;
+
+  std::string args_string = "iuptsmfr";
+
+  while ((c = getopt(argc, argv, args_string.c_str())) != -1)
+  {
+    switch(c)
+    {
+      case 'i':
+        iterations = atol(optarg);
+        break;
+      case 'u':
+        // parse units
+        break;
+      case 'p':
+        plot = 1;
+        break;
+      case 't':
+        sched_priority = atoi(optarg);
+        break;
+      case 's':
+        // translate string to number. is there a utility for this?
+        break;
+      case 'm':
+        lock_memory = 1;
+        // parse units
+        break;
+      case 'f':
+        filename = optarg;
+        // check if file exists
+        break;
+      case 'r':
+        repetitions = atoi(optarg);
+        break;
+      case '?':
+        if (args_string.find(optopt) != std::string::npos)
+          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+        else if (isprint(optopt))
+          fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+        else
+          fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+        break;
+      default:
+        exit(-1);
+    }
+  }
+
+  rttest_init(iterations, update_period, sched_policy, sched_priority,
+      lock_memory, stack_size, plot, write, filename, repetitions);
 }
 
 int rttest_init(unsigned long iterations, struct timespec update_period,
     size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-    int plot, int write, char *filename)
+    int plot, int write, char *filename, unsigned int repetitions)
 {
   _rttest_params.iterations = iterations;
   _rttest_params.update_period = update_period;
@@ -140,6 +160,7 @@ int rttest_init(unsigned long iterations, struct timespec update_period,
   _rttest_params.plot = plot;
   _rttest_params.write = write;
   _rttest_params.filename = filename;
+  _rttest_params.reps = repetitions;
 
   _rttest_sample_buffer.latency_samples =
       (long *) std::malloc(iterations*sizeof(unsigned long));
