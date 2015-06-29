@@ -3,16 +3,44 @@ It provides utilities for measuring and plotting jitter, latency, and missed dea
 It also provides a library with macros for instrumenting code.
 It is designed with real-time Linux-based systems in mind, such as RTLinux/RT Preempt kernel.
 
+Build from source:
+
+```
+mkdir build
+cd build
+
+cmake ..
+sudo make install
+```
+
+Alternatively for a local install:
+
+```
+cmake .. -DCMAKE_INSTALL_PREFIX=<build folder>
+make install
+```
+
+Build and run the example:
+
+```
+cd examples
+mkdir build
+cd build
+cmake .. (-DCMAKE_INSTALL_PREFIX=<build folder>)
+make
+./example_loop
+```
+
 Command line arguments:
 
--u --update-period: Specify the update period. Default units are microseconds. Use the suffix "s" for seconds, "ms" for milliseconds, "us" for microseconds, and "ns" for nanoseconds. Default update period will be 1ms.
+-u Specify the update period. Default units are microseconds. Use the suffix "s" for seconds, "ms" for milliseconds, "us" for microseconds, and "ns" for nanoseconds. Default update period will be 1ms. (not yet implemented)
 
--m --memory-size: If enabled, disable dynamic memory allocation and lock the stack to the specified size. "b" for bytes, "kb" for kilobytes, "mb" for megabytes, "gb" for gigabytes (use with caution). Default stack size will be 1024MB.
+-m If enabled, disable dynamic memory allocation and lock the stack to the specified size. "b" for bytes, "kb" for kilobytes, "mb" for megabytes, "gb" for gigabytes (use with caution). Default stack size will be 1024MB. (not yet implemented)
 
--i --iterations: Run the test for this many iterations. Defaults to infinite.
+-i Run the test for this many iterations. Defaults to LONG_MAX.
 
--p --plot: Enable plotting.
+-p Enable plotting. (not yet implemented)
 
--tp --thread-priority: Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the RTTEST_SET_PRIORITY macro.
+-tp Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the RTTEST_SET_PRIORITY macro.
 
--r --repeat: Repeat tests
+-r Repeat tests (not yet implemented)
