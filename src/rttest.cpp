@@ -239,6 +239,7 @@ extern "C"
     _rttest_sample_buffer.latency_samples = latency_stack;
     bool missed_deadlines[iterations];
     _rttest_sample_buffer.missed_deadlines = missed_deadlines;
+    _rttest_sample_buffer.buffer_size = iterations;
 
     return 0;
   }
@@ -341,6 +342,17 @@ extern "C"
   {
     if (results == NULL)
     {
+      fprintf(stderr, "Need to allocate rttest_results struct\n");
+      return -1;
+    }
+    if (_rttest_sample_buffer.latency_samples == NULL)
+    {
+      fprintf(stderr, "Pointer to latency samples was NULL\n");
+      return -1;
+    }
+    if (_rttest_sample_buffer.missed_deadlines == NULL)
+    {
+      fprintf(stderr, "Pointer to missed deadlines was NULL\n");
       return -1;
     }
 
