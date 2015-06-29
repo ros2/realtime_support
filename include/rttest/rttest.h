@@ -105,8 +105,7 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_prefault_stack();
 
-  /// \brief Set the priority and scheduling policy for this thread. Uses
-  /// pthread idiom
+  /// \brief Set the priority and scheduling policy for this thread (pthreads)
   /// \param[in] sched_priority The scheduling priority. Max is 99.
   /// \param[in] policy The scheduling policy (FIFO, Round Robin, etc.)
   /// \return Error code to propagate to main
@@ -125,11 +124,6 @@ extern "C"
   /// \brief Write the sample buffer to a file.
   /// \return Error code to propagate to main
   int rttest_write_results();
-
-  /// \brief Produce plots. For now this is going to be a wrapper around a
-  /// python script for plotting the data.
-  /// \return Error code to propagate to main
-  int rttest_plot();
 
   /// \brief Free memory
   /// \return Error code to propagate to main

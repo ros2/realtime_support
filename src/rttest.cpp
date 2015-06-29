@@ -231,19 +231,14 @@ extern "C"
     _rttest_params.stack_size = stack_size;
     _rttest_params.plot = plot;
     _rttest_params.write = write;
-    //printf("Copy filename %s\n", filename);
-    //memcpy(_rttest_params.filename, filename, MAX_FILENAME_SIZE);
+
     _rttest_params.filename = filename;
     _rttest_params.reps = repetitions;
 
-    _rttest_sample_buffer.latency_samples =
-        (long *) std::malloc(iterations*sizeof(unsigned long));
-    memset(_rttest_sample_buffer.latency_samples, 0,
-        iterations*sizeof(long));
-    _rttest_sample_buffer.missed_deadlines =
-        (bool *) std::malloc(iterations*sizeof(bool));
-    memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
-    _rttest_sample_buffer.buffer_size = iterations;
+    long latency_stack[iterations];
+    _rttest_sample_buffer.latency_samples = latency_stack;
+    bool missed_deadlines[iterations];
+    _rttest_sample_buffer.missed_deadlines = missed_deadlines;
 
     return 0;
   }
@@ -317,7 +312,6 @@ extern "C"
   {
     unsigned char stack[stack_size];
     memset(stack, 0, stack_size);
-    // TODO: catch errors, maybe verify memset return value points to stack?
     return 0;
   }
 
@@ -410,7 +404,8 @@ extern "C"
     sstring << "    - Mean: " << results->mean_latency << std::endl;
     sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
     sstring << std::endl;
-    sstring << "  Jitter (scheduling variation for early or missed deadlines):" << std::endl;
+    sstring << "  Jitter (scheduling variation for early or missed deadlines):"
+            << std::endl;
     sstring << "    - Min: " << results->min_jitter << std::endl;
     sstring << "    - Max: " << results->max_jitter << std::endl;
     sstring << "    - Mean: " << results->mean_jitter << std::endl;
@@ -425,15 +420,6 @@ extern "C"
     rttest_calculate_statistics(&_rttest_results);
     std::cout << rttest_results_to_string(&_rttest_results);
 
-    if (_rttest_sample_buffer.latency_samples != NULL)
-    {
-      free(_rttest_sample_buffer.latency_samples);
-    }
-
-    if (_rttest_sample_buffer.missed_deadlines != NULL)
-    {
-      free(_rttest_sample_buffer.missed_deadlines);
-    }
     return 0;
   }
 
@@ -461,7 +447,8 @@ extern "C"
 
     if (!fstream.is_open())
     {
-      fprintf(stderr, "Couldn't open file %s, not writing results\n", _rttest_params.filename);
+      fprintf(stderr, "Couldn't open file %s, not writing results\n",
+              _rttest_params.filename);
       return -1;
     }
 
@@ -479,14 +466,4 @@ extern "C"
 
     return 0;
   }
-
-  int rttest_plot()
-  {
-    if (!_rttest_params.plot)
-    {
-      return -1;
-    }
-    return 0;
-  }
-
 }
