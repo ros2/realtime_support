@@ -238,14 +238,14 @@ extern "C"
     _rttest_params.reps = repetitions;
 
     _rttest_sample_buffer.buffer_size = iterations;
-     _rttest_sample_buffer.latency_samples =
+    /*_rttest_sample_buffer.latency_samples =
         (int *) std::malloc(iterations*sizeof(int));
     memset(_rttest_sample_buffer.latency_samples, 0,
         iterations*sizeof(int));
     _rttest_sample_buffer.missed_deadlines =
         (bool *) std::malloc(iterations*sizeof(bool));
     memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
-    _rttest_sample_buffer.buffer_size = iterations; 
+    _rttest_sample_buffer.buffer_size = iterations; */
 
     return 0;
   }
@@ -438,7 +438,7 @@ extern "C"
     rttest_calculate_statistics(&_rttest_results);
     std::cout << rttest_results_to_string(&_rttest_results);
 
-
+		/*
     if (_rttest_sample_buffer.latency_samples != NULL)
     {
       free(_rttest_sample_buffer.latency_samples);
@@ -448,6 +448,7 @@ extern "C"
     {
       free(_rttest_sample_buffer.missed_deadlines);
     }
+		*/
 
     return 0;
   }
