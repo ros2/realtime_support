@@ -35,6 +35,9 @@ make
 ```
 
 ## Command line arguments
+<<<<<<< HEAD
+=======
+
 Passing `argc` and `argv` of an instrumented main function to `rttest_read_args` will enable command line arguments for the instrumented function.
 
 -u Specify the update period. Default units are microseconds. Use the suffix "s" for seconds, "ms" for milliseconds, "us" for microseconds, and "ns" for nanoseconds. Default update period will be 1ms
@@ -55,4 +58,3 @@ Passing `argc` and `argv` of an instrumented main function to `rttest_read_args`
 * Fix timestamp precision output in data
 * Implement reps options
 * Implement asynchronous samples
-* count and plot page faults/cache misses
