@@ -28,6 +28,7 @@
 #include <utils.h>
 #include <rttest.h>
 
+#define MAX_SAMPLE_SIZE 1000000
 
 extern "C"
 {
@@ -35,8 +36,10 @@ extern "C"
   struct rttest_sample_buffer
   {
     // Stored in nanoseconds
-    int *latency_samples;
-    bool *missed_deadlines;
+    //int *latency_samples;
+    //bool *missed_deadlines;
+		int latency_samples[MAX_SAMPLE_SIZE];
+		bool missed_deadlines[MAX_SAMPLE_SIZE];
 
     unsigned int buffer_size;
   };

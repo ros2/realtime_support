@@ -13,11 +13,14 @@
 // limitations under the License.
 
 #include <stdio.h>
+#include <sched.h>
 #include <rttest/rttest.h>
+
+int i = 0;
 
 void my_loop_callback(void *args)
 {
-  printf("Real-time code to be tested goes here\n");
+	++i;
 }
 
 int main(int argc, char** argv)
@@ -27,6 +30,9 @@ int main(int argc, char** argv)
     perror("Couldn't read arguments for rttest");
     return -1;
   }
+	rttest_set_sched_priority(90, SCHED_RR);
+	rttest_lock_memory();
+	rttest_prefault_stack_size(1024*1024);
 
   rttest_spin(my_loop_callback, NULL);
   rttest_write_results();
