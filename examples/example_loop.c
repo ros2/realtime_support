@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   }
 	rttest_set_sched_priority(90, SCHED_RR);
 	rttest_lock_memory();
-	rttest_prefault_stack_size(1024*1024);
+	rttest_prefault_stack_size(STACK_SIZE);
 
   rttest_spin(my_loop_callback, NULL);
   rttest_write_results();

@@ -28,7 +28,6 @@
 #include <utils.h>
 #include <rttest.h>
 
-#define MAX_SAMPLE_SIZE 1000000
 
 extern "C"
 {
@@ -36,10 +35,8 @@ extern "C"
   struct rttest_sample_buffer
   {
     // Stored in nanoseconds
-    //int *latency_samples;
-    //bool *missed_deadlines;
-		int latency_samples[MAX_SAMPLE_SIZE];
-		bool missed_deadlines[MAX_SAMPLE_SIZE];
+    int *latency_samples;
+    bool *missed_deadlines;
 
     unsigned int buffer_size;
   };
@@ -238,14 +235,14 @@ extern "C"
     _rttest_params.reps = repetitions;
 
     _rttest_sample_buffer.buffer_size = iterations;
-    /*_rttest_sample_buffer.latency_samples =
+     _rttest_sample_buffer.latency_samples =
         (int *) std::malloc(iterations*sizeof(int));
     memset(_rttest_sample_buffer.latency_samples, 0,
         iterations*sizeof(int));
     _rttest_sample_buffer.missed_deadlines =
         (bool *) std::malloc(iterations*sizeof(bool));
     memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
-    _rttest_sample_buffer.buffer_size = iterations; */
+    _rttest_sample_buffer.buffer_size = iterations; 
 
     return 0;
   }
@@ -438,7 +435,7 @@ extern "C"
     rttest_calculate_statistics(&_rttest_results);
     std::cout << rttest_results_to_string(&_rttest_results);
 
-		/*
+
     if (_rttest_sample_buffer.latency_samples != NULL)
     {
       free(_rttest_sample_buffer.latency_samples);
@@ -448,7 +445,6 @@ extern "C"
     {
       free(_rttest_sample_buffer.missed_deadlines);
     }
-		*/
 
     return 0;
   }
