@@ -29,11 +29,7 @@ int main(int argc, char** argv)
   }
 
   rttest_spin(my_loop_callback, NULL);
-  if (rttest_write_results() != 0)
-  {
-    perror("Couldn't write rttest results to file");
-    return -1;
-  }
+  rttest_write_results();
 
   rttest_finish();
 

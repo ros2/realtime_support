@@ -28,7 +28,6 @@
 #include <utils.h>
 #include <rttest.h>
 
-#define MAX_FILENAME_SIZE 1024
 
 extern "C"
 {
@@ -36,7 +35,7 @@ extern "C"
   struct rttest_sample_buffer
   {
     // Stored in nanoseconds
-    long *latency_samples;
+    int *latency_samples;
     bool *missed_deadlines;
 
     unsigned int buffer_size;
@@ -48,7 +47,7 @@ extern "C"
   struct rttest_results _rttest_results;
 
   int rttest_record_missed_deadline(const struct timespec *deadline,
-      const struct timespec *result_time, const int iteration)
+      const struct timespec *result_time, const unsigned int iteration)
   {
     struct timespec jitter;
     subtract_timespecs(result_time, deadline, &jitter);
@@ -63,7 +62,7 @@ extern "C"
   }
 
   int rttest_record_jitter(const struct timespec *deadline,
-      const struct timespec *result_time, const int iteration)
+      const struct timespec *result_time, const unsigned int iteration)
   {
     if (timespec_gt(result_time, deadline))
     {
@@ -86,7 +85,7 @@ extern "C"
   {
     //parse arguments
     // -i,--iterations
-    unsigned long iterations = 1000;
+    unsigned int iterations = 1000;
     // -u,--update-period
     struct timespec update_period;
     update_period.tv_sec = 0;
@@ -118,12 +117,12 @@ extern "C"
       switch(c)
       {
         case 'i':
-          iterations = atol(optarg);
+          iterations = atoi(optarg);
           break;
         case 'u':
           {
             // parse units
-            unsigned long nsec;
+            unsigned int nsec;
             std::string input(optarg);
             std::vector<std::string> tokens = {"ns", "us", "ms", "s"};
             for (unsigned int i = 0; i < 4; ++i)
@@ -219,7 +218,7 @@ extern "C"
         lock_memory, stack_size, plot, write, filename, repetitions);
   }
 
-  int rttest_init(unsigned long iterations, struct timespec update_period,
+  int rttest_init(unsigned int iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
       int plot, int write, char *filename, unsigned int repetitions)
   {
@@ -235,11 +234,15 @@ extern "C"
     _rttest_params.filename = filename;
     _rttest_params.reps = repetitions;
 
-    long latency_stack[iterations];
-    _rttest_sample_buffer.latency_samples = latency_stack;
-    bool missed_deadlines[iterations];
-    _rttest_sample_buffer.missed_deadlines = missed_deadlines;
     _rttest_sample_buffer.buffer_size = iterations;
+     _rttest_sample_buffer.latency_samples =
+        (int *) std::malloc(iterations*sizeof(int));
+    memset(_rttest_sample_buffer.latency_samples, 0,
+        iterations*sizeof(int));
+    _rttest_sample_buffer.missed_deadlines =
+        (bool *) std::malloc(iterations*sizeof(bool));
+    memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
+    _rttest_sample_buffer.buffer_size = iterations; 
 
     return 0;
   }
@@ -251,13 +254,13 @@ extern "C"
   }
 
   int rttest_spin_period(void *(*user_function)(void *), void *args,
-      const struct timespec *update_period, const unsigned long iterations)
+      const struct timespec *update_period, const unsigned int iterations)
   {
     struct timespec wakeup_time, current_time;
     clock_gettime(0, &current_time);
     wakeup_time = current_time;
 
-    for (int i = 0; i < iterations; i++)
+    for (unsigned int i = 0; i < iterations; i++)
     {
       // Plan the next shot
       add_timespecs(&wakeup_time, update_period, &wakeup_time);
@@ -356,14 +359,14 @@ extern "C"
       return -1;
     }
 
-    std::vector<long> jitter_dataset;
+    std::vector<int> jitter_dataset;
     jitter_dataset.assign(_rttest_sample_buffer.latency_samples,
         _rttest_sample_buffer.latency_samples + _rttest_sample_buffer.buffer_size);
 
-    std::vector<long> latency_dataset(jitter_dataset.size());
+    std::vector<int> latency_dataset(jitter_dataset.size());
     std::copy_if(jitter_dataset.begin(), jitter_dataset.end(),
         latency_dataset.begin(),
-        [](long sample){ return sample < 0; } );
+        [](int sample){ return sample < 0; } );
 
     std::vector<bool> missed_deadlines_data;
     missed_deadlines_data.assign(_rttest_sample_buffer.missed_deadlines,
@@ -432,6 +435,17 @@ extern "C"
     rttest_calculate_statistics(&_rttest_results);
     std::cout << rttest_results_to_string(&_rttest_results);
 
+
+    if (_rttest_sample_buffer.latency_samples != NULL)
+    {
+      free(_rttest_sample_buffer.latency_samples);
+    }
+
+    if (_rttest_sample_buffer.missed_deadlines != NULL)
+    {
+      free(_rttest_sample_buffer.missed_deadlines);
+    }
+
     return 0;
   }
 
@@ -467,7 +481,7 @@ extern "C"
     // Format:
     // iteration  timestamp (ns)  latency  missed_deadline? (1/0)
     fstream << "iteration timestamp latency missed_deadline" << std::endl;
-    for (unsigned long i = 0; i < _rttest_sample_buffer.buffer_size; ++i)
+    for (unsigned int i = 0; i < _rttest_sample_buffer.buffer_size; ++i)
     {
       fstream << i << " " << timespec_to_long(&_rttest_params.update_period) * i
               << " " << _rttest_sample_buffer.latency_samples[i] << " "

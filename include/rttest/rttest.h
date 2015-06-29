@@ -17,15 +17,13 @@
 
 #include <time.h>
 
-#define MAX_FILENAME_SIZE 1024
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
   struct rttest_params
   {
-    unsigned long iterations;
+    unsigned int iterations;
     struct timespec update_period;
     size_t sched_policy;
     int sched_priority;
@@ -40,18 +38,18 @@ extern "C"
 
   struct rttest_results
   {
-    long min_latency;
-    long max_latency;
+    int min_latency;
+    int max_latency;
     double mean_latency;
     double latency_stddev;
 
-    long min_jitter;
-    long max_jitter;
+    int min_jitter;
+    int max_jitter;
     double mean_jitter;
     double jitter_stddev;
 
-    unsigned long missed_deadlines;
-    unsigned long early_deadlines;
+    unsigned int missed_deadlines;
+    unsigned int early_deadlines;
   };
 
   /// \brief Initialize rttest with arguments
@@ -62,7 +60,7 @@ extern "C"
   /// parameters, lock memory if necessary
   /// Not real time safe.
   /// \return Error code to propagate to main
-  int rttest_init(unsigned long iterations, struct timespec update_period,
+  int rttest_init(unsigned int iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
       int plot, int write, char *filename, unsigned int repetitions);
 
@@ -80,7 +78,7 @@ extern "C"
   /// \param[out] Error code to propagate to main function.
   /// \return Error code to propagate to main
   int rttest_spin_period(void *(*user_function)(void *), void *args,
-      const struct timespec *update_period, const unsigned long iterations);
+      const struct timespec *update_period, const unsigned int iterations);
 
   /// \brief Schedule a task at an absolute time. The interrupt
   /// executes the user function and compares walltime to the expected wakeup
