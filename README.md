@@ -34,7 +34,7 @@ make
 ./example_loop
 ```
 
-# Command line arguments
+## Command line arguments
 
 Passing `argc` and `argv` of an instrumented main function to `rttest_read_args` will enable command line arguments for the instrumented function.
 
@@ -49,3 +49,10 @@ Passing `argc` and `argv` of an instrumented main function to `rttest_read_args`
 -tp Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the RTTEST_SET_PRIORITY macro.
 
 -r Repeat tests (not yet implemented)
+
+## Issues (to be transferred to tracker)
+
+* Add gtest
+* Fix timestamp precision output in data
+* Implement reps options
+* Implement asynchronous samples
