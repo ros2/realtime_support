@@ -17,13 +17,24 @@
 
 void my_loop_callback(void *args)
 {
-  printf("Loop callback\n");
+  printf("Real-time code to be tested goes here\n");
 }
 
 int main(int argc, char** argv)
 {
-  rttest_read_args(argc, argv);
+  if (rttest_read_args(argc, argv) != 0)
+  {
+    perror("Couldn't read arguments for rttest");
+    return -1;
+  }
+
   rttest_spin(my_loop_callback, NULL);
+  if (rttest_write_results() != 0)
+  {
+    perror("Couldn't write rttest results to file");
+    return -1;
+  }
+
   rttest_finish();
 
   return 0;

@@ -17,31 +17,25 @@
 
 #include <time.h>
 
+#define MAX_FILENAME_SIZE 1024
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
   struct rttest_params
   {
     unsigned long iterations;
     struct timespec update_period;
     size_t sched_policy;
     int sched_priority;
-    bool lock_memory;
+    int lock_memory;
     size_t stack_size;
     int plot;
     int write;
     unsigned int reps;
 
     char *filename;
-  };
-
-  struct rttest_sample_buffer
-  {
-    // Stored in nanoseconds
-    long *latency_samples;
-    bool *missed_deadlines;
-
-    unsigned int buffer_size;
   };
 
   struct rttest_results
@@ -140,6 +134,9 @@ extern "C"
   /// \brief Free memory
   /// \return Error code to propagate to main
   int rttest_finish();
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
