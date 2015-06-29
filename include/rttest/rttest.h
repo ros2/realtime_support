@@ -17,7 +17,6 @@
 
 #include <time.h>
 
-#define NSEC_PER_SEC 1000000000
 
 extern "C"
 {
@@ -31,6 +30,7 @@ extern "C"
     size_t stack_size;
     int plot;
     int write;
+    unsigned int reps;
 
     char *filename;
   };
@@ -70,10 +70,10 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_init(unsigned long iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-      int plot, int write, char *filename);
+      int plot, int write, char *filename, unsigned int repetitions);
 
   /// \brief Spin at the specified wakeup period for the specified number of
-  /// iterations. rttest_spin will attempt to time the 
+  /// iterations.
   /// \param[in] user_function Function pointer to execute on wakeup
   /// \param[out] Error code to propagate to main function.
   /// \return Error code to propagate to main
