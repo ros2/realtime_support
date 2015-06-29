@@ -84,8 +84,6 @@ extern "C"
 
   int rttest_read_args(int argc, char** argv)
   {
-    // TODO
-
     //parse arguments
     // -i,--iterations
     unsigned long iterations = 1000;
@@ -123,7 +121,28 @@ extern "C"
           iterations = atol(optarg);
           break;
         case 'u':
-          // parse units
+          {
+            // parse units
+            unsigned long nsec;
+            std::string input(optarg);
+            std::vector<std::string> tokens = {"ns", "us", "ms", "s"};
+            for (unsigned int i = 0; i < 4; ++i)
+            {
+              size_t idx = input.find(tokens[i]);
+              if (idx != std::string::npos)
+              {
+                nsec = stol(input.substr(0, idx)) * pow(10, i*3);
+                break;
+              }
+              if (i == 3)
+              {
+                // Default units are microseconds
+                nsec = stol(input)*1000;
+              }
+            }
+
+            long_to_timespec(nsec, &update_period);
+          }
           break;
         case 'p':
           plot = 1;
@@ -132,15 +151,51 @@ extern "C"
           sched_priority = atoi(optarg);
           break;
         case 's':
-          // translate string to number. is there a utility for this?
+          {
+            // translate string to number. is there a utility for this?
+            std::string input(optarg);
+            if (input == "fifo")
+            {
+              sched_policy = SCHED_FIFO;
+            }
+            else if (input == "rr")
+            {
+              sched_policy = SCHED_RR;
+            }
+            else
+            {
+              fprintf(stderr, "Invalid option entered for scheduling policy: %s\n",
+                     input.c_str());
+              fprintf(stderr, "Valid options are: fifo, rr\n");
+              exit(-1);
+            }
+          }
           break;
         case 'm':
-          lock_memory = 1;
-          // parse units
+          {
+            lock_memory = 1;
+            // parse units
+            std::string input(optarg);
+            std::vector<std::string> tokens = {"b", "kb", "mb", "gb"};
+            for (unsigned int i = 0; i < 4; ++i)
+            {
+              size_t idx = input.find(tokens[i]);
+              if (idx != std::string::npos)
+              {
+                stack_size = stoi(input.substr(0, idx)) * pow(2, i*10);
+                break;
+              }
+              if (i == 3)
+              {
+                // Default units are megabytes
+                stack_size = std::stoi(input) * pow(2, 20);
+              }
+            }
+          }
           break;
         case 'f':
           filename = optarg;
-          printf("got filename %s\n", filename);
+          fprintf(stderr, "Writing results to file: %s\n", filename);
           write = 1;
           // check if file exists
           break;
@@ -149,7 +204,7 @@ extern "C"
           break;
         case '?':
           if (args_string.find(optopt) != std::string::npos)
-            fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+            fprintf(stderr, "Option -%c requires an argument.\n", optopt);
           else if (isprint(optopt))
             fprintf(stderr, "Unknown option `-%c'.\n", optopt);
           else
@@ -386,19 +441,19 @@ extern "C"
   {
     if (!_rttest_params.write)
     {
-      printf("Write bit not set, not writing results\n");
+      fprintf(stderr, "Write flag not set, not writing results\n");
       return -1;
     }
 
     if (_rttest_sample_buffer.latency_samples == NULL)
     {
-      printf("Samples buffer was NULL, not writing results\n");
+      fprintf(stderr, "Samples buffer was NULL, not writing results\n");
       return -1;
     }
 
     if (_rttest_sample_buffer.missed_deadlines == NULL)
     {
-      printf("Deadlines buffer was NULL, not writing results\n");
+      fprintf(stderr, "Deadlines buffer was NULL, not writing results\n");
       return -1;
     }
 
@@ -406,7 +461,7 @@ extern "C"
 
     if (!fstream.is_open())
     {
-      printf("Couldn't open file %s, not writing results\n", _rttest_params.filename);
+      fprintf(stderr, "Couldn't open file %s, not writing results\n", _rttest_params.filename);
       return -1;
     }
 
