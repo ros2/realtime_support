@@ -17,31 +17,25 @@
 
 #include <time.h>
 
-#define NSEC_PER_SEC 1000000000
+#define MAX_FILENAME_SIZE 1024
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
   struct rttest_params
   {
     unsigned long iterations;
     struct timespec update_period;
     size_t sched_policy;
     int sched_priority;
-    bool lock_memory;
+    int lock_memory;
     size_t stack_size;
     int plot;
     int write;
+    unsigned int reps;
 
     char *filename;
-  };
-
-  struct rttest_sample_buffer
-  {
-    // Stored in nanoseconds
-    long *latency_samples;
-    bool *missed_deadlines;
-
-    unsigned int buffer_size;
   };
 
   struct rttest_results
@@ -70,17 +64,18 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_init(unsigned long iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-      int plot, int write, char *filename);
+      int plot, int write, char *filename, unsigned int repetitions);
 
   /// \brief Spin at the specified wakeup period for the specified number of
-  /// iterations. rttest_spin will attempt to time the 
+  /// iterations.
   /// \param[in] user_function Function pointer to execute on wakeup
   /// \param[out] Error code to propagate to main function.
   /// \return Error code to propagate to main
   int rttest_spin(void *(*user_function)(void *), void *args);
 
+  // TODO maybe user function should return an error code
   /// \brief Spin at the specified wakeup period for the specified number of
-  /// iterations. rttest_spin will attempt to time the 
+  /// iterations. rttest_spin will attempt to time the
   /// \param[in] user_function Function pointer to execute on wakeup.
   /// \param[out] Error code to propagate to main function.
   /// \return Error code to propagate to main
@@ -110,8 +105,7 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_prefault_stack();
 
-  /// \brief Set the priority and scheduling policy for this thread. Uses
-  /// pthread idiom
+  /// \brief Set the priority and scheduling policy for this thread (pthreads)
   /// \param[in] sched_priority The scheduling priority. Max is 99.
   /// \param[in] policy The scheduling policy (FIFO, Round Robin, etc.)
   /// \return Error code to propagate to main
@@ -131,13 +125,12 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_write_results();
 
-  /// \brief Produce plots.
-  /// \return Error code to propagate to main
-  int rttest_plot();
-
   /// \brief Free memory
   /// \return Error code to propagate to main
   int rttest_finish();
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
