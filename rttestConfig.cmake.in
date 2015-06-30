@@ -1,0 +1,5 @@
+get_filename_component(rttest_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(rttest_INCLUDE_DIR "@rttest_INCLUDE_DIR@")
+set(rttest_INCLUDE_DIRS "${rttest_INCLUDE_DIR}")
+set(rttest_LIBRARY_DIR "@rttest_LIB_DIR@")
+
