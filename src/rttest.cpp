@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
@@ -23,7 +24,7 @@
 #include <string.h>
 #include <sstream>
 #include <sys/mman.h>
-#include <sys/rusage.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #include <vector>
 
@@ -47,6 +48,7 @@ extern "C"
   struct rttest_params _rttest_params;
   struct rttest_sample_buffer _rttest_sample_buffer;
   struct rttest_results _rttest_results;
+  struct rusage _prev_usage;
 
   int rttest_record_missed_deadline(const struct timespec *deadline,
       const struct timespec *result_time, const unsigned int iteration)
@@ -237,15 +239,40 @@ extern "C"
     _rttest_params.reps = repetitions;
 
     _rttest_sample_buffer.buffer_size = iterations;
+
      _rttest_sample_buffer.latency_samples =
         (int *) std::malloc(iterations*sizeof(int));
     memset(_rttest_sample_buffer.latency_samples, 0,
         iterations*sizeof(int));
+
     _rttest_sample_buffer.missed_deadlines =
         (bool *) std::malloc(iterations*sizeof(bool));
     memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
-    _rttest_sample_buffer.buffer_size = iterations; 
 
+    _rttest_sample_buffer.pagefaults =
+        (unsigned int *) std::malloc(iterations*sizeof(unsigned int));
+    memset(_rttest_sample_buffer.pagefaults, 0, iterations*sizeof(unsigned int));
+
+    _rttest_sample_buffer.buffer_size = iterations;
+
+    if (getrusage(RUSAGE_SELF, &_prev_usage) != 0)
+    {
+      return -1;
+    }
+    std::cout << "Initial pagefaults: " << _prev_usage.ru_majflt << std::endl;
+
+    return 0;
+  }
+
+  int rttest_get_next_rusage(unsigned int i)
+  {
+    long prev_pagefaults = _prev_usage.ru_majflt;
+    if (getrusage(RUSAGE_SELF, &_prev_usage) != 0)
+    {
+      return -1;
+    }
+    assert(_prev_usage.ru_majflt >= prev_pagefaults);
+    _rttest_sample_buffer.pagefaults[i] = _prev_usage.ru_majflt - prev_pagefaults;
     return 0;
   }
 
@@ -258,6 +285,14 @@ extern "C"
   int rttest_spin_period(void *(*user_function)(void *), void *args,
       const struct timespec *update_period, const unsigned int iterations)
   {
+    // until there's more sophisticated threading logic in place, just
+    // getrusage for the whole process
+    if (getrusage(RUSAGE_SELF, &_prev_usage) != 0)
+    {
+      return -1;
+    }
+    std::cout << "Initial pagefaults: " << _prev_usage.ru_majflt << std::endl;
+
     struct timespec wakeup_time, current_time;
     clock_gettime(0, &current_time);
     wakeup_time = current_time;
@@ -279,6 +314,7 @@ extern "C"
 
         rttest_record_jitter(&wakeup_time, &current_time, i);
       }
+      rttest_get_next_rusage(i);
 
       user_function(args);
     }
@@ -425,6 +461,11 @@ extern "C"
         missed_deadlines_data.end(), true);
     results->early_deadlines =
         missed_deadlines_data.size() - results->missed_deadlines;
+
+    std::vector<unsigned int> pagefaults;
+    pagefaults.assign(_rttest_sample_buffer.pagefaults,
+        _rttest_sample_buffer.pagefaults + _rttest_sample_buffer.buffer_size);
+    results->pagefaults = std::accumulate(pagefaults.begin(), pagefaults.end(), 0);
     return 0;
   }
 
@@ -439,6 +480,7 @@ extern "C"
     sstring << "rttest statistics:" << std::endl;
     sstring << "  - Missed deadlines: " << results->missed_deadlines << std::endl;
     sstring << "  - Early deadlines: " << results->early_deadlines << std::endl;
+    sstring << "  - Pagefaults: " << results->pagefaults << std::endl;
     sstring << std::endl;
     sstring << "  Latency (time after deadline was missed):" << std::endl;
     sstring << "    - Min: " << results->min_latency << std::endl;
@@ -506,13 +548,14 @@ extern "C"
     }
 
     // Format:
-    // iteration  timestamp (ns)  latency  missed_deadline? (1/0)
-    fstream << "iteration timestamp latency missed_deadline" << std::endl;
+    // iteration  timestamp (ns)  latency  missed_deadline? (1/0) pagefaults
+    fstream << "iteration timestamp latency missed_deadline pagefaults" << std::endl;
     for (unsigned int i = 0; i < _rttest_sample_buffer.buffer_size; ++i)
     {
       fstream << i << " " << timespec_to_long(&_rttest_params.update_period) * i
               << " " << _rttest_sample_buffer.latency_samples[i] << " "
-              << _rttest_sample_buffer.missed_deadlines[i] << std::endl;
+              << _rttest_sample_buffer.missed_deadlines[i] << " "
+              << _rttest_sample_buffer.pagefaults[i] << std::endl;
     }
 
     fstream.close();
