@@ -103,6 +103,9 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_prefault_stack();
 
+	/// \brief Commit a pool of dynamic memory
+	int rttest_lock_and_prefault_dynamic(const size_t pool_size);
+
   /// \brief Set the priority and scheduling policy for this thread (pthreads)
   /// \param[in] sched_priority The scheduling priority. Max is 99.
   /// \param[in] policy The scheduling policy (FIFO, Round Robin, etc.)

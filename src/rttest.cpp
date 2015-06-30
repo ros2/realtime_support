@@ -18,6 +18,7 @@
 #include <iostream>
 #include <numeric>
 #include <fstream>
+#include <malloc.h>
 #include <sched.h>
 #include <string.h>
 #include <sstream>
@@ -311,6 +312,31 @@ extern "C"
   {
     return mlockall(MCL_CURRENT | MCL_FUTURE);
   }
+
+	int rttest_lock_and_prefault_dynamic(const size_t pool_size)
+	{
+		int ret;
+		if ((ret = mlockall(MCL_CURRENT | MCL_FUTURE )) != 0)
+    {
+      return ret;
+    }
+
+    // Turn off malloc trimming.
+    mallopt (M_TRIM_THRESHOLD, -1);
+
+    // Turn off mmap usage.
+    mallopt (M_MMAP_MAX, 0);
+
+    int page_size = sysconf(_SC_PAGESIZE);
+    char *buffer = (char*) malloc(pool_size);
+    for (int i=0; i < pool_size; i+=page_size)
+    {
+      buffer[i] = 0;
+    }
+
+    free(buffer);
+		return 0;
+	}
 
   int rttest_prefault_stack_size(const size_t stack_size)
   {
