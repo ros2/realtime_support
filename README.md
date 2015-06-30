@@ -38,15 +38,15 @@ make
 
 Passing `argc` and `argv` of an instrumented main function to `rttest_read_args` will enable command line arguments for the instrumented function.
 
--u Specify the update period. Default units are microseconds. Use the suffix "s" for seconds, "ms" for milliseconds, "us" for microseconds, and "ns" for nanoseconds. Default update period will be 1ms. (not yet implemented)
+-u Specify the update period. Default units are microseconds. Use the suffix "s" for seconds, "ms" for milliseconds, "us" for microseconds, and "ns" for nanoseconds. Default update period will be 1ms
 
--m If enabled, disable dynamic memory allocation and lock the stack to the specified size. "b" for bytes, "kb" for kilobytes, "mb" for megabytes, "gb" for gigabytes (use with caution). Default stack size will be 1024MB. (not yet implemented)
+-m If enabled, disable dynamic memory allocation and lock the stack to the specified size. "b" for bytes, "kb" for kilobytes, "mb" for megabytes, "gb" for gigabytes (use with caution). Default stack size will be 1024MB.
 
--i Run the test for this many iterations. Defaults to LONG_MAX.
+-i Specify how many iterations to run the real-time loop.
 
--p Enable plotting. (not yet implemented)
+-p Enable plotting.
 
--tp Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the RTTEST_SET_PRIORITY macro.
+-tp Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the `RTTEST_SET_PRIORITY` macro.
 
 -r Repeat tests (not yet implemented)
 
@@ -56,3 +56,4 @@ Passing `argc` and `argv` of an instrumented main function to `rttest_read_args`
 * Fix timestamp precision output in data
 * Implement reps options
 * Implement asynchronous samples
+* count and plot page faults/cache misses
