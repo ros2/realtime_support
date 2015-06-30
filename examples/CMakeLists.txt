@@ -13,4 +13,4 @@ include_directories(${rttest_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
 add_executable(example_loop example_loop.c)
-target_link_libraries(example_loop ${rttest_LIBRARY_DIR}/librttest.a m stdc++)
+target_link_libraries(example_loop ${rttest_LIBRARIES} m stdc++)
