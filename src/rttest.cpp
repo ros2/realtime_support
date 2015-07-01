@@ -282,7 +282,7 @@ extern "C"
         lock_memory, stack_size, plot, write, filename, repetitions);
   }
 
-  int rttest_init_new_thread(size_t stack_size)
+  int rttest_init_new_thread()
   {
     auto thread_id = pthread_self();
     auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
