@@ -16,19 +16,23 @@
 #include <sched.h>
 #include <rttest/rttest.h>
 
-#define STACK_SIZE 
+#define SIZE 2000*1024*1024
 
 int i = 0;
 
 void my_loop_callback(void *args)
 {
+  char* ptr = malloc(SIZE);
+
 	++i;
+
+  free(ptr);
 }
 
 int main(int argc, char** argv)
 {
 	rttest_set_sched_priority(90, SCHED_RR);
-	rttest_lock_and_prefault_dynamic((5000 + 1024)*sizeof(int));
+	//rttest_lock_and_prefault_dynamic((5000 + 1024)*sizeof(int));
 	// Result show we should wait a bit before spinning
 	// since previous call is blocking
   if (rttest_read_args(argc, argv) != 0)
@@ -37,10 +41,12 @@ int main(int argc, char** argv)
     return -1;
   }
 
+
   rttest_spin(my_loop_callback, NULL);
   rttest_write_results();
 
   rttest_finish();
+
 
   return 0;
 }

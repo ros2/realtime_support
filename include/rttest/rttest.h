@@ -120,6 +120,9 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_set_thread_default_priority();
 
+  /// \brief Get rusage for the given iteration
+  int rttest_get_next_rusage(unsigned int i);
+
   /// \brief Calculate statistics and fill the given results struct.
   /// \param[in] results The results struct to fill with statistics.
   /// \return Error code if results struct is NULL or if calculations invalid
