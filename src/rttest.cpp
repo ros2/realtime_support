@@ -17,352 +17,508 @@
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <fstream>
+#include <malloc.h>
 #include <sched.h>
 #include <string.h>
 #include <sstream>
 #include <sys/mman.h>
 #include <sys/rusage.h>
+#include <unistd.h>
 #include <vector>
 
+#include <utils.h>
 #include <rttest.h>
 
 
-// Global variables
-struct rttest_params _rttest_params;
-struct rttest_sample_buffer _rttest_sample_buffer;
-struct rttest_results _rttest_results;
-
-
-static inline bool timespec_gt(const struct timespec *t1,
-    const struct timespec *t2)
+extern "C"
 {
-  if (t1->tv_sec > t2->tv_sec)
+
+  struct rttest_sample_buffer
   {
-    return true;
-  }
-  if (t1->tv_sec < t2->tv_sec)
+    // Stored in nanoseconds
+    int *latency_samples;
+    bool *missed_deadlines;
+    // Only count major page faults
+    unsigned int *pagefaults;
+
+    unsigned int buffer_size;
+  };
+
+  // Global variables
+  struct rttest_params _rttest_params;
+  struct rttest_sample_buffer _rttest_sample_buffer;
+  struct rttest_results _rttest_results;
+
+  int rttest_record_missed_deadline(const struct timespec *deadline,
+      const struct timespec *result_time, const unsigned int iteration)
   {
-    return false;
-  }
-  return t1->tv_nsec > t2->tv_nsec;
-}
-
-static inline void normalize_timespec(struct timespec *t)
-{
-  // TODO: maybe could use some work
-  while (t->tv_nsec >= NSEC_PER_SEC) {
-    t->tv_nsec -= NSEC_PER_SEC;
-    t->tv_sec++;
-  }
-}
-
-static inline void add_timespecs(const struct timespec *t1,
-    const struct timespec *t2,
-    struct timespec *dst)
-{
-  dst->tv_sec = t1->tv_sec + t2->tv_sec;
-  dst->tv_nsec = t1->tv_nsec + t2->tv_nsec;
-  normalize_timespec(dst);
-}
-
-static inline bool subtract_timespecs(const struct timespec *t1,
-    const struct timespec *t2,
-    struct timespec *dst)
-{
-  if (timespec_gt(t2, t1))
-  {
-    return subtract_timespecs(t2, t1, dst);
+    struct timespec jitter;
+    subtract_timespecs(result_time, deadline, &jitter);
+    // Record jitter
+    if (iteration > _rttest_sample_buffer.buffer_size)
+    {
+      return -1;
+    }
+    _rttest_sample_buffer.missed_deadlines[iteration] = true;
+    _rttest_sample_buffer.latency_samples[iteration] = -timespec_to_long(&jitter);
+    return 0;
   }
 
-  dst->tv_sec = t1->tv_sec - t2->tv_sec;
-  dst->tv_nsec = t1->tv_nsec - t2->tv_nsec;
-
-  normalize_timespec(dst);
-  return true;
-}
-
-static inline unsigned long timespec_to_long(const struct timespec *t)
-{
-  return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
-}
-
-int rttest_record_missed_deadline(struct timespec *deadline,
-    struct timespec *result_time, int iteration)
-{
-  struct timespec jitter;
-  subtract_timespecs(result_time, deadline, &jitter);
-  // Record jitter
-  if (iteration > _rttest_sample_buffer.buffer_size)
+  int rttest_record_jitter(const struct timespec *deadline,
+      const struct timespec *result_time, const unsigned int iteration)
   {
-    return -1;
+    if (timespec_gt(result_time, deadline))
+    {
+      // missed a deadline
+      return rttest_record_missed_deadline(deadline, result_time, iteration);
+    }
+    struct timespec jitter;
+    subtract_timespecs(deadline, result_time, &jitter);
+    // Record jitter
+    if (iteration > _rttest_sample_buffer.buffer_size)
+    {
+      return -1;
+    }
+    _rttest_sample_buffer.missed_deadlines[iteration] = false;
+    _rttest_sample_buffer.latency_samples[iteration] = timespec_to_long(&jitter);
+    return 0;
   }
-  _rttest_sample_buffer.missed_deadlines[iteration] = true;
-  _rttest_sample_buffer.latency_samples[iteration] = -timespec_to_long(&jitter);
-  return 0;
-}
 
-int rttest_record_jitter(struct timespec *deadline,
-    struct timespec *result_time, int iteration)
-{
-  if (timespec_gt(result_time, deadline))
+  int rttest_read_args(int argc, char** argv)
   {
-    // missed a deadline
-    return rttest_record_missed_deadline(deadline, result_time, iteration);
+    //parse arguments
+    // -i,--iterations
+    unsigned int iterations = 1000;
+    // -u,--update-period
+    struct timespec update_period;
+    update_period.tv_sec = 0;
+    update_period.tv_nsec = 1000000;
+    // -p,--plot
+    int plot = 0;
+    // -t,--thread-priority
+    int sched_priority = 80;
+    // -s,--sched-policy
+    size_t sched_policy = SCHED_RR;
+    // -m,--memory-size
+    // Don't lock memory unless stack size specified
+    int lock_memory = 0;
+    size_t stack_size = 1024*1024;
+    // -f,--filename
+    // Don't write a file unless filename specified
+    int write = 0;
+    char *filename;
+    // -r, --repeat
+    unsigned int repetitions = 1;
+    int index;
+    int c;
+
+    std::string args_string = "i:u:p:t:s:m:f:r:";
+    opterr = 0;
+
+    while ((c = getopt(argc, argv, args_string.c_str())) != -1)
+    {
+      switch(c)
+      {
+        case 'i':
+          iterations = atoi(optarg);
+          break;
+        case 'u':
+          {
+            // parse units
+            unsigned int nsec;
+            std::string input(optarg);
+            std::vector<std::string> tokens = {"ns", "us", "ms", "s"};
+            for (unsigned int i = 0; i < 4; ++i)
+            {
+              size_t idx = input.find(tokens[i]);
+              if (idx != std::string::npos)
+              {
+                nsec = stol(input.substr(0, idx)) * pow(10, i*3);
+                break;
+              }
+              if (i == 3)
+              {
+                // Default units are microseconds
+                nsec = stol(input)*1000;
+              }
+            }
+
+            long_to_timespec(nsec, &update_period);
+          }
+          break;
+        case 'p':
+          plot = 1;
+          break;
+        case 't':
+          sched_priority = atoi(optarg);
+          break;
+        case 's':
+          {
+            // translate string to number. is there a utility for this?
+            std::string input(optarg);
+            if (input == "fifo")
+            {
+              sched_policy = SCHED_FIFO;
+            }
+            else if (input == "rr")
+            {
+              sched_policy = SCHED_RR;
+            }
+            else
+            {
+              fprintf(stderr, "Invalid option entered for scheduling policy: %s\n",
+                     input.c_str());
+              fprintf(stderr, "Valid options are: fifo, rr\n");
+              exit(-1);
+            }
+          }
+          break;
+        case 'm':
+          {
+            lock_memory = 1;
+            // parse units
+            std::string input(optarg);
+            std::vector<std::string> tokens = {"b", "kb", "mb", "gb"};
+            for (unsigned int i = 0; i < 4; ++i)
+            {
+              size_t idx = input.find(tokens[i]);
+              if (idx != std::string::npos)
+              {
+                stack_size = stoi(input.substr(0, idx)) * pow(2, i*10);
+                break;
+              }
+              if (i == 3)
+              {
+                // Default units are megabytes
+                stack_size = std::stoi(input) * pow(2, 20);
+              }
+            }
+          }
+          break;
+        case 'f':
+          filename = optarg;
+          fprintf(stderr, "Writing results to file: %s\n", filename);
+          write = 1;
+          // check if file exists
+          break;
+        case 'r':
+          repetitions = atoi(optarg);
+          break;
+        case '?':
+          if (args_string.find(optopt) != std::string::npos)
+            fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+          else if (isprint(optopt))
+            fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+          else
+            fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+          break;
+        default:
+          exit(-1);
+      }
+    }
+
+    rttest_init(iterations, update_period, sched_policy, sched_priority,
+        lock_memory, stack_size, plot, write, filename, repetitions);
   }
-  struct timespec jitter;
-  subtract_timespecs(deadline, result_time, &jitter);
-  // Record jitter
-  if (iteration > _rttest_sample_buffer.buffer_size)
+
+  int rttest_init(unsigned int iterations, struct timespec update_period,
+      size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
+      int plot, int write, char *filename, unsigned int repetitions)
   {
-    return -1;
+    _rttest_params.iterations = iterations;
+    _rttest_params.update_period = update_period;
+    _rttest_params.sched_policy = sched_policy;
+    _rttest_params.sched_priority = sched_priority;
+    _rttest_params.lock_memory = lock_memory;
+    _rttest_params.stack_size = stack_size;
+    _rttest_params.plot = plot;
+    _rttest_params.write = write;
+
+    _rttest_params.filename = filename;
+    _rttest_params.reps = repetitions;
+
+    _rttest_sample_buffer.buffer_size = iterations;
+     _rttest_sample_buffer.latency_samples =
+        (int *) std::malloc(iterations*sizeof(int));
+    memset(_rttest_sample_buffer.latency_samples, 0,
+        iterations*sizeof(int));
+    _rttest_sample_buffer.missed_deadlines =
+        (bool *) std::malloc(iterations*sizeof(bool));
+    memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
+    _rttest_sample_buffer.buffer_size = iterations; 
+
+    return 0;
   }
-  _rttest_sample_buffer.missed_deadlines[iteration] = false;
-  _rttest_sample_buffer.latency_samples[iteration] = timespec_to_long(&jitter);
-  return 0;
-}
 
-int rttest_read_args(int argc, char** argv)
-{
-  //parse arguments
-}
-
-int rttest_init(unsigned long iterations, struct timespec update_period,
-    size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-    int plot, int write, char *filename)
-{
-  _rttest_params.iterations = iterations;
-  _rttest_params.update_period = update_period;
-  _rttest_params.sched_policy = sched_policy;
-  _rttest_params.sched_priority = sched_priority;
-  _rttest_params.lock_memory = lock_memory;
-  _rttest_params.stack_size = stack_size;
-  _rttest_params.plot = plot;
-  _rttest_params.write = write;
-  _rttest_params.filename = filename;
-
-  _rttest_sample_buffer.latency_samples =
-      (long *) std::malloc(iterations*sizeof(unsigned long));
-  memset(_rttest_sample_buffer.latency_samples, 0,
-      iterations*sizeof(long));
-  _rttest_sample_buffer.missed_deadlines =
-      (bool *) std::malloc(iterations*sizeof(bool));
-  memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
-  _rttest_sample_buffer.buffer_size = iterations;
-}
-
-int rttest_spin(void *(*user_function)(void *), void *args)
-{
-  return rttest_spin_period(user_function, args, &_rttest_params.update_period,
-      _rttest_params.iterations);
-}
-
-int rttest_spin_period(void *(*user_function)(void *), void *args,
-    const struct timespec *update_period, const unsigned long iterations)
-{
-  struct timespec wakeup_time, current_time;
-  clock_gettime(0, &current_time);
-  wakeup_time = current_time;
-
-  for (int i = 0; i < iterations; i++)
+  int rttest_spin(void *(*user_function)(void *), void *args)
   {
-    // Plan the next shot
-    add_timespecs(&wakeup_time, update_period, &wakeup_time);
+    return rttest_spin_period(user_function, args, &_rttest_params.update_period,
+        _rttest_params.iterations);
+  }
+
+  int rttest_spin_period(void *(*user_function)(void *), void *args,
+      const struct timespec *update_period, const unsigned int iterations)
+  {
+    struct timespec wakeup_time, current_time;
     clock_gettime(0, &current_time);
-    if (timespec_gt(&current_time, &wakeup_time))
+    wakeup_time = current_time;
+
+    for (unsigned int i = 0; i < iterations; i++)
+    {
+      // Plan the next shot
+      add_timespecs(&wakeup_time, update_period, &wakeup_time);
+      clock_gettime(0, &current_time);
+      if (timespec_gt(&current_time, &wakeup_time))
+      {
+        // Missed a deadline before we could sleep! Record it
+        rttest_record_missed_deadline(&wakeup_time, &current_time, i);
+      }
+      else
+      {
+        clock_nanosleep(0, TIMER_ABSTIME, &wakeup_time, NULL);
+        clock_gettime(0, &current_time);
+
+        rttest_record_jitter(&wakeup_time, &current_time, i);
+      }
+
+      user_function(args);
+    }
+
+    return 0;
+  }
+
+  int rttest_schedule_wakeup(void *(*user_function)(void *), void *args,
+      const struct timespec *absolute_wakeup)
+  {
+    struct timespec current_time;
+    clock_gettime(0, &current_time);
+    if (timespec_gt(&current_time, absolute_wakeup))
     {
       // Missed a deadline before we could sleep! Record it
-      rttest_record_missed_deadline(&wakeup_time, &current_time, i);
+      rttest_record_missed_deadline(absolute_wakeup, &current_time, -1);
     }
     else
     {
-      clock_nanosleep(0, TIMER_ABSTIME, &wakeup_time, NULL);
+      clock_nanosleep(0, TIMER_ABSTIME, absolute_wakeup, NULL);
       clock_gettime(0, &current_time);
 
-      rttest_record_jitter(&wakeup_time, &current_time, i);
+      rttest_record_jitter(absolute_wakeup, &current_time, -1);
     }
 
     user_function(args);
+
+    return 0;
   }
 
-  return 0;
-}
-
-int rttest_schedule_wakeup(void *(*user_function)(void *), void *args,
-    struct timespec absolute_wakeup)
-{
-  struct timespec current_time;
-  clock_gettime(0, &current_time);
-  if (timespec_gt(&current_time, &absolute_wakeup))
+  int rttest_lock_memory()
   {
-    // Missed a deadline before we could sleep! Record it
-    rttest_record_missed_deadline(&absolute_wakeup, &current_time, -1);
+    return mlockall(MCL_CURRENT | MCL_FUTURE);
   }
-  else
+
+	int rttest_lock_and_prefault_dynamic(const size_t pool_size)
+	{
+		int ret;
+		if ((ret = mlockall(MCL_CURRENT | MCL_FUTURE )) != 0)
+    {
+      return ret;
+    }
+
+    // Turn off malloc trimming.
+    mallopt (M_TRIM_THRESHOLD, -1);
+
+    // Turn off mmap usage.
+    mallopt (M_MMAP_MAX, 0);
+
+    int page_size = sysconf(_SC_PAGESIZE);
+    char *buffer = (char*) malloc(pool_size);
+    for (int i=0; i < pool_size; i+=page_size)
+    {
+      buffer[i] = 0;
+    }
+
+    free(buffer);
+		return 0;
+	}
+
+  int rttest_prefault_stack_size(const size_t stack_size)
   {
-    clock_nanosleep(0, TIMER_ABSTIME, &absolute_wakeup, NULL);
-    clock_gettime(0, &current_time);
-
-    rttest_record_jitter(&absolute_wakeup, &current_time, -1);
+    unsigned char stack[stack_size];
+    memset(stack, 0, stack_size);
+    return 0;
   }
 
-  user_function(args);
-
-  return 0;
-}
-
-int rttest_lock_memory()
-{
-  return mlockall(MCL_CURRENT | MCL_FUTURE);
-}
-
-int rttest_prefault_stack_size(const size_t stack_size)
-{
-  unsigned char stack[stack_size];
-  memset(stack, 0, stack_size);
-  // TODO: catch errors, maybe verify memset return value points to stack?
-  return 0;
-}
-
-int rttest_prefault_stack()
-{
-  return rttest_prefault_stack_size(_rttest_params.stack_size);
-}
-
-
-int rttest_set_thread_default_priority()
-{
-  return rttest_set_sched_priority(_rttest_params.sched_priority,
-      _rttest_params.sched_policy);
-}
-
-int rttest_set_sched_priority(size_t sched_priority, int policy)
-{
-  struct sched_param param;
-
-  param.sched_priority = sched_priority;
-
-  // note that sched_setscheduler can set the priority of an arbitrary process
-  return sched_setscheduler(0, policy, &param);
-}
-
-int rttest_calculate_statistics(struct rttest_results *results)
-{
-  if (results == NULL)
+  int rttest_prefault_stack()
   {
-    return -1;
+    return rttest_prefault_stack_size(_rttest_params.stack_size);
   }
 
-  std::vector<long> jitter_dataset;
-  jitter_dataset.assign(_rttest_sample_buffer.latency_samples,
-      _rttest_sample_buffer.latency_samples + _rttest_sample_buffer.buffer_size);
 
-  std::vector<long> latency_dataset(jitter_dataset.size());
-  std::copy_if(jitter_dataset.begin(), jitter_dataset.end(),
-      latency_dataset.begin(),
-      [](long sample){ return sample < 0; } );
-
-  std::vector<bool> missed_deadlines_data;
-  missed_deadlines_data.assign(_rttest_sample_buffer.missed_deadlines,
-      _rttest_sample_buffer.missed_deadlines + _rttest_sample_buffer.buffer_size);
-
-  results->min_latency = *std::min_element(latency_dataset.begin(), latency_dataset.end());
-  results->max_latency = *std::max_element(latency_dataset.begin(), latency_dataset.end());
-  results->mean_latency = std::accumulate(latency_dataset.begin(),
-      latency_dataset.end(), 0.0) / latency_dataset.size();
-  double sq_sum = std::inner_product(latency_dataset.begin(), latency_dataset.end(),
-      latency_dataset.begin(), 0.0);
-  results->latency_stddev =
-      std::sqrt(sq_sum / latency_dataset.size() - results->mean_latency * results->mean_latency);
-
-  results->min_jitter = *std::min_element(jitter_dataset.begin(), jitter_dataset.end());
-  results->max_jitter = *std::max_element(jitter_dataset.begin(), jitter_dataset.end());
-  results->mean_jitter = std::accumulate(jitter_dataset.begin(),
-      jitter_dataset.end(), 0.0) / jitter_dataset.size();
-  sq_sum = std::inner_product(jitter_dataset.begin(), jitter_dataset.end(),
-      jitter_dataset.begin(), 0.0);
-  results->jitter_stddev =
-      std::sqrt(sq_sum / jitter_dataset.size() - results->mean_jitter * results->mean_jitter);
-
-  results->missed_deadlines = std::count(missed_deadlines_data.begin(),
-      missed_deadlines_data.end(), true);
-  results->early_deadlines = missed_deadlines_data.size() - results->missed_deadlines;
-  return 0;
-}
-
-std::string rttest_results_to_string(struct rttest_results *results)
-{
-  if (!results)
+  int rttest_set_thread_default_priority()
   {
-    return "ERROR: rttest got NULL results string!";
+    return rttest_set_sched_priority(_rttest_params.sched_priority,
+        _rttest_params.sched_policy);
   }
-  std::stringstream sstring;
 
-  sstring << "rttest statistics:" << std::endl;
-  sstring << "  - Missed deadlines: " << results->missed_deadlines << std::endl;
-  sstring << "  - Early deadlines: " << results->early_deadlines << std::endl;
-  sstring << std::endl;
-  sstring << "  Latency (time after deadline was missed):" << std::endl;
-  sstring << "    - Min: " << results->min_latency << std::endl;
-  sstring << "    - Max: " << results->max_latency << std::endl;
-  sstring << "    - Mean: " << results->mean_latency << std::endl;
-  sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
-  sstring << std::endl;
-  sstring << "  Jitter (scheduling variation for early or missed deadlines):" << std::endl;
-  sstring << "    - Min: " << results->min_jitter << std::endl;
-  sstring << "    - Max: " << results->max_jitter << std::endl;
-  sstring << "    - Mean: " << results->mean_jitter << std::endl;
-  sstring << "    - Standard deviation: " << results->jitter_stddev << std::endl;
-
-  return sstring.str();
-}
-
-int rttest_finish()
-{
-  // Print statistics to screen
-  rttest_calculate_statistics(&_rttest_results);
-  std::cout << rttest_results_to_string(&_rttest_results);
-
-  if (_rttest_sample_buffer.latency_samples != NULL)
+  int rttest_set_sched_priority(size_t sched_priority, int policy)
   {
-    free(_rttest_sample_buffer.latency_samples);
+    struct sched_param param;
+
+    param.sched_priority = sched_priority;
+
+    // note that sched_setscheduler can set the priority of an arbitrary process
+    return sched_setscheduler(0, policy, &param);
   }
 
-  if (_rttest_sample_buffer.missed_deadlines != NULL)
+  int rttest_calculate_statistics(struct rttest_results *results)
   {
-    free(_rttest_sample_buffer.missed_deadlines);
+    if (results == NULL)
+    {
+      fprintf(stderr, "Need to allocate rttest_results struct\n");
+      return -1;
+    }
+    if (_rttest_sample_buffer.latency_samples == NULL)
+    {
+      fprintf(stderr, "Pointer to latency samples was NULL\n");
+      return -1;
+    }
+    if (_rttest_sample_buffer.missed_deadlines == NULL)
+    {
+      fprintf(stderr, "Pointer to missed deadlines was NULL\n");
+      return -1;
+    }
+
+    std::vector<int> jitter_dataset;
+    jitter_dataset.assign(_rttest_sample_buffer.latency_samples,
+        _rttest_sample_buffer.latency_samples + _rttest_sample_buffer.buffer_size);
+
+    std::vector<int> latency_dataset(jitter_dataset.size());
+    std::copy_if(jitter_dataset.begin(), jitter_dataset.end(),
+        latency_dataset.begin(),
+        [](int sample){ return sample < 0; } );
+
+    std::vector<bool> missed_deadlines_data;
+    missed_deadlines_data.assign(_rttest_sample_buffer.missed_deadlines,
+        _rttest_sample_buffer.missed_deadlines + _rttest_sample_buffer.buffer_size);
+
+    results->min_latency = *std::min_element(latency_dataset.begin(),
+                                             latency_dataset.end());
+    results->max_latency = *std::max_element(latency_dataset.begin(),
+                                             latency_dataset.end());
+    results->mean_latency = std::accumulate(latency_dataset.begin(),
+        latency_dataset.end(), 0.0) / latency_dataset.size();
+    double sq_sum = std::inner_product(latency_dataset.begin(), latency_dataset.end(),
+        latency_dataset.begin(), 0.0);
+    results->latency_stddev = std::sqrt(sq_sum / latency_dataset.size() -
+                                    results->mean_latency * results->mean_latency);
+
+    results->min_jitter = *std::min_element(jitter_dataset.begin(),
+                                            jitter_dataset.end());
+    results->max_jitter = *std::max_element(jitter_dataset.begin(),
+                                            jitter_dataset.end());
+    results->mean_jitter = std::accumulate(jitter_dataset.begin(),
+        jitter_dataset.end(), 0.0) / jitter_dataset.size();
+    sq_sum = std::inner_product(jitter_dataset.begin(), jitter_dataset.end(),
+        jitter_dataset.begin(), 0.0);
+    results->jitter_stddev = std::sqrt(sq_sum / jitter_dataset.size() -
+                                     results->mean_jitter * results->mean_jitter);
+
+    results->missed_deadlines = std::count(missed_deadlines_data.begin(),
+        missed_deadlines_data.end(), true);
+    results->early_deadlines =
+        missed_deadlines_data.size() - results->missed_deadlines;
+    return 0;
   }
-  return 0;
-}
 
-int rttest_write_results()
-{
-  // Format:
-  // iteration  timestamp  latency  missed_deadline? (1/0)
-
-  if (!_rttest_params.write)
+  std::string rttest_results_to_string(struct rttest_results *results)
   {
-    return -1;
+    if (!results)
+    {
+      return "ERROR: rttest got NULL results string!";
+    }
+    std::stringstream sstring;
+
+    sstring << "rttest statistics:" << std::endl;
+    sstring << "  - Missed deadlines: " << results->missed_deadlines << std::endl;
+    sstring << "  - Early deadlines: " << results->early_deadlines << std::endl;
+    sstring << std::endl;
+    sstring << "  Latency (time after deadline was missed):" << std::endl;
+    sstring << "    - Min: " << results->min_latency << std::endl;
+    sstring << "    - Max: " << results->max_latency << std::endl;
+    sstring << "    - Mean: " << results->mean_latency << std::endl;
+    sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
+    sstring << std::endl;
+    sstring << "  Jitter (scheduling variation for early or missed deadlines):"
+            << std::endl;
+    sstring << "    - Min: " << results->min_jitter << std::endl;
+    sstring << "    - Max: " << results->max_jitter << std::endl;
+    sstring << "    - Mean: " << results->mean_jitter << std::endl;
+    sstring << "    - Standard deviation: " << results->jitter_stddev << std::endl;
+
+    return sstring.str();
   }
 
-  if (_rttest_sample_buffer.latency_samples == NULL)
+  int rttest_finish()
   {
-    return -1;
+    // Print statistics to screen
+    rttest_calculate_statistics(&_rttest_results);
+    std::cout << rttest_results_to_string(&_rttest_results);
+
+
+    if (_rttest_sample_buffer.latency_samples != NULL)
+    {
+      free(_rttest_sample_buffer.latency_samples);
+    }
+
+    if (_rttest_sample_buffer.missed_deadlines != NULL)
+    {
+      free(_rttest_sample_buffer.missed_deadlines);
+    }
+
+    return 0;
   }
 
-  if (_rttest_sample_buffer.missed_deadlines == NULL)
+  int rttest_write_results()
   {
-    return -1;
+    if (!_rttest_params.write)
+    {
+      fprintf(stderr, "Write flag not set, not writing results\n");
+      return -1;
+    }
+
+    if (_rttest_sample_buffer.latency_samples == NULL)
+    {
+      fprintf(stderr, "Samples buffer was NULL, not writing results\n");
+      return -1;
+    }
+
+    if (_rttest_sample_buffer.missed_deadlines == NULL)
+    {
+      fprintf(stderr, "Deadlines buffer was NULL, not writing results\n");
+      return -1;
+    }
+
+    std::ofstream fstream(_rttest_params.filename, std::ios::out);
+
+    if (!fstream.is_open())
+    {
+      fprintf(stderr, "Couldn't open file %s, not writing results\n",
+              _rttest_params.filename);
+      return -1;
+    }
+
+    // Format:
+    // iteration  timestamp (ns)  latency  missed_deadline? (1/0)
+    fstream << "iteration timestamp latency missed_deadline" << std::endl;
+    for (unsigned int i = 0; i < _rttest_sample_buffer.buffer_size; ++i)
+    {
+      fstream << i << " " << timespec_to_long(&_rttest_params.update_period) * i
+              << " " << _rttest_sample_buffer.latency_samples[i] << " "
+              << _rttest_sample_buffer.missed_deadlines[i] << std::endl;
+    }
+
+    fstream.close();
+
+    return 0;
   }
-
-
-  return 0;
-}
-
-int rttest_plot()
-{
-  if (!_rttest_params.plot)
-  {
-    return -1;
-  }
-  return 0;
 }

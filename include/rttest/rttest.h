@@ -17,54 +17,42 @@
 
 #include <time.h>
 
-#define NSEC_PER_SEC 1000000000
-
+#ifdef __cplusplus
 extern "C"
 {
+#endif
   struct rttest_params
   {
-    unsigned long iterations;
+    unsigned int iterations;
     struct timespec update_period;
     size_t sched_policy;
     int sched_priority;
-    bool lock_memory;
+    int lock_memory;
     size_t stack_size;
     int plot;
     int write;
+    unsigned int reps;
 
     char *filename;
   };
 
-  struct rttest_sample_buffer
-  {
-    // Stored in nanoseconds
-    long *latency_samples;
-    bool *missed_deadlines;
-    // Only count major page faults
-    unsigned int pagefaults;
-
-    unsigned int buffer_size;
-  };
-
   struct rttest_results
   {
-    long min_latency;
-    long max_latency;
+    int min_latency;
+    int max_latency;
     double mean_latency;
     double latency_stddev;
 
-    long min_jitter;
-    long max_jitter;
+    int min_jitter;
+    int max_jitter;
     double mean_jitter;
     double jitter_stddev;
 
-    unsigned long missed_deadlines;
-    unsigned long early_deadlines;
+    unsigned int missed_deadlines;
+    unsigned int early_deadlines;
 
     // Total pagefaults
     unsigned long pagefaults;
-
-    // Correlation of pagefaults and 
   };
 
   /// \brief Initialize rttest with arguments
@@ -75,24 +63,25 @@ extern "C"
   /// parameters, lock memory if necessary
   /// Not real time safe.
   /// \return Error code to propagate to main
-  int rttest_init(unsigned long iterations, struct timespec update_period,
+  int rttest_init(unsigned int iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-      int plot, int write, char *filename);
+      int plot, int write, char *filename, unsigned int repetitions);
 
   /// \brief Spin at the specified wakeup period for the specified number of
-  /// iterations. rttest_spin will attempt to time the 
+  /// iterations.
   /// \param[in] user_function Function pointer to execute on wakeup
   /// \param[out] Error code to propagate to main function.
   /// \return Error code to propagate to main
   int rttest_spin(void *(*user_function)(void *), void *args);
 
+  // TODO maybe user function should return an error code
   /// \brief Spin at the specified wakeup period for the specified number of
-  /// iterations. rttest_spin will attempt to time the 
+  /// iterations. rttest_spin will attempt to time the
   /// \param[in] user_function Function pointer to execute on wakeup.
   /// \param[out] Error code to propagate to main function.
   /// \return Error code to propagate to main
   int rttest_spin_period(void *(*user_function)(void *), void *args,
-      const struct timespec *update_period, const unsigned long iterations);
+      const struct timespec *update_period, const unsigned int iterations);
 
   /// \brief Schedule a task at an absolute time. The interrupt
   /// executes the user function and compares walltime to the expected wakeup
@@ -117,8 +106,10 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_prefault_stack();
 
-  /// \brief Set the priority and scheduling policy for this thread. Uses
-  /// pthread idiom
+	/// \brief Commit a pool of dynamic memory
+	int rttest_lock_and_prefault_dynamic(const size_t pool_size);
+
+  /// \brief Set the priority and scheduling policy for this thread (pthreads)
   /// \param[in] sched_priority The scheduling priority. Max is 99.
   /// \param[in] policy The scheduling policy (FIFO, Round Robin, etc.)
   /// \return Error code to propagate to main
@@ -138,13 +129,12 @@ extern "C"
   /// \return Error code to propagate to main
   int rttest_write_results();
 
-  /// \brief Produce plots.
-  /// \return Error code to propagate to main
-  int rttest_plot();
-
   /// \brief Free memory
   /// \return Error code to propagate to main
   int rttest_finish();
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif
