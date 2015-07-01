@@ -38,8 +38,8 @@ extern "C"
   struct rttest_sample_buffer
   {
     // Stored in nanoseconds
+    // A negative latency means that the event was early (unlikely/impossible)
     int *latency_samples;
-    bool *missed_deadlines;
 
     unsigned int *major_pagefaults;
     unsigned int *minor_pagefaults;
@@ -53,38 +53,27 @@ extern "C"
   struct rttest_results _rttest_results;
   struct rusage _prev_usage;
 
-  int rttest_record_missed_deadline(const struct timespec *deadline,
-      const struct timespec *result_time, const unsigned int iteration)
-  {
-    struct timespec jitter;
-    subtract_timespecs(result_time, deadline, &jitter);
-    // Record jitter
-    if (iteration > _rttest_sample_buffer.buffer_size)
-    {
-      return -1;
-    }
-    _rttest_sample_buffer.missed_deadlines[iteration] = true;
-    _rttest_sample_buffer.latency_samples[iteration] = -timespec_to_long(&jitter);
-    return 0;
-  }
-
   int rttest_record_jitter(const struct timespec *deadline,
       const struct timespec *result_time, const unsigned int iteration)
   {
+    struct timespec jitter;
+    int parity = 1;
     if (timespec_gt(result_time, deadline))
     {
       // missed a deadline
-      return rttest_record_missed_deadline(deadline, result_time, iteration);
+      subtract_timespecs(result_time, deadline, &jitter);
     }
-    struct timespec jitter;
-    subtract_timespecs(deadline, result_time, &jitter);
+    else
+    {
+      subtract_timespecs(deadline, result_time, &jitter);
+      parity = -1;
+    }
     // Record jitter
     if (iteration > _rttest_sample_buffer.buffer_size)
     {
       return -1;
     }
-    _rttest_sample_buffer.missed_deadlines[iteration] = false;
-    _rttest_sample_buffer.latency_samples[iteration] = timespec_to_long(&jitter);
+    _rttest_sample_buffer.latency_samples[iteration] = parity*timespec_to_long(&jitter);
     return 0;
   }
 
@@ -248,17 +237,15 @@ extern "C"
     memset(_rttest_sample_buffer.latency_samples, 0,
         iterations*sizeof(int));
 
-    _rttest_sample_buffer.missed_deadlines =
-        (bool *) std::malloc(iterations*sizeof(bool));
-    memset(_rttest_sample_buffer.missed_deadlines, 0, iterations*sizeof(bool));
-
     _rttest_sample_buffer.minor_pagefaults =
         (unsigned int *) std::malloc(iterations*sizeof(unsigned int));
-    memset(_rttest_sample_buffer.minor_pagefaults, 0, iterations*sizeof(unsigned int));
+    memset(_rttest_sample_buffer.minor_pagefaults, 0,
+           iterations*sizeof(unsigned int));
 
     _rttest_sample_buffer.major_pagefaults =
         (unsigned int *) std::malloc(iterations*sizeof(unsigned int));
-    memset(_rttest_sample_buffer.major_pagefaults, 0, iterations*sizeof(unsigned int));
+    memset(_rttest_sample_buffer.major_pagefaults, 0,
+           iterations*sizeof(unsigned int));
 
     _rttest_sample_buffer.buffer_size = iterations;
 
@@ -306,12 +293,14 @@ extern "C"
     for (unsigned int i = 0; i < iterations; i++)
     {
       // Plan the next shot
+      // This seems vulnerable to clock drift
       add_timespecs(&wakeup_time, update_period, &wakeup_time);
       clock_gettime(0, &current_time);
       if (timespec_gt(&current_time, &wakeup_time))
       {
         // Missed a deadline before we could sleep! Record it
-        rttest_record_missed_deadline(&wakeup_time, &current_time, i);
+        std::cout << "Clock drift detected" << std::endl;
+        rttest_record_jitter(&wakeup_time, &current_time, i);
       }
       else
       {
@@ -336,7 +325,8 @@ extern "C"
     if (timespec_gt(&current_time, absolute_wakeup))
     {
       // Missed a deadline before we could sleep! Record it
-      rttest_record_missed_deadline(absolute_wakeup, &current_time, -1);
+      std::cout << "clock drift detected" << std::endl;
+      rttest_record_jitter(absolute_wakeup, &current_time, -1);
     }
     else
     {
@@ -347,6 +337,7 @@ extern "C"
     }
 
     user_function(args);
+    rttest_get_next_rusage(-1);
 
     return 0;
   }
@@ -422,24 +413,20 @@ extern "C"
       fprintf(stderr, "Pointer to latency samples was NULL\n");
       return -1;
     }
-    if (_rttest_sample_buffer.missed_deadlines == NULL)
+    if (_rttest_sample_buffer.minor_pagefaults == NULL)
     {
-      fprintf(stderr, "Pointer to missed deadlines was NULL\n");
+      fprintf(stderr, "Pointer to minor pagefaults was NULL\n");
+      return -1;
+    }
+    if (_rttest_sample_buffer.major_pagefaults == NULL)
+    {
+      fprintf(stderr, "Pointer to major pagefaults was NULL\n");
       return -1;
     }
 
-    std::vector<int> jitter_dataset;
-    jitter_dataset.assign(_rttest_sample_buffer.latency_samples,
+    std::vector<int> latency_dataset;
+    latency_dataset.assign(_rttest_sample_buffer.latency_samples,
         _rttest_sample_buffer.latency_samples + _rttest_sample_buffer.buffer_size);
-
-    std::vector<int> latency_dataset(jitter_dataset.size());
-    std::copy_if(jitter_dataset.begin(), jitter_dataset.end(),
-        latency_dataset.begin(),
-        [](int sample){ return sample < 0; } );
-
-    std::vector<bool> missed_deadlines_data;
-    missed_deadlines_data.assign(_rttest_sample_buffer.missed_deadlines,
-        _rttest_sample_buffer.missed_deadlines + _rttest_sample_buffer.buffer_size);
 
     results->min_latency = *std::min_element(latency_dataset.begin(),
                                              latency_dataset.end());
@@ -451,22 +438,6 @@ extern "C"
         latency_dataset.begin(), 0.0);
     results->latency_stddev = std::sqrt(sq_sum / latency_dataset.size() -
                                     results->mean_latency * results->mean_latency);
-
-    results->min_jitter = *std::min_element(jitter_dataset.begin(),
-                                            jitter_dataset.end());
-    results->max_jitter = *std::max_element(jitter_dataset.begin(),
-                                            jitter_dataset.end());
-    results->mean_jitter = std::accumulate(jitter_dataset.begin(),
-        jitter_dataset.end(), 0.0) / jitter_dataset.size();
-    sq_sum = std::inner_product(jitter_dataset.begin(), jitter_dataset.end(),
-        jitter_dataset.begin(), 0.0);
-    results->jitter_stddev = std::sqrt(sq_sum / jitter_dataset.size() -
-                                     results->mean_jitter * results->mean_jitter);
-
-    results->missed_deadlines = std::count(missed_deadlines_data.begin(),
-        missed_deadlines_data.end(), true);
-    results->early_deadlines =
-        missed_deadlines_data.size() - results->missed_deadlines;
 
     std::vector<unsigned int> min_pagefaults;
     min_pagefaults.assign(_rttest_sample_buffer.minor_pagefaults,
@@ -489,8 +460,6 @@ extern "C"
     std::stringstream sstring;
 
     sstring << "rttest statistics:" << std::endl;
-    sstring << "  - Missed deadlines: " << results->missed_deadlines << std::endl;
-    sstring << "  - Early deadlines: " << results->early_deadlines << std::endl;
     sstring << "  - Minor pagefaults: " << results->minor_pagefaults << std::endl;
     sstring << "  - Major pagefaults: " << results->major_pagefaults << std::endl;
     sstring << std::endl;
@@ -500,12 +469,6 @@ extern "C"
     sstring << "    - Mean: " << results->mean_latency << std::endl;
     sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
     sstring << std::endl;
-    sstring << "  Jitter (scheduling variation for early or missed deadlines):"
-            << std::endl;
-    sstring << "    - Min: " << results->min_jitter << std::endl;
-    sstring << "    - Max: " << results->max_jitter << std::endl;
-    sstring << "    - Mean: " << results->mean_jitter << std::endl;
-    sstring << "    - Standard deviation: " << results->jitter_stddev << std::endl;
 
     return sstring.str();
   }
@@ -522,9 +485,14 @@ extern "C"
       free(_rttest_sample_buffer.latency_samples);
     }
 
-    if (_rttest_sample_buffer.missed_deadlines != NULL)
+    if (_rttest_sample_buffer.minor_pagefaults != NULL)
     {
-      free(_rttest_sample_buffer.missed_deadlines);
+      free(_rttest_sample_buffer.minor_pagefaults);
+    }
+
+    if (_rttest_sample_buffer.major_pagefaults != NULL)
+    {
+      free(_rttest_sample_buffer.major_pagefaults);
     }
 
     return 0;
@@ -543,10 +511,14 @@ extern "C"
       fprintf(stderr, "Samples buffer was NULL, not writing results\n");
       return -1;
     }
-
-    if (_rttest_sample_buffer.missed_deadlines == NULL)
+    if (_rttest_sample_buffer.minor_pagefaults == NULL)
     {
-      fprintf(stderr, "Deadlines buffer was NULL, not writing results\n");
+      fprintf(stderr, "Samples buffer was NULL, not writing results\n");
+      return -1;
+    }
+    if (_rttest_sample_buffer.major_pagefaults == NULL)
+    {
+      fprintf(stderr, "Samples buffer was NULL, not writing results\n");
       return -1;
     }
 
@@ -559,14 +531,11 @@ extern "C"
       return -1;
     }
 
-    // Format:
-    // iteration  timestamp (ns)  latency  missed_deadline? (1/0) pagefaults
-    fstream << "iteration timestamp latency missed_deadline minor_pagefaults minor_pagefaults" << std::endl;
+    fstream << "iteration timestamp latency minor_pagefaults minor_pagefaults" << std::endl;
     for (unsigned int i = 0; i < _rttest_sample_buffer.buffer_size; ++i)
     {
       fstream << i << " " << timespec_to_long(&_rttest_params.update_period) * i
               << " " << _rttest_sample_buffer.latency_samples[i] << " "
-              << _rttest_sample_buffer.missed_deadlines[i] << " "
               << _rttest_sample_buffer.minor_pagefaults[i] << " "
               << _rttest_sample_buffer.major_pagefaults[i] << std::endl;
     }
