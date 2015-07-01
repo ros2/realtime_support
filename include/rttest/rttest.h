@@ -51,8 +51,8 @@ extern "C"
     unsigned int missed_deadlines;
     unsigned int early_deadlines;
 
-    // Total pagefaults
-    unsigned long pagefaults;
+    unsigned long minor_pagefaults;
+    unsigned long major_pagefaults;
   };
 
   /// \brief Initialize rttest with arguments
