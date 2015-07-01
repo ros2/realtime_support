@@ -43,8 +43,5 @@ int main(int argc, char** argv)
   rttest_write_results();
   rttest_finish();
 
-  // wait on results
-  getchar();
-
   return 0;
 }

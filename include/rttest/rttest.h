@@ -48,8 +48,8 @@ extern "C"
     double mean_jitter;
     double jitter_stddev;
 
-    unsigned int missed_deadlines;
-    unsigned int early_deadlines;
+    // unsigned int missed_deadlines;
+    // unsigned int early_deadlines;
 
     unsigned long minor_pagefaults;
     unsigned long major_pagefaults;
