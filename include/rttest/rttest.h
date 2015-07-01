@@ -94,6 +94,7 @@ int rttest_spin_period(void *(*user_function)(void *), void *args,
 /// \brief Schedule a task at an absolute time. The interrupt
 /// executes the user function and compares walltime to the expected wakeup
 /// time, recording the results in the sample buffer.
+/// TODO: implement asynchronous scheduling/logging
 /// \param[in] user_function Function pointer to execute on interrupt.
 /// \param[in] absolute_wakeup Scheduled interrupt time.
 /// \param[out] Error code to propagate to main function.

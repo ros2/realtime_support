@@ -486,6 +486,10 @@ extern "C"
 
   int rttest_prefault_stack()
   {
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    if (!thread_rttest_instance)
+      return -1;
+    return thread_rttest_instance->prefault_stack();
   }
 
   int Rttest::set_thread_default_priority()
@@ -634,44 +638,44 @@ extern "C"
 
   int Rttest::write_results()
   {
-    if (!Rttest::params.write)
+    if (!this->params.write)
     {
       fprintf(stderr, "Write flag not set, not writing results\n");
       return -1;
     }
 
-    if (Rttest::sample_buffer.latency_samples == NULL)
+    if (this->sample_buffer.latency_samples == NULL)
     {
       fprintf(stderr, "Samples buffer was NULL, not writing results\n");
       return -1;
     }
-    if (Rttest::sample_buffer.minor_pagefaults == NULL)
+    if (this->sample_buffer.minor_pagefaults == NULL)
     {
       fprintf(stderr, "Samples buffer was NULL, not writing results\n");
       return -1;
     }
-    if (Rttest::sample_buffer.major_pagefaults == NULL)
+    if (this->sample_buffer.major_pagefaults == NULL)
     {
       fprintf(stderr, "Samples buffer was NULL, not writing results\n");
       return -1;
     }
 
-    std::ofstream fstream(Rttest::params.filename, std::ios::out);
+    std::ofstream fstream(this->params.filename, std::ios::out);
 
     if (!fstream.is_open())
     {
       fprintf(stderr, "Couldn't open file %s, not writing results\n",
-              Rttest::params.filename);
+              this->params.filename);
       return -1;
     }
 
     fstream << "iteration timestamp latency minor_pagefaults minor_pagefaults" << std::endl;
-    for (unsigned int i = 0; i < Rttest::sample_buffer.buffer_size; ++i)
+    for (unsigned int i = 0; i < this->sample_buffer.buffer_size; ++i)
     {
-      fstream << i << " " << timespec_to_long(&Rttest::params.update_period) * i
-              << " " << Rttest::sample_buffer.latency_samples[i] << " "
-              << Rttest::sample_buffer.minor_pagefaults[i] << " "
-              << Rttest::sample_buffer.major_pagefaults[i] << std::endl;
+      fstream << i << " " << timespec_to_long(&this->params.update_period) * i
+              << " " << this->sample_buffer.latency_samples[i] << " "
+              << this->sample_buffer.minor_pagefaults[i] << " "
+              << this->sample_buffer.major_pagefaults[i] << std::endl;
     }
 
     fstream.close();
