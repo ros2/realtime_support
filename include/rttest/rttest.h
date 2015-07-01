@@ -40,6 +40,8 @@ extern "C"
     // Stored in nanoseconds
     long *latency_samples;
     bool *missed_deadlines;
+    // Only count major page faults
+    unsigned int pagefaults;
 
     unsigned int buffer_size;
   };
@@ -58,6 +60,11 @@ extern "C"
 
     unsigned long missed_deadlines;
     unsigned long early_deadlines;
+
+    // Total pagefaults
+    unsigned long pagefaults;
+
+    // Correlation of pagefaults and 
   };
 
   /// \brief Initialize rttest with arguments
