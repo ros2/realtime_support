@@ -73,7 +73,6 @@ extern "C"
       int spin_period(void *(*user_function)(void *), void *args,
           const struct timespec *update_period, const unsigned int iterations);
 
-
       int lock_memory();
 
       int prefault_stack();
@@ -89,9 +88,28 @@ extern "C"
       int write_results_file(char *filename);
 
       int finish();
+
+      struct rttest_params *get_params();
+
+      void set_params(struct rttest_params *params);
+
+      void initialize_dynamic_memory();
   };
 
+  // Global variables, for 
   std::map<pthread_t, Rttest*> rttest_instance_map;
+  pthread_t initial_thread_id = 0;
+
+  // Functions
+  void Rttest::set_params(struct rttest_params *params)
+  {
+    this->params = *params;
+  }
+
+  struct rttest_params *Rttest::get_params()
+  {
+    return &this->params;
+  }
 
   int Rttest::record_jitter(const struct timespec *deadline,
       const struct timespec *result_time, const unsigned int iteration)
@@ -264,11 +282,43 @@ extern "C"
         lock_memory, stack_size, plot, write, filename, repetitions);
   }
 
+  int rttest_init_new_thread(size_t stack_size)
+  {
+    auto thread_id = pthread_self();
+    auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
+    if (thread_rttest_instance == nullptr)
+    {
+      // Create the new Rttest instance for this thread
+      rttest_instance_map[thread_id] = new Rttest;
+    }
+    else
+    {
+      fprintf(stderr, "rttest instance for %lu already exists!\n", thread_id);
+      return -1;
+    }
+    if (initial_thread_id == 0 || rttest_instance_map.count(initial_thread_id) == 0)
+    {
+      return -1;
+    }
+    rttest_instance_map[thread_id]->set_params(
+        rttest_instance_map[initial_thread_id]->get_params());
+    rttest_instance_map[thread_id]->initialize_dynamic_memory();
+  }
+
   int rttest_read_args(int argc, char** argv)
   {
-    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    auto thread_id = pthread_self();
+    auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
     if (!thread_rttest_instance)
-      return -1;
+    {
+      // Create the new Rttest instance for this thread
+      rttest_instance_map[thread_id] = new Rttest;
+      if (rttest_instance_map.size() == 1 && initial_thread_id == 0)
+      {
+        initial_thread_id = thread_id;
+      }
+      thread_rttest_instance = rttest_instance_map[thread_id];
+    }
     return thread_rttest_instance->read_args(argc, argv);
   }
 
@@ -288,9 +338,16 @@ extern "C"
     this->params.filename = filename;
     this->params.reps = repetitions;
 
-    this->sample_buffer.buffer_size = iterations;
+    this->initialize_dynamic_memory();
 
-     this->sample_buffer.latency_samples =
+    return 0;
+  }
+
+  void Rttest::initialize_dynamic_memory()
+  {
+    unsigned int iterations = this->params.iterations;
+    this->sample_buffer.buffer_size = iterations;
+    this->sample_buffer.latency_samples =
         (int *) std::malloc(iterations*sizeof(int));
     memset(this->sample_buffer.latency_samples, 0,
         iterations*sizeof(int));
@@ -304,10 +361,6 @@ extern "C"
         (unsigned int *) std::malloc(iterations*sizeof(unsigned int));
     memset(this->sample_buffer.major_pagefaults, 0,
            iterations*sizeof(unsigned int));
-
-    this->sample_buffer.buffer_size = iterations;
-
-    return 0;
   }
 
   int rttest_init(unsigned int iterations, struct timespec update_period,
@@ -320,6 +373,10 @@ extern "C"
     {
       // Create the new Rttest instance for this thread
       rttest_instance_map[thread_id] = new Rttest;
+      if (rttest_instance_map.size() == 1 && initial_thread_id == 0)
+      {
+        initial_thread_id = thread_id;
+      }
     }
     return thread_rttest_instance->init(iterations, update_period,
       sched_policy, sched_priority, lock_memory, stack_size,
@@ -372,8 +429,6 @@ extern "C"
     clock_gettime(0, &current_time);
     wakeup_time = current_time;
 
-    // until there's more sophisticated threading logic in place, just
-    // getrusage for the whole process
     if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0)
     {
       return -1;
@@ -481,23 +536,12 @@ extern "C"
     return 0;
   }
 
-  int Rttest::prefault_stack()
-  {
-    return rttest_prefault_stack_size(this->params.stack_size);
-  }
-
   int rttest_prefault_stack()
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
     if (!thread_rttest_instance)
       return -1;
-    return thread_rttest_instance->prefault_stack();
-  }
-
-  int Rttest::set_thread_default_priority()
-  {
-    return rttest_set_sched_priority(this->params.sched_priority,
-        this->params.sched_policy);
+    return rttest_prefault_stack_size(thread_rttest_instance->get_params()->stack_size);
   }
 
   int rttest_set_thread_default_priority()
@@ -505,7 +549,9 @@ extern "C"
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
     if (!thread_rttest_instance)
       return -1;
-    return thread_rttest_instance->set_thread_default_priority();
+    return rttest_set_sched_priority(
+        thread_rttest_instance->get_params()->sched_priority,
+        thread_rttest_instance->get_params()->sched_policy);
   }
 
   int rttest_set_sched_priority(size_t sched_priority, int policy)

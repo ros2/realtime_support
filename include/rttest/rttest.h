@@ -69,8 +69,8 @@ int rttest_init(unsigned int iterations, struct timespec update_period,
     size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
     int plot, int write, char *filename, unsigned int repetitions);
 
-/// \brief Start a new thread with the given stack size and the same params as the
-/// current thread.
+/// \brief Create a new rttest instance for a new thread.
+/// To be called directly after the user creates the thread.
 int rttest_init_new_thread(size_t stack_size);
 
 /// \brief Spin at the specified wakeup period for the specified number of
