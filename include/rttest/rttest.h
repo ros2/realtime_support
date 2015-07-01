@@ -141,6 +141,10 @@ int rttest_calculate_statistics(struct rttest_results *results);
 /// \return Error code to propagate to main
 int rttest_write_results();
 
+/// \brief Write the sample buffer to a file.
+/// \return Error code to propagate to main
+int rttest_write_results_file(char *filename);
+
 /// \brief Free memory
 /// \return Error code to propagate to main
 int rttest_finish();

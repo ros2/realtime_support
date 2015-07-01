@@ -86,6 +86,8 @@ extern "C"
 
       int write_results();
 
+      int write_results_file(char *filename);
+
       int finish();
   };
 
@@ -628,6 +630,14 @@ extern "C"
     return 0;
   }
 
+  int rttest_write_results_file(char *filename)
+  {
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    if (!thread_rttest_instance)
+      return -1;
+    return thread_rttest_instance->write_results_file(filename);
+  }
+
   int rttest_write_results()
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
@@ -637,6 +647,11 @@ extern "C"
   }
 
   int Rttest::write_results()
+  {
+    this->write_results_file(this->params.filename);
+  }
+
+  int Rttest::write_results_file(char *filename)
   {
     if (!this->params.write)
     {
@@ -660,12 +675,11 @@ extern "C"
       return -1;
     }
 
-    std::ofstream fstream(this->params.filename, std::ios::out);
+    std::ofstream fstream(filename, std::ios::out);
 
     if (!fstream.is_open())
     {
-      fprintf(stderr, "Couldn't open file %s, not writing results\n",
-              this->params.filename);
+      fprintf(stderr, "Couldn't open file %s, not writing results\n", filename);
       return -1;
     }
 
