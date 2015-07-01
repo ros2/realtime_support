@@ -50,9 +50,6 @@ struct rttest_results
   double mean_jitter;
   double jitter_stddev;
 
-  // unsigned int missed_deadlines;
-  // unsigned int early_deadlines;
-
   unsigned long minor_pagefaults;
   unsigned long major_pagefaults;
 };
@@ -70,6 +67,7 @@ int rttest_init(unsigned int iterations, struct timespec update_period,
     int plot, int write, char *filename, unsigned int repetitions);
 
 /// \brief Create a new rttest instance for a new thread.
+/// The thread's parameters are based on the first thread that called rttest_init.
 /// To be called directly after the user creates the thread.
 int rttest_init_new_thread(size_t stack_size);
 
