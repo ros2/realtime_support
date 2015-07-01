@@ -21,6 +21,7 @@
 #include <string.h>
 #include <sstream>
 #include <sys/mman.h>
+#include <sys/rusage.h>
 #include <vector>
 
 #include <rttest.h>
