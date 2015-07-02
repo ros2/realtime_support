@@ -175,6 +175,7 @@ extern "C"
 
     std::string args_string = "i:u:p:t:s:m:f:r:";
     opterr = 0;
+    optind = 1;
 
     while ((c = getopt(argc, argv, args_string.c_str())) != -1)
     {
@@ -596,10 +597,14 @@ extern "C"
                                              latency_dataset.end());
     results->mean_latency = std::accumulate(latency_dataset.begin(),
         latency_dataset.end(), 0.0) / latency_dataset.size();
-    double sq_sum = std::inner_product(latency_dataset.begin(), latency_dataset.end(),
-        latency_dataset.begin(), 0.0);
-    results->latency_stddev = std::sqrt(sq_sum / latency_dataset.size() -
-                                    results->mean_latency * results->mean_latency);
+
+    // Calculate standard deviation and try to avoid overflow
+    std::vector<int> latency_diff(latency_dataset.size());
+    std::transform(latency_dataset.begin(), latency_dataset.end(), latency_diff.begin(),
+        std::bind2nd(std::minus<int>(), results->mean_latency));
+    int sq_sum = std::inner_product(latency_diff.begin(), latency_diff.end(),
+        latency_diff.begin(), 0);
+    results->latency_stddev = std::sqrt(sq_sum / latency_dataset.size());
 
     std::vector<unsigned int> min_pagefaults;
     min_pagefaults.assign(this->sample_buffer.minor_pagefaults,
