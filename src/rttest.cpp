@@ -444,8 +444,7 @@ extern "C"
       clock_gettime(0, &current_time);
       if (timespec_gt(&current_time, &wakeup_time))
       {
-        // Missed a deadline before we could sleep! Record it
-        std::cout << "Clock drift detected" << std::endl;
+        // Missed a deadline before we could sleep!
         this->record_jitter(&wakeup_time, &current_time, i);
       }
       else
