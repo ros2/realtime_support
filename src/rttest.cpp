@@ -52,7 +52,7 @@ extern "C"
     private:
       struct rttest_params params;
       struct rttest_sample_buffer sample_buffer;
-      struct rttest_results results;
+      // struct rttest_results results;
       struct rusage prev_usage;
 
       pthread_t thread_id;
@@ -96,7 +96,7 @@ extern "C"
       void initialize_dynamic_memory();
   };
 
-  // Global variables, for 
+  // Global variables, for tracking threads
   std::map<pthread_t, Rttest*> rttest_instance_map;
   pthread_t initial_thread_id = 0;
 
@@ -385,8 +385,8 @@ extern "C"
 
   int Rttest::get_next_rusage(unsigned int i)
   {
-    long prev_maj_pagefaults = this->prev_usage.ru_majflt;
-    long prev_min_pagefaults = this->prev_usage.ru_minflt;
+    unsigned int prev_maj_pagefaults = this->prev_usage.ru_majflt;
+    unsigned int prev_min_pagefaults = this->prev_usage.ru_minflt;
     if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0)
     {
       return -1;

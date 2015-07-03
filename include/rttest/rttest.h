@@ -50,8 +50,8 @@ struct rttest_results
   double mean_jitter;
   double jitter_stddev;
 
-  unsigned long minor_pagefaults;
-  unsigned long major_pagefaults;
+  unsigned int minor_pagefaults;
+  unsigned int major_pagefaults;
 };
 
 /// \brief Initialize rttest with arguments
