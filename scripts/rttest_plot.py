@@ -5,8 +5,15 @@ import numpy
 def main():
     parser = argparse.ArgumentParser(description="Plot rttest output")
     parser.add_argument('filename', metavar='filename')
+    parser.add_argument('-s', '--show', help="Show plots", action="store_true")
+    parser.add_argument('-o', '--outfile', help="Name of file to write plot output", default=None)
     args = parser.parse_args();
     filename = args.filename
+    show = args.show
+    outfile = filename + "_plot"
+    if args.outfile is not None:
+        outfile = args.outfile
+
     rawlines = []
 
     with open(filename) as f:
@@ -24,21 +31,29 @@ def main():
     pyplot.title('Scheduling latency vs. time for: ' + filename)
     pyplot.xlabel('Time (ns)')
     pyplot.ylabel('Latency (ns)')
-    pyplot.show()
+    if show:
+      pyplot.show()
+    pyplot.savefig(outfile + "_latency.svg")
     # Plot column 3 (minor pagefaults) against column 1 (time, ns)
-    pyplot.figure(1)
+    pyplot.figure(2)
     pyplot.plot(time, min_pagefaults)
     pyplot.title('Minor pagefaults vs. time for: ' + filename)
     pyplot.xlabel('Time (ns)')
     pyplot.ylabel('Minor pagefaults')
-    pyplot.show()
+    pyplot.savefig(outfile + "_minflt.svg")
+
+    if show:
+      pyplot.show()
     # Plot column 3 (major pagefaults) against column 1 (time, ns)
-    pyplot.figure(1)
+    pyplot.figure(3)
     pyplot.plot(time, maj_pagefaults)
     pyplot.title('Major pagefaults vs. time for: ' + filename)
     pyplot.xlabel('Time (ns)')
     pyplot.ylabel('Major pagefaults')
-    pyplot.show()
+    if show:
+      pyplot.show()
+    pyplot.savefig(outfile + "_majflt.svg")
+    
 
 if __name__ == "__main__":
     main()
