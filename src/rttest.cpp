@@ -52,7 +52,7 @@ extern "C"
     private:
       struct rttest_params params;
       struct rttest_sample_buffer sample_buffer;
-      // struct rttest_results results;
+      struct rttest_results results;
       struct rusage prev_usage;
 
       pthread_t thread_id;
