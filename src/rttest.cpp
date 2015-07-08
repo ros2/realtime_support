@@ -700,7 +700,7 @@ extern "C"
 
   int Rttest::write_results_file(char *filename)
   {
-    if (this->params.filename == NULL)
+    if (filename == NULL)
     {
       fprintf(stderr, "No results filename given, not writing results\n");
       return -1;
