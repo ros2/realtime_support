@@ -4,10 +4,6 @@ project(rttest_examples)
 
 find_package(rttest REQUIRED)
 
-message("library path: ${rttest_LIBRARY_DIR}")
-message("libraries: ${rttest_LIBRARIES}")
-message("headers path: ${rttest_INCLUDE_DIRS}")
-
 link_directories(${rttest_LIBRARY_DIR})
 include_directories(${rttest_INCLUDE_DIRS})
 

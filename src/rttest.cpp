@@ -66,7 +66,7 @@ extern "C"
 
       int init(unsigned int iterations, struct timespec update_period,
           size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-          int plot, int write, char *filename, unsigned int repetitions);
+          int plot, char *filename, unsigned int repetitions);
 
       int spin(void *(*user_function)(void *), void *args);
 
@@ -166,8 +166,7 @@ extern "C"
     size_t stack_size = 1024*1024;
     // -f,--filename
     // Don't write a file unless filename specified
-    int write = 0;
-    char *filename;
+    char *filename = NULL;
     // -r, --repeat
     unsigned int repetitions = 1;
     int index;
@@ -260,7 +259,6 @@ extern "C"
         case 'f':
           filename = optarg;
           fprintf(stderr, "Writing results to file: %s\n", filename);
-          write = 1;
           // check if file exists
           break;
         case 'r':
@@ -280,7 +278,7 @@ extern "C"
     }
 
     this->init(iterations, update_period, sched_policy, sched_priority,
-        lock_memory, stack_size, plot, write, filename, repetitions);
+        lock_memory, stack_size, plot, filename, repetitions);
   }
 
   int rttest_init_new_thread()
@@ -325,7 +323,7 @@ extern "C"
 
   int Rttest::init(unsigned int iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-      int plot, int write, char *filename, unsigned int repetitions)
+      int plot, char *filename, unsigned int repetitions)
   {
     this->params.iterations = iterations;
     this->params.update_period = update_period;
@@ -334,7 +332,6 @@ extern "C"
     this->params.lock_memory = lock_memory;
     this->params.stack_size = stack_size;
     this->params.plot = plot;
-    this->params.write = write;
 
     this->params.filename = filename;
     this->params.reps = repetitions;
@@ -366,7 +363,7 @@ extern "C"
 
   int rttest_init(unsigned int iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-      int plot, int write, char *filename, unsigned int repetitions)
+      int plot, char *filename, unsigned int repetitions)
   {
     auto thread_id = pthread_self();
     auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
@@ -381,7 +378,7 @@ extern "C"
     }
     return thread_rttest_instance->init(iterations, update_period,
       sched_policy, sched_priority, lock_memory, stack_size,
-      plot, write, filename, repetitions);
+      plot, filename, repetitions);
   }
 
   int Rttest::get_next_rusage(unsigned int i)
@@ -703,9 +700,9 @@ extern "C"
 
   int Rttest::write_results_file(char *filename)
   {
-    if (!this->params.write)
+    if (this->params.filename == NULL)
     {
-      fprintf(stderr, "Write flag not set, not writing results\n");
+      fprintf(stderr, "No results filename given, not writing results\n");
       return -1;
     }
 

@@ -32,7 +32,6 @@ struct rttest_params
   int lock_memory;
   size_t stack_size;
   int plot;
-  int write;
   unsigned int reps;
 
   char *filename;
@@ -64,7 +63,7 @@ int rttest_read_args(int argc, char** argv);
 /// \return Error code to propagate to main
 int rttest_init(unsigned int iterations, struct timespec update_period,
     size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-    int plot, int write, char *filename, unsigned int repetitions);
+    int plot, char *filename, unsigned int repetitions);
 
 /// \brief Create a new rttest instance for a new thread.
 /// The thread's parameters are based on the first thread that called rttest_init.
