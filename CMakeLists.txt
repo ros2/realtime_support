@@ -21,15 +21,7 @@ install(TARGETS rttest
 
 install(FILES ${PROJECT_SOURCE_DIR}/include/rttest/rttest.h ${PROJECT_SOURCE_DIR}/include/rttest/utils.h DESTINATION ${INSTALL_INCLUDE_DIR})
 
-#install(FILES cmake/rttestConfig.cmake DESTINATION ${INSTALL_CMAKE_DIR})
-
 export(PACKAGE ${PROJECT_NAME})
-
-#set(rttest_INCLUDE_DIR ${CMAKE_SOURCE_DIR})
-#set(rttest_LIB_DIR ${CMAKE_BINARY_DIR}/lib)
-#set(rttest_CMAKE_DIR ${CMAKE_BINARY_DIR})
-#configure_file(${CMAKE_PROJECT_NAME}Config.cmake.in
-#  ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake @ONLY)
 
 set(rttest_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include)
 set(rttest_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib)
