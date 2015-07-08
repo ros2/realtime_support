@@ -16,6 +16,9 @@
 #include <sched.h>
 #include <rttest/rttest.h>
 
+// #define STACK_SIZE 4096*1024*1024
+#define DYNAMIC_POOL_SIZE 1024*1024
+
 int i = 0;
 
 void my_loop_callback(void *args)
@@ -25,8 +28,7 @@ void my_loop_callback(void *args)
 
 int main(int argc, char** argv)
 {
-	rttest_set_sched_priority(90, SCHED_RR);
-	//rttest_lock_and_prefault_dynamic((5000 + 1024)*sizeof(int));
+	rttest_set_sched_priority(98, SCHED_RR);
 
 	// Result show we should wait a bit before spinning
 	// since previous call is blocking
@@ -35,10 +37,11 @@ int main(int argc, char** argv)
     perror("Couldn't read arguments for rttest");
     return -1;
   }
+	rttest_lock_and_prefault_dynamic(DYNAMIC_POOL_SIZE);
+	
+	rttest_prefault_stack();
 
   rttest_spin(my_loop_callback, NULL);
-
-  // random accesses
 
   rttest_write_results();
   rttest_finish();
