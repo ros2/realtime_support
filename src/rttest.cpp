@@ -75,6 +75,8 @@ extern "C"
 
       int lock_memory();
 
+      int lock_and_prefault_dynamic(const size_t pool_size);
+
       int prefault_stack();
 
       int set_thread_default_priority();
@@ -161,7 +163,7 @@ extern "C"
     // -s,--sched-policy
     size_t sched_policy = SCHED_RR;
     // -m,--memory-size
-    // Don't lock memory unless stack size specified
+    // Don't lock memory unless -m was set 
     int lock_memory = 0;
     size_t stack_size = 1024*1024;
     // -f,--filename
@@ -498,11 +500,33 @@ extern "C"
 
   int rttest_lock_memory()
   {
-    return mlockall(MCL_CURRENT | MCL_FUTURE);
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    if (!thread_rttest_instance)
+      return -1;
+    return thread_rttest_instance->lock_memory();
+  }
+
+  int Rttest::lock_memory()
+  {
+    if (this->params.lock_memory)
+      return mlockall(MCL_CURRENT | MCL_FUTURE);
+
+    return 0;
   }
 
   int rttest_lock_and_prefault_dynamic(const size_t pool_size)
   {
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    if (!thread_rttest_instance)
+      return -1;
+    return thread_rttest_instance->lock_and_prefault_dynamic(pool_size);
+  }
+
+  int Rttest::lock_and_prefault_dynamic(const size_t pool_size)
+  {
+    if (!this->params.lock_memory)
+      return 0;
+
     int ret;
     if ((ret = mlockall(MCL_CURRENT | MCL_FUTURE )) != 0)
     {
