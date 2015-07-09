@@ -647,7 +647,7 @@ extern "C"
     return thread_rttest_instance->calculate_statistics(results);
   }
 
-  std::string rttest_results_to_string(struct rttest_results *results)
+  std::string rttest_results_to_string(struct rttest_results *results, char *name)
   {
     if (!results)
     {
@@ -655,7 +655,15 @@ extern "C"
     }
     std::stringstream sstring;
 
-    sstring << "rttest statistics:" << std::endl;
+    sstring << "rttest statistics";
+    if (name != NULL)
+    {
+      sstring << " for " << name << ":" << std::endl;
+    }
+    else
+    {
+      sstring << ":" << std::endl;
+    }
     sstring << "  - Minor pagefaults: " << results->minor_pagefaults << std::endl;
     sstring << "  - Major pagefaults: " << results->major_pagefaults << std::endl;
     sstring << std::endl;
@@ -681,7 +689,7 @@ extern "C"
   {
     // Print statistics to screen
     this->calculate_statistics(&this->results);
-    std::cout << rttest_results_to_string(&this->results);
+    std::cout << rttest_results_to_string(&this->results, this->params.filename);
 
     if (this->sample_buffer.latency_samples != NULL)
     {

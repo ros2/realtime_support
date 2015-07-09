@@ -11,13 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #include <stdio.h>
 #include <sched.h>
-#include <rttest/rttest.h>
 
-// #define STACK_SIZE 4096*1024*1024
-#define DYNAMIC_POOL_SIZE 1024*1024
+#include "rttest/rttest.h"
 
 int i = 0;
 
@@ -30,16 +27,17 @@ int main(int argc, char** argv)
 {
 	rttest_set_sched_priority(98, SCHED_RR);
 
-	// Result show we should wait a bit before spinning
-	// since previous call is blocking
   if (rttest_read_args(argc, argv) != 0)
   {
     perror("Couldn't read arguments for rttest");
     return -1;
   }
-	rttest_lock_and_prefault_dynamic(DYNAMIC_POOL_SIZE);
-	
-	rttest_prefault_stack();
+  if (rttest_lock_memory() != 0)
+  {
+    perror("Couldn't lock memory");
+    return -1;
+  }
+  rttest_prefault_stack();
 
   rttest_spin(my_loop_callback, NULL);
 
