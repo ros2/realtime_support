@@ -666,7 +666,6 @@ extern "C"
     }
     sstring << "  - Minor pagefaults: " << results->minor_pagefaults << std::endl;
     sstring << "  - Major pagefaults: " << results->major_pagefaults << std::endl;
-    sstring << std::endl;
     sstring << "  Latency (time after deadline was missed):" << std::endl;
     sstring << "    - Min: " << results->min_latency << std::endl;
     sstring << "    - Max: " << results->max_latency << std::endl;
