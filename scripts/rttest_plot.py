@@ -31,9 +31,9 @@ def main():
     pyplot.title('Scheduling latency vs. time for: ' + filename)
     pyplot.xlabel('Time (ns)')
     pyplot.ylabel('Latency (ns)')
+    pyplot.savefig(outfile + "_latency.svg")
     if show:
       pyplot.show()
-    pyplot.savefig(outfile + "_latency.svg")
     # Plot column 3 (minor pagefaults) against column 1 (time, ns)
     pyplot.figure(2)
     pyplot.plot(time, min_pagefaults)
@@ -50,9 +50,9 @@ def main():
     pyplot.title('Major pagefaults vs. time for: ' + filename)
     pyplot.xlabel('Time (ns)')
     pyplot.ylabel('Major pagefaults')
+    pyplot.savefig(outfile + "_majflt.svg")
     if show:
       pyplot.show()
-    pyplot.savefig(outfile + "_majflt.svg")
 
 
 if __name__ == "__main__":
