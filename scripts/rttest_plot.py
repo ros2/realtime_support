@@ -53,7 +53,7 @@ def main():
     if show:
       pyplot.show()
     pyplot.savefig(outfile + "_majflt.svg")
-    
+
 
 if __name__ == "__main__":
     main()
