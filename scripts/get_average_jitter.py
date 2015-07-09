@@ -24,7 +24,7 @@ if len(argv) < 3:
 iterations = int(argv[1])
 command = argv[2:]
 
-keys = ["Min", "Max", "Mean", "Standard deviation"]
+keys = ["Minor pagefaults", "Major pagefaults", "Min", "Max", "Mean", "Standard deviation"]
 
 tally = dict(zip(keys, [0.0]*len(keys)))
 
