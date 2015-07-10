@@ -66,7 +66,7 @@ extern "C"
 
       int init(unsigned int iterations, struct timespec update_period,
           size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-          int plot, char *filename, unsigned int repetitions);
+          char *filename);
 
       int spin(void *(*user_function)(void *), void *args);
 
@@ -156,8 +156,6 @@ extern "C"
     struct timespec update_period;
     update_period.tv_sec = 0;
     update_period.tv_nsec = 1000000;
-    // -p,--plot
-    int plot = 0;
     // -t,--thread-priority
     int sched_priority = 80;
     // -s,--sched-policy
@@ -169,8 +167,6 @@ extern "C"
     // -f,--filename
     // Don't write a file unless filename specified
     char *filename = NULL;
-    // -r, --repeat
-    unsigned int repetitions = 1;
     int index;
     int c;
 
@@ -208,9 +204,6 @@ extern "C"
 
             long_to_timespec(nsec, &update_period);
           }
-          break;
-        case 'p':
-          plot = 1;
           break;
         case 't':
           sched_priority = atoi(optarg);
@@ -263,9 +256,6 @@ extern "C"
           fprintf(stderr, "Writing results to file: %s\n", filename);
           // check if file exists
           break;
-        case 'r':
-          repetitions = atoi(optarg);
-          break;
         case '?':
           if (args_string.find(optopt) != std::string::npos)
             fprintf(stderr, "Option -%c requires an argument.\n", optopt);
@@ -280,7 +270,7 @@ extern "C"
     }
 
     this->init(iterations, update_period, sched_policy, sched_priority,
-        lock_memory, stack_size, plot, filename, repetitions);
+        lock_memory, stack_size, filename);
   }
 
   int rttest_init_new_thread()
@@ -325,7 +315,7 @@ extern "C"
 
   int Rttest::init(unsigned int iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-      int plot, char *filename, unsigned int repetitions)
+      char *filename)
   {
     this->params.iterations = iterations;
     this->params.update_period = update_period;
@@ -333,10 +323,8 @@ extern "C"
     this->params.sched_priority = sched_priority;
     this->params.lock_memory = lock_memory;
     this->params.stack_size = stack_size;
-    this->params.plot = plot;
 
     this->params.filename = filename;
-    this->params.reps = repetitions;
 
     this->initialize_dynamic_memory();
 
@@ -365,7 +353,7 @@ extern "C"
 
   int rttest_init(unsigned int iterations, struct timespec update_period,
       size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-      int plot, char *filename, unsigned int repetitions)
+      char *filename)
   {
     auto thread_id = pthread_self();
     auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
@@ -379,8 +367,7 @@ extern "C"
       }
     }
     return thread_rttest_instance->init(iterations, update_period,
-      sched_policy, sched_priority, lock_memory, stack_size,
-      plot, filename, repetitions);
+      sched_policy, sched_priority, lock_memory, stack_size, filename);
   }
 
   int Rttest::get_next_rusage(unsigned int i)

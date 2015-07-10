@@ -31,8 +31,6 @@ struct rttest_params
   int sched_priority;
   int lock_memory;
   size_t stack_size;
-  int plot;
-  unsigned int reps;
 
   char *filename;
 };
@@ -54,26 +52,36 @@ struct rttest_results
 };
 
 /// \brief Initialize rttest with arguments
+/// \param[in] argc Size of argument vector
+/// \param[out] argv Argument vector
 /// \return Error code to propagate to main
 int rttest_read_args(int argc, char** argv);
 
 /// \brief Initialize rttest. Preallocate the sample buffer, store user
 /// parameters, lock memory if necessary
 /// Not real time safe.
+/// \param[in] iterations How many iterations to spin for
+/// \param[in] update_period Time interval representing the spin period
+/// \param[in] sched_policy Scheduling policy, e.g. round robin, FIFO
+/// \param[in] sched_priority The thread priority
+/// \param[in] stack_size How many bytes to prefault when
+/// rttest_prefault_stack() is called.
+/// \param[in] filename Name of the file to save results to.
 /// \return Error code to propagate to main
 int rttest_init(unsigned int iterations, struct timespec update_period,
     size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
-    int plot, char *filename, unsigned int repetitions);
+    char *filename);
 
 /// \brief Create a new rttest instance for a new thread.
 /// The thread's parameters are based on the first thread that called rttest_init.
 /// To be called directly after the user creates the thread.
+/// \return Error code to propagate to main
 int rttest_init_new_thread();
 
 /// \brief Spin at the specified wakeup period for the specified number of
 /// iterations.
 /// \param[in] user_function Function pointer to execute on wakeup
-/// \param[out] Error code to propagate to main function.
+/// \param[in] args Arguments to the function
 /// \return Error code to propagate to main
 int rttest_spin(void *(*user_function)(void *), void *args);
 
@@ -83,7 +91,9 @@ int rttest_spin(void *(*user_function)(void *), void *args);
 /// according to update_period.
 /// Call this after everything has been initialized.
 /// \param[in] user_function Function pointer to execute on wakeup.
-/// \param[out] Error code to propagate to main function.
+/// \param[in] args Arguments to the function
+/// \param[in] update_period Update period (overrides param read in rttest_init)
+/// \param[in] iterations Iterations (overrides param read in rttest_init)
 /// \return Error code to propagate to main
 int rttest_spin_period(void *(*user_function)(void *), void *args,
     const struct timespec *update_period, const unsigned int iterations);
@@ -99,12 +109,12 @@ int rttest_spin_period(void *(*user_function)(void *), void *args,
 // int rttest_schedule_wakeup(void *(*user_function)(void *), void *args,
 //    const struct timespec *absolute_wakeup);
 
-/// \brief Lock dynamic memory allocations.
+/// \brief Lock currently paged memory using mlockall.
 /// \return Error code to propagate to main
 int rttest_lock_memory();
 
 /// \brief Prefault the stack.
-/// \param stack_size The size of the stack
+/// \param[in] stack_size The size of the stack
 /// \return Error code to propagate to main
 int rttest_prefault_stack_size(const size_t stack_size);
 
@@ -113,6 +123,8 @@ int rttest_prefault_stack_size(const size_t stack_size);
 int rttest_prefault_stack();
 
 /// \brief Commit a pool of dynamic memory
+/// \param[in] stack_size The size of the pool
+/// \return Error code to propagate to main
 int rttest_lock_and_prefault_dynamic(const size_t pool_size);
 
 /// \brief Set the priority and scheduling policy for this thread (pthreads)
@@ -126,7 +138,10 @@ int rttest_set_sched_priority(const size_t sched_priority, const int policy);
 /// \return Error code to propagate to main
 int rttest_set_thread_default_priority();
 
-/// \brief Get rusage for the given iteration
+/// \brief Get rusage (pagefaults) and record in the sample buffer at a
+/// particular iteration
+/// \param[in] i Index at which to store the pagefault information.
+/// \return Error code to propagate to main
 int rttest_get_next_rusage(unsigned int i);
 
 /// \brief Calculate statistics and fill the given results struct.
@@ -139,10 +154,11 @@ int rttest_calculate_statistics(struct rttest_results *results);
 int rttest_write_results();
 
 /// \brief Write the sample buffer to a file.
+/// \param[in] Filename to store the sample buffer; overrides default param.
 /// \return Error code to propagate to main
 int rttest_write_results_file(char *filename);
 
-/// \brief Free memory
+/// \brief Free memory and cleanup
 /// \return Error code to propagate to main
 int rttest_finish();
 
