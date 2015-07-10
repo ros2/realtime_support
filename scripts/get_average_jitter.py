@@ -31,7 +31,6 @@ tally = dict(zip(keys, [0.0]*len(keys)))
 for i in range(iterations):
     stdoutput = subprocess.check_output(command)
     # Split on double newline
-    print(stdoutput)
     outputs = stdoutput.split('\n\n')
 
     for output in outputs:

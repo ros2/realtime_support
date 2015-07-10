@@ -673,6 +673,11 @@ extern "C"
 
   int Rttest::finish()
   {
+    if (this->params.lock_memory)
+    {
+      munlockall();
+    }
+
     // Print statistics to screen
     this->calculate_statistics(&this->results);
     std::cout << rttest_results_to_string(&this->results, this->params.filename);
