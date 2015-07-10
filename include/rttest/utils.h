@@ -81,5 +81,11 @@ static inline void long_to_timespec(const unsigned long input, struct timespec *
   t->tv_nsec = nsecs;
 }
 
+static inline void multiply_timespec(const struct timespec *t, const unsigned long i,
+    struct timespec *result)
+{
+  unsigned long result_nsec = i*timespec_to_long(t);
+  long_to_timespec(result_nsec, result);
+}
 
 #endif

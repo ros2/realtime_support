@@ -98,16 +98,27 @@ int rttest_spin(void *(*user_function)(void *), void *args);
 int rttest_spin_period(void *(*user_function)(void *), void *args,
     const struct timespec *update_period, const unsigned int iterations);
 
-/// \brief Schedule a task at an absolute time. The interrupt
-/// executes the user function and compares walltime to the expected wakeup
-/// time, recording the results in the sample buffer.
+/// \brief Schedule a function call based on the start time, update period,
+/// and the iteration of the spin call.
+/// The statistics of the wakeup will be collected as the 'ith' entry in the data buffer.
 /// TODO: implement asynchronous scheduling/logging
 /// \param[in] user_function Function pointer to execute on interrupt.
-/// \param[in] absolute_wakeup Scheduled interrupt time.
+/// \param[in] update_period 
 /// \param[out] Error code to propagate to main function.
 /// \return Error code to propagate to main
-// int rttest_schedule_wakeup(void *(*user_function)(void *), void *args,
-//    const struct timespec *absolute_wakeup);
+int rttest_spin_once_period(void *(*user_function)(void *), void *args,
+    const struct timespec *start_time,
+    const struct timespec *update_period, const unsigned int i);
+
+/// \brief Schedule a function call based on the start time, update period,
+/// and the iteration of the spin call.
+/// The statistics of the wakeup will be collected as the 'ith' entry in the data buffer.
+/// TODO: implement asynchronous scheduling/logging
+/// \param[in] user_function Function pointer to execute on interrupt.
+/// \param[out] Error code to propagate to main function.
+/// \return Error code to propagate to main
+int rttest_spin_once(void *(*user_function)(void *), void *args,
+    const struct timespec *start_time, const unsigned int i);
 
 /// \brief Lock currently paged memory using mlockall.
 /// \return Error code to propagate to main

@@ -73,6 +73,13 @@ extern "C"
       int spin_period(void *(*user_function)(void *), void *args,
           const struct timespec *update_period, const unsigned int iterations);
 
+      int spin_once(void *(*user_function)(void *), void *args,
+        const struct timespec *start_time, const unsigned int i);
+
+      int spin_once(void *(*user_function)(void *), void *args,
+          const struct timespec *start_time,
+          const struct timespec *update_period, const unsigned int i);
+
       int lock_memory();
 
       int lock_and_prefault_dynamic(const size_t pool_size);
@@ -403,6 +410,25 @@ extern "C"
     return thread_rttest_instance->spin(user_function, args);
   }
 
+  int rttest_spin_once_period(void *(*user_function)(void *), void *args,
+    const struct timespec *start_time,
+    const struct timespec *update_period, const unsigned int i)
+  {
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    if (!thread_rttest_instance)
+      return -1;
+    return thread_rttest_instance->spin_once(user_function, args, start_time, update_period, i);
+  }
+
+  int rttest_spin_once(void *(*user_function)(void *), void *args,
+    const struct timespec *start_time,const unsigned int i)
+  {
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    if (!thread_rttest_instance)
+      return -1;
+    return thread_rttest_instance->spin_once(user_function, args, start_time, i);
+  }
+
   int Rttest::spin(void *(*user_function)(void *), void *args)
   {
     return rttest_spin_period(user_function, args, &this->params.update_period,
@@ -412,40 +438,59 @@ extern "C"
   int Rttest::spin_period(void *(*user_function)(void *), void *args,
       const struct timespec *update_period, const unsigned int iterations)
   {
-    struct timespec wakeup_time, current_time;
-    clock_gettime(0, &current_time);
-    wakeup_time = current_time;
-
-    if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0)
-    {
-      return -1;
-    }
-    std::cout << "Initial major pagefaults: " << this->prev_usage.ru_majflt << std::endl;
-    std::cout << "Initial minor pagefaults: " << this->prev_usage.ru_minflt << std::endl;
+    struct timespec start_time;
+    clock_gettime(0, &start_time);
 
     for (unsigned int i = 0; i < iterations; i++)
     {
-      // Plan the next shot
-      // This seems vulnerable to clock drift
-      add_timespecs(&wakeup_time, update_period, &wakeup_time);
-      clock_gettime(0, &current_time);
-      if (timespec_gt(&current_time, &wakeup_time))
-      {
-        // Missed a deadline before we could sleep!
-        this->record_jitter(&wakeup_time, &current_time, i);
-      }
-      else
-      {
-        clock_nanosleep(0, TIMER_ABSTIME, &wakeup_time, NULL);
-        clock_gettime(0, &current_time);
-
-        this->record_jitter(&wakeup_time, &current_time, i);
-      }
-
-      user_function(args);
-      this->get_next_rusage(i);
+      spin_once(user_function, args, &start_time, update_period, i);
     }
 
+    return 0;
+  }
+
+  int Rttest::spin_once(void *(*user_function)(void *), void *args,
+    const struct timespec *start_time, const unsigned int i)
+  {
+    return this->spin_once(user_function, args, start_time, &this->params.update_period, i);
+  }
+
+  int Rttest::spin_once(void *(*user_function)(void *), void *args,
+    const struct timespec *start_time,
+    const struct timespec *update_period, const unsigned int i)
+  {
+    if (!start_time || !update_period)
+    {
+      return -1;
+    }
+    if (i == 0)
+    {
+      if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0)
+      {
+        return -1;
+      }
+      std::cout << "Initial major pagefaults: " << this->prev_usage.ru_majflt << std::endl;
+      std::cout << "Initial minor pagefaults: " << this->prev_usage.ru_minflt << std::endl;
+    }
+    struct timespec wakeup_time, current_time;
+    multiply_timespec(update_period, i, &wakeup_time);
+    add_timespecs(start_time, &wakeup_time, &wakeup_time);
+
+    clock_gettime(0, &current_time);
+    if (timespec_gt(&wakeup_time, &current_time))
+    {
+      this->record_jitter(&wakeup_time, &current_time, i);
+    }
+    else
+    {
+      clock_nanosleep(0, TIMER_ABSTIME, &wakeup_time, NULL);
+      clock_gettime(0, &current_time);
+
+      this->record_jitter(&wakeup_time, &current_time, i);
+    }
+
+    user_function(args);
+    this->get_next_rusage(i);
     return 0;
   }
 
@@ -457,33 +502,6 @@ extern "C"
       return -1;
     return thread_rttest_instance->spin_period(user_function, args, update_period, iterations);
   }
-
-  /*
-  int rttest_schedule_wakeup(void *(*user_function)(void *), void *args,
-      const struct timespec *absolute_wakeup)
-  {
-    struct timespec current_time;
-    clock_gettime(0, &current_time);
-    if (timespec_gt(&current_time, absolute_wakeup))
-    {
-      // Missed a deadline before we could sleep! Record it
-      std::cout << "clock drift detected" << std::endl;
-      rttest_record_jitter(absolute_wakeup, &current_time, -1);
-    }
-    else
-    {
-      clock_nanosleep(0, TIMER_ABSTIME, absolute_wakeup, NULL);
-      clock_gettime(0, &current_time);
-
-      rttest_record_jitter(absolute_wakeup, &current_time, -1);
-    }
-
-    user_function(args);
-    rttest_get_next_rusage(-1);
-
-    return 0;
-  }
-  */
 
   int rttest_lock_memory()
   {
