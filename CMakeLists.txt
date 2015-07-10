@@ -4,14 +4,28 @@ project(rttest)
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
-find_package(ament_cmake_auto QUIET)
+find_package(ament_cmake QUIET)
 
 # ament build if it was found
-if(${ament_cmake_auto_FOUND})
-  ament_auto_find_build_dependencies()
-  ament_auto_add_library(rttest ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
+if(${ament_cmake_FOUND})
   include_directories(rttest ${PROJECT_SOURCE_DIR}/include/rttest)
-  #ament_auto_package(CONFIG_EXTRAS ${CMAKE_PROJECT_NAME}Config.cmake)
+  add_library(rttest ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
+  target_link_libraries(rttest m stdc++)
+
+  ament_export_include_directories(include)
+  ament_export_libraries(rttest)
+
+  ament_package()
+
+  install(
+    DIRECTORY include/
+    DESTINATION include
+  )
+  install(
+    TARGETS rttest
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+  )
 
 else()
   message(STATUS "ament_cmake_auto not found, executing pure CMake build")
