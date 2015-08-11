@@ -72,6 +72,8 @@ int rttest_init(unsigned int iterations, struct timespec update_period,
     size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
     char *filename);
 
+int rttest_get_params(struct rttest_params *params);
+
 /// \brief Create a new rttest instance for a new thread.
 /// The thread's parameters are based on the first thread that called rttest_init.
 /// To be called directly after the user creates the thread.

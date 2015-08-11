@@ -280,6 +280,19 @@ extern "C"
         lock_memory, stack_size, filename);
   }
 
+  int rttest_get_params(struct rttest_params *params)
+  {
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+
+    if (!thread_rttest_instance)
+    {
+      return -1;
+    }
+
+    params = thread_rttest_instance->get_params();
+    return 0;
+  }
+
   int rttest_init_new_thread()
   {
     auto thread_id = pthread_self();
