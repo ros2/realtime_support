@@ -472,7 +472,7 @@ extern "C"
     const struct timespec *start_time,
     const struct timespec *update_period, const unsigned int i)
   {
-    if (!start_time || !update_period)
+    if (!start_time || !update_period || i > params.iterations)
     {
       return -1;
     }
