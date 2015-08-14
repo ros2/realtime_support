@@ -25,14 +25,14 @@ extern "C"
 // rttest can have one instance per thread!
 struct rttest_params
 {
-  unsigned int iterations;
+  unsigned int iterations = 0;
   struct timespec update_period;
-  size_t sched_policy;
-  int sched_priority;
-  int lock_memory;
-  size_t stack_size;
+  size_t sched_policy = 0;
+  int sched_priority = 0;
+  int lock_memory = 0;
+  size_t stack_size = 0;
 
-  char *filename;
+  char *filename = 0;
 };
 
 struct rttest_results
@@ -72,7 +72,10 @@ int rttest_init(unsigned int iterations, struct timespec update_period,
     size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
     char *filename);
 
-int rttest_get_params(struct rttest_params *params);
+/// \brief Fill an rttest_params struct with the current rttest params.
+/// \param[in] params Reference to the struct to fill in
+/// \return Error code
+int rttest_get_params(struct rttest_params &params);
 
 /// \brief Create a new rttest instance for a new thread.
 /// The thread's parameters are based on the first thread that called rttest_init.
@@ -135,10 +138,10 @@ int rttest_prefault_stack_size(const size_t stack_size);
 /// \return Error code to propagate to main
 int rttest_prefault_stack();
 
-/// \brief Commit a pool of dynamic memory
-/// \param[in] stack_size The size of the pool
+/// \brief Commit a pool of dynamic memory based on the memory already cached
+/// by this process by checking the number of pagefaults.
 /// \return Error code to propagate to main
-int rttest_lock_and_prefault_dynamic(const size_t pool_size);
+int rttest_lock_and_prefault_dynamic();
 
 /// \brief Set the priority and scheduling policy for this thread (pthreads)
 /// \param[in] sched_priority The scheduling priority. Max is 99.

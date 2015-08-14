@@ -82,7 +82,7 @@ extern "C"
 
       int lock_memory();
 
-      int lock_and_prefault_dynamic(const size_t pool_size);
+      int lock_and_prefault_dynamic();
 
       int prefault_stack();
 
@@ -117,7 +117,7 @@ extern "C"
 
   struct rttest_params *Rttest::get_params()
   {
-    return &this->params;
+    return &(this->params);
   }
 
   int Rttest::record_jitter(const struct timespec *deadline,
@@ -280,7 +280,7 @@ extern "C"
         lock_memory, stack_size, filename);
   }
 
-  int rttest_get_params(struct rttest_params *params)
+  int rttest_get_params(struct rttest_params &params_in)
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
 
@@ -289,7 +289,7 @@ extern "C"
       return -1;
     }
 
-    params = thread_rttest_instance->get_params();
+    params_in = *thread_rttest_instance->get_params();
     return 0;
   }
 
@@ -452,11 +452,14 @@ extern "C"
       const struct timespec *update_period, const unsigned int iterations)
   {
     struct timespec start_time;
-    clock_gettime(0, &start_time);
+    clock_gettime(CLOCK_REALTIME, &start_time);
 
     for (unsigned int i = 0; i < iterations; i++)
     {
-      spin_once(user_function, args, &start_time, update_period, i);
+      if (spin_once(user_function, args, &start_time, update_period, i) != 0)
+      {
+        throw std::runtime_error("error in spin_once");
+      }
     }
 
     return 0;
@@ -488,19 +491,10 @@ extern "C"
     struct timespec wakeup_time, current_time;
     multiply_timespec(update_period, i, &wakeup_time);
     add_timespecs(start_time, &wakeup_time, &wakeup_time);
+    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &wakeup_time, NULL);
+    clock_gettime(CLOCK_REALTIME, &current_time);
 
-    clock_gettime(0, &current_time);
-    if (timespec_gt(&wakeup_time, &current_time))
-    {
-      this->record_jitter(&wakeup_time, &current_time, i);
-    }
-    else
-    {
-      clock_nanosleep(0, TIMER_ABSTIME, &wakeup_time, NULL);
-      clock_gettime(0, &current_time);
-
-      this->record_jitter(&wakeup_time, &current_time, i);
-    }
+    this->record_jitter(&wakeup_time, &current_time, i);
 
     user_function(args);
     this->get_next_rusage(i);
@@ -532,40 +526,58 @@ extern "C"
     return 0;
   }
 
-  int rttest_lock_and_prefault_dynamic(const size_t pool_size)
+  int rttest_lock_and_prefault_dynamic()
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
     if (!thread_rttest_instance)
       return -1;
-    return thread_rttest_instance->lock_and_prefault_dynamic(pool_size);
+    return thread_rttest_instance->lock_and_prefault_dynamic();
   }
 
-  int Rttest::lock_and_prefault_dynamic(const size_t pool_size)
+  int Rttest::lock_and_prefault_dynamic()
   {
-    if (!this->params.lock_memory)
-      return 0;
-
     int ret;
-    if ((ret = mlockall(MCL_CURRENT | MCL_FUTURE )) != 0)
+    if (mlockall(MCL_CURRENT | MCL_FUTURE ))
     {
-      return ret;
+      perror("mlockall failed");
+      return -1;
     }
 
     // Turn off malloc trimming.
-    mallopt (M_TRIM_THRESHOLD, -1);
-
-    // Turn off mmap usage.
-    mallopt (M_MMAP_MAX, 0);
-
-    int page_size = sysconf(_SC_PAGESIZE);
-    char *buffer = (char*) malloc(pool_size);
-    for (int i=0; i < pool_size; i+=page_size)
+    if (mallopt (M_TRIM_THRESHOLD, -1) == 0)
     {
-      buffer[i] = 0;
+      perror("mallopt for trim threshold failed");
+      return -1;
     }
 
-    free(buffer);
-    return 0;
+    // Turn off mmap usage.
+    if (mallopt (M_MMAP_MAX, 0) == 0)
+    {
+      perror("mallopt for mmap failed");
+      return 1;
+    }
+
+    struct rusage usage;
+    size_t page_size = sysconf(_SC_PAGESIZE);
+    getrusage(RUSAGE_SELF, &usage);
+    std::vector<char*> prefaulter;
+    size_t prev_minflts = usage.ru_minflt;
+    size_t prev_majflts = usage.ru_majflt;
+    size_t encountered_minflts = 1;
+    size_t encountered_majflts = 1;
+    // prefault until you see no more pagefaults
+    while (encountered_minflts > 0 || encountered_majflts > 0) {
+      prefaulter.push_back(static_cast<char*>(malloc(64*page_size)));
+      getrusage(RUSAGE_SELF, &usage);
+      encountered_minflts = usage.ru_minflt - prev_minflts;
+      encountered_majflts = usage.ru_majflt - prev_majflts;
+      prev_minflts = usage.ru_minflt;
+      prev_majflts = usage.ru_majflt;
+    }
+
+    for (auto & ptr : prefaulter) {
+      std::free(ptr);
+    }
   }
 
   int rttest_prefault_stack_size(const size_t stack_size)
