@@ -635,6 +635,7 @@ extern "C"
     return sched_setscheduler(0, policy, &param);
   }
 
+  // TODO consider tracking min, max. mean statistics cumulatively
   int Rttest::calculate_statistics(struct rttest_results *results)
   {
     if (results == NULL)

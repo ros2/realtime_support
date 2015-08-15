@@ -42,11 +42,6 @@ struct rttest_results
   double mean_latency;
   double latency_stddev;
 
-  int min_jitter;
-  int max_jitter;
-  double mean_jitter;
-  double jitter_stddev;
-
   unsigned int minor_pagefaults;
   unsigned int major_pagefaults;
 };
