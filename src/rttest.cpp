@@ -62,6 +62,8 @@ extern "C"
 
 
     public:
+      bool running = false;
+
       int read_args(int argc, char** argv);
 
       int init(unsigned int iterations, struct timespec update_period,
@@ -168,8 +170,8 @@ extern "C"
     // -s,--sched-policy
     size_t sched_policy = SCHED_RR;
     // -m,--memory-size
-    // Don't lock memory unless -m was set 
-    int lock_memory = 0;
+    // allow memory locking by default
+    int lock_memory = 1;
     size_t stack_size = 1024*1024;
     // -f,--filename
     // Don't write a file unless filename specified
@@ -347,7 +349,7 @@ extern "C"
     this->params.filename = filename;
 
     this->initialize_dynamic_memory();
-
+    this->running = true;
     return 0;
   }
 
@@ -454,11 +456,26 @@ extern "C"
     struct timespec start_time;
     clock_gettime(CLOCK_REALTIME, &start_time);
 
-    for (unsigned int i = 0; i < iterations; i++)
+    if (iterations == 0)
     {
-      if (spin_once(user_function, args, &start_time, update_period, i) != 0)
+      size_t i = 0;
+      while (this->running)
       {
-        throw std::runtime_error("error in spin_once");
+        if (spin_once(user_function, args, &start_time, update_period, i) != 0)
+        {
+          throw std::runtime_error("error in spin_once");
+        }
+        ++i;
+      }
+    }
+    else
+    {
+      for (unsigned int i = 0; i < iterations; i++)
+      {
+        if (spin_once(user_function, args, &start_time, update_period, i) != 0)
+        {
+          throw std::runtime_error("error in spin_once");
+        }
       }
     }
 
@@ -536,7 +553,10 @@ extern "C"
 
   int Rttest::lock_and_prefault_dynamic()
   {
-    int ret;
+    if (!params.lock_memory)
+    {
+      return -1;
+    }
     if (mlockall(MCL_CURRENT | MCL_FUTURE ))
     {
       perror("mlockall failed");
@@ -716,6 +736,7 @@ extern "C"
 
   int Rttest::finish()
   {
+    this->running = false;
     if (this->params.lock_memory)
     {
       munlockall();
@@ -808,5 +829,13 @@ extern "C"
     fstream.close();
 
     return 0;
+  }
+
+  int rttest_running()
+  {
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    if (!thread_rttest_instance)
+      return -1;
+    return thread_rttest_instance->running;
   }
 }

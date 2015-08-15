@@ -178,6 +178,11 @@ int rttest_write_results_file(char *filename);
 /// \return Error code to propagate to main
 int rttest_finish();
 
+/// \brief Check if the rttest instance is running (ready to collect data or
+/// collecting data)
+/// \return 0 if the instance is not running, 1 if it is running.
+int rttest_running();
+
 #ifdef __cplusplus
 }
 #endif
