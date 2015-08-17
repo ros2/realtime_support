@@ -588,8 +588,6 @@ extern "C"
       prev_minflts = current_minflt;
       prev_majflts = current_majflt;
     }
-    char * ptr = static_cast<char*>(calloc(64*page_size, sizeof(char)));
-    prefaulter.push_back(ptr);
 
     for (auto & ptr : prefaulter) {
       std::free(ptr);
@@ -747,9 +745,9 @@ extern "C"
     sstring << "  - Minor pagefaults: " << results->minor_pagefaults << std::endl;
     sstring << "  - Major pagefaults: " << results->major_pagefaults << std::endl;
     sstring << "  Latency (time after deadline was missed):" << std::endl;
-    sstring << "    - Min: " << results->min_latency << std::endl;
-    sstring << "    - Max: " << results->max_latency << std::endl;
-    sstring << "    - Mean: " << results->mean_latency << std::endl;
+    sstring << "    - Min: " << results->min_latency << " ns" << std::endl;
+    sstring << "    - Max: " << results->max_latency << " ns" << std::endl;
+    sstring << "    - Mean: " << results->mean_latency << " ns" << std::endl;
     sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
     sstring << std::endl;
 
