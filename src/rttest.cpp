@@ -41,10 +41,10 @@ extern "C"
     // A negative latency means that the event was early (unlikely/impossible)
     int *latency_samples;
 
-    unsigned int *major_pagefaults;
-    unsigned int *minor_pagefaults;
+    size_t *major_pagefaults;
+    size_t *minor_pagefaults;
 
-    unsigned int buffer_size;
+    size_t buffer_size;
   };
 
   class Rttest
@@ -58,29 +58,29 @@ extern "C"
       pthread_t thread_id;
 
       int record_jitter(const struct timespec *deadline,
-          const struct timespec *result_time, const unsigned int iteration);
+          const struct timespec *result_time, const size_t iteration);
 
 
     public:
-      bool running = false;
+      int running = 0;
 
       int read_args(int argc, char** argv);
 
-      int init(unsigned int iterations, struct timespec update_period,
-          size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
+      int init(size_t iterations, struct timespec update_period,
+          size_t sched_policy, int sched_priority, size_t stack_size,
           char *filename);
 
       int spin(void *(*user_function)(void *), void *args);
 
       int spin_period(void *(*user_function)(void *), void *args,
-          const struct timespec *update_period, const unsigned int iterations);
+          const struct timespec *update_period, const size_t iterations);
 
       int spin_once(void *(*user_function)(void *), void *args,
-        const struct timespec *start_time, const unsigned int i);
+        const struct timespec *start_time, const size_t i);
 
       int spin_once(void *(*user_function)(void *), void *args,
           const struct timespec *start_time,
-          const struct timespec *update_period, const unsigned int i);
+          const struct timespec *update_period, const size_t i);
 
       int lock_memory();
 
@@ -90,7 +90,7 @@ extern "C"
 
       int set_thread_default_priority();
 
-      int get_next_rusage(unsigned int i);
+      int get_next_rusage(size_t i);
 
       int calculate_statistics(struct rttest_results *results);
 
@@ -123,7 +123,7 @@ extern "C"
   }
 
   int Rttest::record_jitter(const struct timespec *deadline,
-      const struct timespec *result_time, const unsigned int iteration)
+      const struct timespec *result_time, const size_t iteration)
   {
     struct timespec jitter;
     int parity = 1;
@@ -160,7 +160,7 @@ extern "C"
   {
     //parse arguments
     // -i,--iterations
-    unsigned int iterations = 1000;
+    size_t iterations = 1000;
     // -u,--update-period
     struct timespec update_period;
     update_period.tv_sec = 0;
@@ -170,8 +170,6 @@ extern "C"
     // -s,--sched-policy
     size_t sched_policy = SCHED_RR;
     // -m,--memory-size
-    // allow memory locking by default
-    int lock_memory = 1;
     size_t stack_size = 1024*1024;
     // -f,--filename
     // Don't write a file unless filename specified
@@ -193,10 +191,10 @@ extern "C"
         case 'u':
           {
             // parse units
-            unsigned int nsec;
+            size_t nsec;
             std::string input(optarg);
             std::vector<std::string> tokens = {"ns", "us", "ms", "s"};
-            for (unsigned int i = 0; i < 4; ++i)
+            for (size_t i = 0; i < 4; ++i)
             {
               size_t idx = input.find(tokens[i]);
               if (idx != std::string::npos)
@@ -240,11 +238,10 @@ extern "C"
           break;
         case 'm':
           {
-            lock_memory = 1;
             // parse units
             std::string input(optarg);
             std::vector<std::string> tokens = {"b", "kb", "mb", "gb"};
-            for (unsigned int i = 0; i < 4; ++i)
+            for (size_t i = 0; i < 4; ++i)
             {
               size_t idx = input.find(tokens[i]);
               if (idx != std::string::npos)
@@ -279,7 +276,7 @@ extern "C"
     }
 
     this->init(iterations, update_period, sched_policy, sched_priority,
-        lock_memory, stack_size, filename);
+        stack_size, filename);
   }
 
   int rttest_get_params(struct rttest_params &params_in)
@@ -335,27 +332,26 @@ extern "C"
     return thread_rttest_instance->read_args(argc, argv);
   }
 
-  int Rttest::init(unsigned int iterations, struct timespec update_period,
-      size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
+  int Rttest::init(size_t iterations, struct timespec update_period,
+      size_t sched_policy, int sched_priority, size_t stack_size,
       char *filename)
   {
     this->params.iterations = iterations;
     this->params.update_period = update_period;
     this->params.sched_policy = sched_policy;
     this->params.sched_priority = sched_priority;
-    this->params.lock_memory = lock_memory;
     this->params.stack_size = stack_size;
 
     this->params.filename = filename;
 
     this->initialize_dynamic_memory();
-    this->running = true;
+    this->running = 1;
     return 0;
   }
 
   void Rttest::initialize_dynamic_memory()
   {
-    unsigned int iterations = this->params.iterations;
+    size_t iterations = this->params.iterations;
     this->sample_buffer.buffer_size = iterations;
     this->sample_buffer.latency_samples =
         (int *) std::malloc(iterations*sizeof(int));
@@ -363,18 +359,18 @@ extern "C"
         iterations*sizeof(int));
 
     this->sample_buffer.minor_pagefaults =
-        (unsigned int *) std::malloc(iterations*sizeof(unsigned int));
+        (size_t *) std::malloc(iterations*sizeof(size_t));
     memset(this->sample_buffer.minor_pagefaults, 0,
-           iterations*sizeof(unsigned int));
+           iterations*sizeof(size_t));
 
     this->sample_buffer.major_pagefaults =
-        (unsigned int *) std::malloc(iterations*sizeof(unsigned int));
+        (size_t *) std::malloc(iterations*sizeof(size_t));
     memset(this->sample_buffer.major_pagefaults, 0,
-           iterations*sizeof(unsigned int));
+           iterations*sizeof(size_t));
   }
 
-  int rttest_init(unsigned int iterations, struct timespec update_period,
-      size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
+  int rttest_init(size_t iterations, struct timespec update_period,
+      size_t sched_policy, int sched_priority, size_t stack_size,
       char *filename)
   {
     auto thread_id = pthread_self();
@@ -389,13 +385,13 @@ extern "C"
       }
     }
     return thread_rttest_instance->init(iterations, update_period,
-      sched_policy, sched_priority, lock_memory, stack_size, filename);
+      sched_policy, sched_priority, stack_size, filename);
   }
 
-  int Rttest::get_next_rusage(unsigned int i)
+  int Rttest::get_next_rusage(size_t i)
   {
-    unsigned int prev_maj_pagefaults = this->prev_usage.ru_majflt;
-    unsigned int prev_min_pagefaults = this->prev_usage.ru_minflt;
+    size_t prev_maj_pagefaults = this->prev_usage.ru_majflt;
+    size_t prev_min_pagefaults = this->prev_usage.ru_minflt;
     if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0)
     {
       return -1;
@@ -409,7 +405,7 @@ extern "C"
     return 0;
   }
 
-  int rttest_get_next_rusage(unsigned int i)
+  int rttest_get_next_rusage(size_t i)
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
     if (!thread_rttest_instance)
@@ -427,7 +423,7 @@ extern "C"
 
   int rttest_spin_once_period(void *(*user_function)(void *), void *args,
     const struct timespec *start_time,
-    const struct timespec *update_period, const unsigned int i)
+    const struct timespec *update_period, const size_t i)
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
     if (!thread_rttest_instance)
@@ -436,7 +432,7 @@ extern "C"
   }
 
   int rttest_spin_once(void *(*user_function)(void *), void *args,
-    const struct timespec *start_time,const unsigned int i)
+    const struct timespec *start_time,const size_t i)
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
     if (!thread_rttest_instance)
@@ -451,7 +447,7 @@ extern "C"
   }
 
   int Rttest::spin_period(void *(*user_function)(void *), void *args,
-      const struct timespec *update_period, const unsigned int iterations)
+      const struct timespec *update_period, const size_t iterations)
   {
     struct timespec start_time;
     clock_gettime(CLOCK_REALTIME, &start_time);
@@ -459,7 +455,7 @@ extern "C"
     if (iterations == 0)
     {
       size_t i = 0;
-      while (this->running)
+      while (this->running != 0)
       {
         if (spin_once(user_function, args, &start_time, update_period, i) != 0)
         {
@@ -470,7 +466,7 @@ extern "C"
     }
     else
     {
-      for (unsigned int i = 0; i < iterations; i++)
+      for (size_t i = 0; i < iterations; i++)
       {
         if (spin_once(user_function, args, &start_time, update_period, i) != 0)
         {
@@ -483,16 +479,16 @@ extern "C"
   }
 
   int Rttest::spin_once(void *(*user_function)(void *), void *args,
-    const struct timespec *start_time, const unsigned int i)
+    const struct timespec *start_time, const size_t i)
   {
     return this->spin_once(user_function, args, start_time, &this->params.update_period, i);
   }
 
   int Rttest::spin_once(void *(*user_function)(void *), void *args,
     const struct timespec *start_time,
-    const struct timespec *update_period, const unsigned int i)
+    const struct timespec *update_period, const size_t i)
   {
-    if (!start_time || !update_period || i > params.iterations)
+    if (!start_time || !update_period || (i > params.iterations && params.iterations > 0))
     {
       return -1;
     }
@@ -519,7 +515,7 @@ extern "C"
   }
 
   int rttest_spin_period(void *(*user_function)(void *), void *args,
-      const struct timespec *update_period, const unsigned int iterations)
+      const struct timespec *update_period, const size_t iterations)
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
     if (!thread_rttest_instance)
@@ -537,10 +533,7 @@ extern "C"
 
   int Rttest::lock_memory()
   {
-    if (this->params.lock_memory)
-      return mlockall(MCL_CURRENT | MCL_FUTURE);
-
-    return 0;
+    return mlockall(MCL_CURRENT | MCL_FUTURE);
   }
 
   int rttest_lock_and_prefault_dynamic()
@@ -553,28 +546,24 @@ extern "C"
 
   int Rttest::lock_and_prefault_dynamic()
   {
-    if (!params.lock_memory)
-    {
-      return -1;
-    }
-    if (mlockall(MCL_CURRENT | MCL_FUTURE ))
+    if (mlockall(MCL_CURRENT | MCL_FUTURE ) != 0)
     {
       perror("mlockall failed");
       return -1;
     }
 
     // Turn off malloc trimming.
-    if (mallopt (M_TRIM_THRESHOLD, -1) == 0)
+    if (mallopt(M_TRIM_THRESHOLD, -1) == 0)
     {
       perror("mallopt for trim threshold failed");
       return -1;
     }
 
     // Turn off mmap usage.
-    if (mallopt (M_MMAP_MAX, 0) == 0)
+    if (mallopt(M_MMAP_MAX, 0) == 0)
     {
       perror("mallopt for mmap failed");
-      return 1;
+      return -1;
     }
 
     struct rusage usage;
@@ -587,17 +576,23 @@ extern "C"
     size_t encountered_majflts = 1;
     // prefault until you see no more pagefaults
     while (encountered_minflts > 0 || encountered_majflts > 0) {
-      prefaulter.push_back(static_cast<char*>(malloc(64*page_size)));
+      char * ptr = static_cast<char*>(calloc(64*page_size, sizeof(char)));
+      prefaulter.push_back(ptr);
       getrusage(RUSAGE_SELF, &usage);
-      encountered_minflts = usage.ru_minflt - prev_minflts;
-      encountered_majflts = usage.ru_majflt - prev_majflts;
-      prev_minflts = usage.ru_minflt;
-      prev_majflts = usage.ru_majflt;
+      size_t current_minflt = usage.ru_minflt;
+      size_t current_majflt = usage.ru_majflt;
+      encountered_minflts = current_minflt - prev_minflts;
+      encountered_majflts = current_majflt - prev_majflts;
+      prev_minflts = current_minflt;
+      prev_majflts = current_majflt;
     }
+    char * ptr = static_cast<char*>(calloc(64*page_size, sizeof(char)));
+    prefaulter.push_back(ptr);
 
     for (auto & ptr : prefaulter) {
       std::free(ptr);
     }
+    return 0;
   }
 
   int rttest_prefault_stack_size(const size_t stack_size)
@@ -678,12 +673,12 @@ extern "C"
         latency_diff.begin(), 0);
     results->latency_stddev = std::sqrt(sq_sum / latency_dataset.size());
 
-    std::vector<unsigned int> min_pagefaults;
+    std::vector<size_t> min_pagefaults;
     min_pagefaults.assign(this->sample_buffer.minor_pagefaults,
         this->sample_buffer.minor_pagefaults + this->sample_buffer.buffer_size);
     results->minor_pagefaults = std::accumulate(min_pagefaults.begin(), min_pagefaults.end(), 0);
 
-    std::vector<unsigned int> maj_pagefaults;
+    std::vector<size_t> maj_pagefaults;
     maj_pagefaults.assign(this->sample_buffer.major_pagefaults,
         this->sample_buffer.major_pagefaults + this->sample_buffer.buffer_size);
     results->major_pagefaults = std::accumulate(maj_pagefaults.begin(), maj_pagefaults.end(), 0);
@@ -737,11 +732,8 @@ extern "C"
 
   int Rttest::finish()
   {
-    this->running = false;
-    if (this->params.lock_memory)
-    {
-      munlockall();
-    }
+    this->running = 0;
+    munlockall();
 
     // Print statistics to screen
     this->calculate_statistics(&this->results);
@@ -819,7 +811,7 @@ extern "C"
     }
 
     fstream << "iteration timestamp latency minor_pagefaults minor_pagefaults" << std::endl;
-    for (unsigned int i = 0; i < this->sample_buffer.buffer_size; ++i)
+    for (size_t i = 0; i < this->sample_buffer.buffer_size; ++i)
     {
       fstream << i << " " << timespec_to_long(&this->params.update_period) * i
               << " " << this->sample_buffer.latency_samples[i] << " "
@@ -836,7 +828,7 @@ extern "C"
   {
     auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
     if (!thread_rttest_instance)
-      return -1;
+      return 0;
     return thread_rttest_instance->running;
   }
 }

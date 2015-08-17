@@ -25,11 +25,10 @@ extern "C"
 // rttest can have one instance per thread!
 struct rttest_params
 {
-  unsigned int iterations = 0;
+  size_t iterations = 0;
   struct timespec update_period;
   size_t sched_policy = 0;
   int sched_priority = 0;
-  int lock_memory = 0;
   size_t stack_size = 0;
 
   char *filename = 0;
@@ -42,8 +41,8 @@ struct rttest_results
   double mean_latency;
   double latency_stddev;
 
-  unsigned int minor_pagefaults;
-  unsigned int major_pagefaults;
+  size_t minor_pagefaults;
+  size_t major_pagefaults;
 };
 
 /// \brief Initialize rttest with arguments
@@ -63,8 +62,8 @@ int rttest_read_args(int argc, char** argv);
 /// rttest_prefault_stack() is called.
 /// \param[in] filename Name of the file to save results to.
 /// \return Error code to propagate to main
-int rttest_init(unsigned int iterations, struct timespec update_period,
-    size_t sched_policy, int sched_priority, int lock_memory, size_t stack_size,
+int rttest_init(size_t iterations, struct timespec update_period,
+    size_t sched_policy, int sched_priority, size_t stack_size,
     char *filename);
 
 /// \brief Fill an rttest_params struct with the current rttest params.
@@ -96,7 +95,7 @@ int rttest_spin(void *(*user_function)(void *), void *args);
 /// \param[in] iterations Iterations (overrides param read in rttest_init)
 /// \return Error code to propagate to main
 int rttest_spin_period(void *(*user_function)(void *), void *args,
-    const struct timespec *update_period, const unsigned int iterations);
+    const struct timespec *update_period, const size_t iterations);
 
 /// \brief Schedule a function call based on the start time, update period,
 /// and the iteration of the spin call.
@@ -108,7 +107,7 @@ int rttest_spin_period(void *(*user_function)(void *), void *args,
 /// \return Error code to propagate to main
 int rttest_spin_once_period(void *(*user_function)(void *), void *args,
     const struct timespec *start_time,
-    const struct timespec *update_period, const unsigned int i);
+    const struct timespec *update_period, const size_t i);
 
 /// \brief Schedule a function call based on the start time, update period,
 /// and the iteration of the spin call.
@@ -118,7 +117,7 @@ int rttest_spin_once_period(void *(*user_function)(void *), void *args,
 /// \param[out] Error code to propagate to main function.
 /// \return Error code to propagate to main
 int rttest_spin_once(void *(*user_function)(void *), void *args,
-    const struct timespec *start_time, const unsigned int i);
+    const struct timespec *start_time, const size_t i);
 
 /// \brief Lock currently paged memory using mlockall.
 /// \return Error code to propagate to main
@@ -153,7 +152,7 @@ int rttest_set_thread_default_priority();
 /// particular iteration
 /// \param[in] i Index at which to store the pagefault information.
 /// \return Error code to propagate to main
-int rttest_get_next_rusage(unsigned int i);
+int rttest_get_next_rusage(size_t i);
 
 /// \brief Calculate statistics and fill the given results struct.
 /// \param[in] results The results struct to fill with statistics.
