@@ -16,6 +16,7 @@
 #define RTTEST_H_
 
 #include <time.h>
+#include <limits.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -36,13 +37,13 @@ struct rttest_params
 
 struct rttest_results
 {
-  int min_latency;
-  int max_latency;
-  double mean_latency;
-  double latency_stddev;
+  int min_latency = INT_MAX;
+  int max_latency = INT_MIN;
+  double mean_latency = 0;
+  double latency_stddev = 0;
 
-  size_t minor_pagefaults;
-  size_t major_pagefaults;
+  size_t minor_pagefaults = 0;
+  size_t major_pagefaults = 0;
 };
 
 /// \brief Initialize rttest with arguments
@@ -158,6 +159,9 @@ int rttest_get_next_rusage(size_t i);
 /// \param[in] results The results struct to fill with statistics.
 /// \return Error code if results struct is NULL or if calculations invalid
 int rttest_calculate_statistics(struct rttest_results *results);
+
+/// \brief Get accumulated statistics
+int rttest_get_statistics(struct rttest_results &results);
 
 /// \brief Write the sample buffer to a file.
 /// \return Error code to propagate to main

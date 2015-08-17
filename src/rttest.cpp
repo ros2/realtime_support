@@ -38,7 +38,7 @@ extern "C"
   struct rttest_sample_buffer
   {
     // Stored in nanoseconds
-    // A negative latency means that the event was early (unlikely/impossible)
+    // A negative latency means that the event was early (unlikely)
     int *latency_samples;
 
     size_t *major_pagefaults;
@@ -52,7 +52,6 @@ extern "C"
     private:
       struct rttest_params params;
       struct rttest_sample_buffer sample_buffer;
-      struct rttest_results results;
       struct rusage prev_usage;
 
       pthread_t thread_id;
@@ -60,9 +59,11 @@ extern "C"
       int record_jitter(const struct timespec *deadline,
           const struct timespec *result_time, const size_t iteration);
 
+      int accumulate_statistics(size_t iteration);
 
     public:
       int running = 0;
+      struct rttest_results results;
 
       int read_args(int argc, char** argv);
 
@@ -511,6 +512,7 @@ extern "C"
 
     user_function(args);
     this->get_next_rusage(i);
+    this->accumulate_statistics(i);
     return 0;
   }
 
@@ -630,10 +632,34 @@ extern "C"
     return sched_setscheduler(0, policy, &param);
   }
 
-  // TODO consider tracking min, max. mean statistics cumulatively
-  int Rttest::calculate_statistics(struct rttest_results *results)
+  int Rttest::accumulate_statistics(size_t iteration)
   {
-    if (results == NULL)
+    if (iteration > params.iterations)
+    {
+      return -1;
+    }
+    int latency = sample_buffer.latency_samples[iteration];
+    if (latency > this->results.max_latency)
+    {
+      this->results.max_latency = latency;
+    }
+    if (latency < this->results.min_latency)
+    {
+      this->results.min_latency = latency;
+    }
+    double mean;
+    for (size_t i = 0; i <= iteration; ++i)
+    {
+      mean += sample_buffer.latency_samples[i];
+    }
+    this->results.mean_latency = mean / (iteration + 1);
+    this->results.minor_pagefaults += sample_buffer.minor_pagefaults[iteration];
+    this->results.major_pagefaults += sample_buffer.major_pagefaults[iteration];
+  }
+
+  int Rttest::calculate_statistics(struct rttest_results *output)
+  {
+    if (output == NULL)
     {
       fprintf(stderr, "Need to allocate rttest_results struct\n");
       return -1;
@@ -658,30 +684,30 @@ extern "C"
     latency_dataset.assign(this->sample_buffer.latency_samples,
         this->sample_buffer.latency_samples + this->sample_buffer.buffer_size);
 
-    results->min_latency = *std::min_element(latency_dataset.begin(),
+    output->min_latency = *std::min_element(latency_dataset.begin(),
                                              latency_dataset.end());
-    results->max_latency = *std::max_element(latency_dataset.begin(),
+    output->max_latency = *std::max_element(latency_dataset.begin(),
                                              latency_dataset.end());
-    results->mean_latency = std::accumulate(latency_dataset.begin(),
+    output->mean_latency = std::accumulate(latency_dataset.begin(),
         latency_dataset.end(), 0.0) / latency_dataset.size();
 
     // Calculate standard deviation and try to avoid overflow
     std::vector<int> latency_diff(latency_dataset.size());
     std::transform(latency_dataset.begin(), latency_dataset.end(), latency_diff.begin(),
-        std::bind2nd(std::minus<int>(), results->mean_latency));
+        std::bind2nd(std::minus<int>(), output->mean_latency));
     int sq_sum = std::inner_product(latency_diff.begin(), latency_diff.end(),
         latency_diff.begin(), 0);
-    results->latency_stddev = std::sqrt(sq_sum / latency_dataset.size());
+    output->latency_stddev = std::sqrt(sq_sum / latency_dataset.size());
 
     std::vector<size_t> min_pagefaults;
     min_pagefaults.assign(this->sample_buffer.minor_pagefaults,
         this->sample_buffer.minor_pagefaults + this->sample_buffer.buffer_size);
-    results->minor_pagefaults = std::accumulate(min_pagefaults.begin(), min_pagefaults.end(), 0);
+    output->minor_pagefaults = std::accumulate(min_pagefaults.begin(), min_pagefaults.end(), 0);
 
     std::vector<size_t> maj_pagefaults;
     maj_pagefaults.assign(this->sample_buffer.major_pagefaults,
         this->sample_buffer.major_pagefaults + this->sample_buffer.buffer_size);
-    results->major_pagefaults = std::accumulate(maj_pagefaults.begin(), maj_pagefaults.end(), 0);
+    output->major_pagefaults = std::accumulate(maj_pagefaults.begin(), maj_pagefaults.end(), 0);
     return 0;
   }
 
@@ -691,6 +717,14 @@ extern "C"
     if (!thread_rttest_instance)
       return -1;
     return thread_rttest_instance->calculate_statistics(results);
+  }
+
+  int rttest_get_statistics(struct rttest_results &output)
+  {
+    auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+    if (!thread_rttest_instance)
+      return -1;
+    output = thread_rttest_instance->results;
   }
 
   std::string rttest_results_to_string(struct rttest_results *results, char *name)
