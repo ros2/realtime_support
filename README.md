@@ -44,11 +44,7 @@ Passing `argc` and `argv` of an instrumented main function to `rttest_read_args`
 
 -i Specify how many iterations to run the real-time loop.
 
--p Enable plotting.
-
 -tp Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the `RTTEST_SET_PRIORITY` macro.
-
--r Repeat tests (not yet implemented)
 
 ## Issues (to be transferred to tracker)
 
@@ -56,4 +52,3 @@ Passing `argc` and `argv` of an instrumented main function to `rttest_read_args`
 * Fix timestamp precision output in data
 * Implement reps options
 * Implement asynchronous samples
-* count and plot page faults/cache misses

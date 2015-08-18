@@ -451,7 +451,7 @@ extern "C"
       const struct timespec *update_period, const size_t iterations)
   {
     struct timespec start_time;
-    clock_gettime(CLOCK_REALTIME, &start_time);
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
 
     if (iterations == 0)
     {
@@ -505,8 +505,8 @@ extern "C"
     struct timespec wakeup_time, current_time;
     multiply_timespec(update_period, i, &wakeup_time);
     add_timespecs(start_time, &wakeup_time, &wakeup_time);
-    clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &wakeup_time, NULL);
-    clock_gettime(CLOCK_REALTIME, &current_time);
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeup_time, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &current_time);
 
     this->record_jitter(&wakeup_time, &current_time, i);
 
