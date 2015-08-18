@@ -32,7 +32,7 @@ struct rttest_params
   int sched_priority = 0;
   size_t stack_size = 0;
 
-  char *filename = 0;
+  char * filename = 0;
 };
 
 struct rttest_results
@@ -50,7 +50,7 @@ struct rttest_results
 /// \param[in] argc Size of argument vector
 /// \param[out] argv Argument vector
 /// \return Error code to propagate to main
-int rttest_read_args(int argc, char** argv);
+int rttest_read_args(int argc, char ** argv);
 
 /// \brief Initialize rttest. Preallocate the sample buffer, store user
 /// parameters, lock memory if necessary
@@ -64,13 +64,13 @@ int rttest_read_args(int argc, char** argv);
 /// \param[in] filename Name of the file to save results to.
 /// \return Error code to propagate to main
 int rttest_init(size_t iterations, struct timespec update_period,
-    size_t sched_policy, int sched_priority, size_t stack_size,
-    char *filename);
+  size_t sched_policy, int sched_priority, size_t stack_size,
+  char * filename);
 
 /// \brief Fill an rttest_params struct with the current rttest params.
 /// \param[in] params Reference to the struct to fill in
 /// \return Error code
-int rttest_get_params(struct rttest_params &params);
+int rttest_get_params(struct rttest_params & params);
 
 /// \brief Create a new rttest instance for a new thread.
 /// The thread's parameters are based on the first thread that called rttest_init.
@@ -83,7 +83,7 @@ int rttest_init_new_thread();
 /// \param[in] user_function Function pointer to execute on wakeup
 /// \param[in] args Arguments to the function
 /// \return Error code to propagate to main
-int rttest_spin(void *(*user_function)(void *), void *args);
+int rttest_spin(void *(*user_function)(void *), void * args);
 
 // TODO better signature for user function
 /// \brief Spin at the specified wakeup period for the specified number of
@@ -95,20 +95,20 @@ int rttest_spin(void *(*user_function)(void *), void *args);
 /// \param[in] update_period Update period (overrides param read in rttest_init)
 /// \param[in] iterations Iterations (overrides param read in rttest_init)
 /// \return Error code to propagate to main
-int rttest_spin_period(void *(*user_function)(void *), void *args,
-    const struct timespec *update_period, const size_t iterations);
+int rttest_spin_period(void *(*user_function)(void *), void * args,
+  const struct timespec * update_period, const size_t iterations);
 
 /// \brief Schedule a function call based on the start time, update period,
 /// and the iteration of the spin call.
 /// The statistics of the wakeup will be collected as the 'ith' entry in the data buffer.
 /// TODO: implement asynchronous scheduling/logging
 /// \param[in] user_function Function pointer to execute on interrupt.
-/// \param[in] update_period 
+/// \param[in] update_period
 /// \param[out] Error code to propagate to main function.
 /// \return Error code to propagate to main
-int rttest_spin_once_period(void *(*user_function)(void *), void *args,
-    const struct timespec *start_time,
-    const struct timespec *update_period, const size_t i);
+int rttest_spin_once_period(void *(*user_function)(void *), void * args,
+  const struct timespec * start_time,
+  const struct timespec * update_period, const size_t i);
 
 /// \brief Schedule a function call based on the start time, update period,
 /// and the iteration of the spin call.
@@ -117,8 +117,8 @@ int rttest_spin_once_period(void *(*user_function)(void *), void *args,
 /// \param[in] user_function Function pointer to execute on interrupt.
 /// \param[out] Error code to propagate to main function.
 /// \return Error code to propagate to main
-int rttest_spin_once(void *(*user_function)(void *), void *args,
-    const struct timespec *start_time, const size_t i);
+int rttest_spin_once(void *(*user_function)(void *), void * args,
+  const struct timespec * start_time, const size_t i);
 
 /// \brief Lock currently paged memory using mlockall.
 /// \return Error code to propagate to main
@@ -158,10 +158,10 @@ int rttest_get_next_rusage(size_t i);
 /// \brief Calculate statistics and fill the given results struct.
 /// \param[in] results The results struct to fill with statistics.
 /// \return Error code if results struct is NULL or if calculations invalid
-int rttest_calculate_statistics(struct rttest_results *results);
+int rttest_calculate_statistics(struct rttest_results * results);
 
 /// \brief Get accumulated statistics
-int rttest_get_statistics(struct rttest_results &results);
+int rttest_get_statistics(struct rttest_results & results);
 
 /// \brief Write the sample buffer to a file.
 /// \return Error code to propagate to main
@@ -170,7 +170,7 @@ int rttest_write_results();
 /// \brief Write the sample buffer to a file.
 /// \param[in] Filename to store the sample buffer; overrides default param.
 /// \return Error code to propagate to main
-int rttest_write_results_file(char *filename);
+int rttest_write_results_file(char * filename);
 
 /// \brief Free memory and cleanup
 /// \return Error code to propagate to main

@@ -18,22 +18,20 @@
 
 int i = 0;
 
-void my_loop_callback(void *args)
+void my_loop_callback(void * args)
 {
-	++i;
+  ++i;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char ** argv)
 {
-	rttest_set_sched_priority(98, SCHED_RR);
+  rttest_set_sched_priority(98, SCHED_RR);
 
-  if (rttest_read_args(argc, argv) != 0)
-  {
+  if (rttest_read_args(argc, argv) != 0) {
     perror("Couldn't read arguments for rttest");
     return -1;
   }
-  if (rttest_lock_memory() != 0)
-  {
+  if (rttest_lock_memory() != 0) {
     perror("Couldn't lock memory");
     return -1;
   }
