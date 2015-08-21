@@ -19,21 +19,19 @@
 
 #define NSEC_PER_SEC 1000000000
 
-static inline bool timespec_gt(const struct timespec *t1,
-    const struct timespec *t2)
+static inline bool timespec_gt(const struct timespec * t1,
+  const struct timespec * t2)
 {
-  if (t1->tv_sec > t2->tv_sec)
-  {
+  if (t1->tv_sec > t2->tv_sec) {
     return true;
   }
-  if (t1->tv_sec < t2->tv_sec)
-  {
+  if (t1->tv_sec < t2->tv_sec) {
     return false;
   }
   return t1->tv_nsec > t2->tv_nsec;
 }
 
-static inline void normalize_timespec(struct timespec *t)
+static inline void normalize_timespec(struct timespec * t)
 {
   // TODO: maybe could use some work
   while (t->tv_nsec >= NSEC_PER_SEC) {
@@ -42,21 +40,20 @@ static inline void normalize_timespec(struct timespec *t)
   }
 }
 
-static inline void add_timespecs(const struct timespec *t1,
-    const struct timespec *t2,
-    struct timespec *dst)
+static inline void add_timespecs(const struct timespec * t1,
+  const struct timespec * t2,
+  struct timespec * dst)
 {
   dst->tv_sec = t1->tv_sec + t2->tv_sec;
   dst->tv_nsec = t1->tv_nsec + t2->tv_nsec;
   normalize_timespec(dst);
 }
 
-static inline bool subtract_timespecs(const struct timespec *t1,
-    const struct timespec *t2,
-    struct timespec *dst)
+static inline bool subtract_timespecs(const struct timespec * t1,
+  const struct timespec * t2,
+  struct timespec * dst)
 {
-  if (timespec_gt(t2, t1))
-  {
+  if (timespec_gt(t2, t1)) {
     return subtract_timespecs(t2, t1, dst);
   }
 
@@ -67,12 +64,12 @@ static inline bool subtract_timespecs(const struct timespec *t1,
   return true;
 }
 
-static inline unsigned long timespec_to_long(const struct timespec *t)
+static inline unsigned long timespec_to_long(const struct timespec * t)
 {
   return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
 }
 
-static inline void long_to_timespec(const unsigned long input, struct timespec *t)
+static inline void long_to_timespec(const unsigned long input, struct timespec * t)
 {
   //return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
   unsigned long nsecs = input % 1000000000;
@@ -81,10 +78,10 @@ static inline void long_to_timespec(const unsigned long input, struct timespec *
   t->tv_nsec = nsecs;
 }
 
-static inline void multiply_timespec(const struct timespec *t, const unsigned long i,
-    struct timespec *result)
+static inline void multiply_timespec(const struct timespec * t, const unsigned long i,
+  struct timespec * result)
 {
-  unsigned long result_nsec = i*timespec_to_long(t);
+  unsigned long result_nsec = i * timespec_to_long(t);
   long_to_timespec(result_nsec, result);
 }
 

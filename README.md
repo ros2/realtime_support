@@ -38,19 +38,18 @@ make
 
 Passing `argc` and `argv` of an instrumented main function to `rttest_read_args` will enable command line arguments for the instrumented function.
 
--u Specify the update period. Default units are microseconds. Use the suffix "s" for seconds, "ms" for milliseconds, "us" for microseconds, and "ns" for nanoseconds. Default update period will be 1ms
+-u Specify the update period.
+Default units are microseconds.
+Use the suffix "s" for seconds, "ms" for milliseconds, "us" for microseconds, and "ns" for nanoseconds.
+Default update period is 1ms.
 
--m If enabled, enable dynamic memory allocation and lock the stack to the specified size. "b" for bytes, "kb" for kilobytes, "mb" for megabytes, "gb" for gigabytes (use with caution). Default stack size will be 1024MB.
+-m Set maximum stack prefault size for static stack prefaulting.
+"b" for bytes, "kb" for kilobytes, "mb" for megabytes, "gb" for gigabytes (use with caution).
+Default stack size is 1024MB.
 
 -i Specify how many iterations to run the real-time loop.
 
--tp Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the `RTTEST_SET_PRIORITY` macro.
+-tp Set the thread priority of all threads launched by the test program.
+Individual thread priority can be set using the `rttest_set_sched_priority` command.
 
 -f Specify the name of the file for writing the collected data. Plot this data file using the `rttest_plot.py` script provided in `scripts`.
-
-## Issues (to be transferred to tracker)
-
-* Add gtest
-* Fix timestamp precision output in data
-* Implement reps options
-* Implement asynchronous samples
