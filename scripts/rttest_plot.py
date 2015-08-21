@@ -2,12 +2,14 @@ import argparse
 import matplotlib.pyplot as pyplot
 import numpy
 
+
 def main():
     parser = argparse.ArgumentParser(description="Plot rttest output")
     parser.add_argument('filename', metavar='filename')
     parser.add_argument('-s', '--show', help="Show plots", action="store_true")
-    parser.add_argument('-o', '--outfile', help="Name of file to write plot output", default=None)
-    args = parser.parse_args();
+    parser.add_argument('-o', '--outfile',
+                        help="Name of file to write plot output", default=None)
+    args = parser.parse_args()
     filename = args.filename
     show = args.show
     outfile = filename + "_plot"
@@ -33,7 +35,7 @@ def main():
     pyplot.ylabel('Latency (ns)')
     pyplot.savefig(outfile + "_latency.svg")
     if show:
-      pyplot.show()
+        pyplot.show()
     # Plot column 3 (minor pagefaults) against column 1 (time, ns)
     pyplot.figure(2)
     pyplot.plot(time, min_pagefaults)
@@ -43,7 +45,7 @@ def main():
     pyplot.savefig(outfile + "_minflt.svg")
 
     if show:
-      pyplot.show()
+        pyplot.show()
     # Plot column 3 (major pagefaults) against column 1 (time, ns)
     pyplot.figure(3)
     pyplot.plot(time, maj_pagefaults)
@@ -52,7 +54,7 @@ def main():
     pyplot.ylabel('Major pagefaults')
     pyplot.savefig(outfile + "_majflt.svg")
     if show:
-      pyplot.show()
+        pyplot.show()
 
 
 if __name__ == "__main__":
