@@ -611,7 +611,7 @@ int Rttest::accumulate_statistics(size_t iteration)
   if (latency < this->results.min_latency) {
     this->results.min_latency = latency;
   }
-  double mean;
+  double mean = 0;
   for (size_t i = 0; i <= iteration; ++i) {
     mean += sample_buffer.latency_samples[i];
   }

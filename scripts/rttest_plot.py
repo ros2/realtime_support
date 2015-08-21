@@ -1,3 +1,17 @@
+# Copyright 2014-2015 Open Source Robotics Foundation, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
 import matplotlib.pyplot as pyplot
 import numpy
@@ -23,10 +37,10 @@ def main():
     rawlines = [line.rstrip().split(" ") for line in rawlines]
     array = numpy.array(rawlines)
     # Units for time and latency are nanoseconds
-    time = array[1:, 1].astype(long)
-    latency = numpy.absolute(array[1:, 2].astype(long))
-    min_pagefaults = array[1:, 3].astype(long)
-    maj_pagefaults = array[1:, 4].astype(long)
+    time = array[1:, 1].astype(int)
+    latency = numpy.absolute(array[1:, 2].astype(int))
+    min_pagefaults = array[1:, 3].astype(int)
+    maj_pagefaults = array[1:, 4].astype(int)
     # Plot abs( column 2 (latency, ns) ) against column 1 (time, ns)
     pyplot.figure(1)
     pyplot.plot(time, latency)
