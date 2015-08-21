@@ -46,6 +46,8 @@ Passing `argc` and `argv` of an instrumented main function to `rttest_read_args`
 
 -tp Set the thread priority of all threads launched by the test program. Individual thread priority can be set using the `RTTEST_SET_PRIORITY` macro.
 
+-f Specify the name of the file for writing the collected data. Plot this data file using the `rttest_plot.py` script provided in `scripts`.
+
 ## Issues (to be transferred to tracker)
 
 * Add gtest
