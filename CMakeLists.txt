@@ -9,9 +9,8 @@ find_package(ament_cmake QUIET)
 # ament build if it was found
 if(${ament_cmake_FOUND})
 
-  if (WIN32 OR APPLE)
+  if(WIN32 OR APPLE)
     message(STATUS "rttest is only supported on Linux, skipping...")
-    ament_package()
     return()
   endif()
 
@@ -21,6 +20,25 @@ if(${ament_cmake_FOUND})
 
   ament_export_include_directories(include)
   ament_export_libraries(rttest)
+
+  if(AMENT_ENABLE_TESTING)
+    find_package(ament_cmake_gtest REQUIRED)
+    find_package(ament_lint_auto REQUIRED)
+    ament_lint_auto_find_test_dependencies()
+
+    ament_add_gtest(
+      gtest_rttest_api
+      "test/test_api.cpp"
+      TIMEOUT 15
+    )
+    if(TARGET gtest_rttest_api)
+      target_link_libraries(gtest_rttest_api
+        ${_AMENT_EXPORT_ABSOLUTE_LIBRARIES}
+        ${_AMENT_EXPORT_LIBRARY_TARGETS})
+      add_dependencies(gtest_rttest_api ${PROJECT_NAME})
+      ament_target_dependencies(gtest_rttest_api "rttest")
+    endif()
+  endif()
 
   ament_package()
 
@@ -33,26 +51,6 @@ if(${ament_cmake_FOUND})
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
   )
-
-  if(AMENT_ENABLE_TESTING)
-    find_package(ament_cmake_gtest REQUIRED)
-    find_package(ament_lint_auto REQUIRED)
-    ament_lint_auto_find_test_dependencies()
-
-    ament_add_gtest(
-      gtest_rttest_api
-      "test/test_api.cpp"
-      TIMEOUT 15
-    )
-    if (TARGET gtest_rttest_api)
-      target_link_libraries(gtest_rttest_api
-        ${_AMENT_EXPORT_ABSOLUTE_LIBRARIES}
-        ${_AMENT_EXPORT_LIBRARY_TARGETS})
-      add_dependencies(gtest_rttest_api ${PROJECT_NAME})
-      ament_target_dependencies(gtest_rttest_api "rttest")
-    endif()
-
-  endif()
 
 else()
   message(STATUS "ament_cmake_auto not found, executing pure CMake build")

@@ -1,13 +1,29 @@
+# Copyright 2014-2015 Open Source Robotics Foundation, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
 import matplotlib.pyplot as pyplot
 import numpy
+
 
 def main():
     parser = argparse.ArgumentParser(description="Plot rttest output")
     parser.add_argument('filename', metavar='filename')
     parser.add_argument('-s', '--show', help="Show plots", action="store_true")
-    parser.add_argument('-o', '--outfile', help="Name of file to write plot output", default=None)
-    args = parser.parse_args();
+    parser.add_argument('-o', '--outfile',
+                        help="Name of file to write plot output", default=None)
+    args = parser.parse_args()
     filename = args.filename
     show = args.show
     outfile = filename + "_plot"
@@ -21,10 +37,10 @@ def main():
     rawlines = [line.rstrip().split(" ") for line in rawlines]
     array = numpy.array(rawlines)
     # Units for time and latency are nanoseconds
-    time = array[1:, 1].astype(long)
-    latency = numpy.absolute(array[1:, 2].astype(long))
-    min_pagefaults = array[1:, 3].astype(long)
-    maj_pagefaults = array[1:, 4].astype(long)
+    time = array[1:, 1].astype(int)
+    latency = numpy.absolute(array[1:, 2].astype(int))
+    min_pagefaults = array[1:, 3].astype(int)
+    maj_pagefaults = array[1:, 4].astype(int)
     # Plot abs( column 2 (latency, ns) ) against column 1 (time, ns)
     pyplot.figure(1)
     pyplot.plot(time, latency)
@@ -33,7 +49,7 @@ def main():
     pyplot.ylabel('Latency (ns)')
     pyplot.savefig(outfile + "_latency.svg")
     if show:
-      pyplot.show()
+        pyplot.show()
     # Plot column 3 (minor pagefaults) against column 1 (time, ns)
     pyplot.figure(2)
     pyplot.plot(time, min_pagefaults)
@@ -43,7 +59,7 @@ def main():
     pyplot.savefig(outfile + "_minflt.svg")
 
     if show:
-      pyplot.show()
+        pyplot.show()
     # Plot column 3 (major pagefaults) against column 1 (time, ns)
     pyplot.figure(3)
     pyplot.plot(time, maj_pagefaults)
@@ -52,7 +68,7 @@ def main():
     pyplot.ylabel('Major pagefaults')
     pyplot.savefig(outfile + "_majflt.svg")
     if show:
-      pyplot.show()
+        pyplot.show()
 
 
 if __name__ == "__main__":
