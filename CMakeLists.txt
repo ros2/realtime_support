@@ -13,13 +13,14 @@ if(${ament_cmake_FOUND})
     message(STATUS "rttest is only supported on Linux, skipping...")
     return()
   endif()
+  find_package(Threads REQUIRED)
 
   include_directories(rttest ${PROJECT_SOURCE_DIR}/include/rttest)
   add_library(rttest ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
-  target_link_libraries(rttest m stdc++)
+  target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
 
   ament_export_include_directories(include)
-  ament_export_libraries(rttest)
+  ament_export_libraries(rttest pthread)
 
   if(AMENT_ENABLE_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
@@ -62,7 +63,9 @@ else()
   set(DEF_INSTALL_CMAKE_DIR lib/cmake/rttest)
   set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "install dir for cmake files")
 
+  find_package(Threads REQUIRED)
   add_library(rttest ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
+  target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
 
   include_directories(rttest ${PROJECT_SOURCE_DIR}/include/rttest)
 
