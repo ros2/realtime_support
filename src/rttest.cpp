@@ -526,12 +526,15 @@ int Rttest::lock_and_prefault_dynamic()
   // Turn off malloc trimming.
   if (mallopt(M_TRIM_THRESHOLD, -1) == 0) {
     perror("mallopt for trim threshold failed");
+    munlockall();
     return -1;
   }
 
   // Turn off mmap usage.
   if (mallopt(M_MMAP_MAX, 0) == 0) {
     perror("mallopt for mmap failed");
+    mallopt(M_TRIM_THRESHOLD, 128 * 1024);
+    munlockall();
     return -1;
   }
 
@@ -545,7 +548,21 @@ int Rttest::lock_and_prefault_dynamic()
   size_t encountered_majflts = 1;
   // prefault until you see no more pagefaults
   while (encountered_minflts > 0 || encountered_majflts > 0) {
-    char * ptr = static_cast<char *>(calloc(64 * page_size, sizeof(char)));
+    char * ptr;
+    try {
+      ptr = new char[64 * page_size];
+    } catch (std::bad_alloc & e) {
+      fprintf(stderr, "Caught exception: %s\n", e.what());
+      fprintf(stderr, "Unlocking memory and continuing.\n");
+      for (auto & ptr : prefaulter) {
+        std::free(ptr);
+      }
+
+      mallopt(M_TRIM_THRESHOLD, 128 * 1024);
+      mallopt(M_MMAP_MAX, 65536);
+      munlockall();
+      return -1;
+    }
     prefaulter.push_back(ptr);
     getrusage(RUSAGE_SELF, &usage);
     size_t current_minflt = usage.ru_minflt;
