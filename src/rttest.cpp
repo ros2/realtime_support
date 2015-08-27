@@ -555,7 +555,7 @@ int Rttest::lock_and_prefault_dynamic()
       fprintf(stderr, "Caught exception: %s\n", e.what());
       fprintf(stderr, "Unlocking memory and continuing.\n");
       for (auto & ptr : prefaulter) {
-        std::free(ptr);
+        delete[] ptr;
       }
 
       mallopt(M_TRIM_THRESHOLD, 128 * 1024);
@@ -574,7 +574,7 @@ int Rttest::lock_and_prefault_dynamic()
   }
 
   for (auto & ptr : prefaulter) {
-    std::free(ptr);
+    delete[] ptr;
   }
   return 0;
 }
