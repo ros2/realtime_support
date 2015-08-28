@@ -2,17 +2,17 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 project(rttest)
 
+if(WIN32 OR APPLE)
+  message(STATUS "rttest is only supported on Linux, skipping...")
+  return()
+endif()
+
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
 find_package(ament_cmake QUIET)
 
 # ament build if it was found
 if(${ament_cmake_FOUND})
-
-  if(WIN32 OR APPLE)
-    message(STATUS "rttest is only supported on Linux, skipping...")
-    return()
-  endif()
   find_package(Threads REQUIRED)
 
   include_directories(rttest ${PROJECT_SOURCE_DIR}/include/rttest)
@@ -47,6 +47,12 @@ if(${ament_cmake_FOUND})
     DIRECTORY include/
     DESTINATION include
   )
+
+  install(
+    DIRECTORY scripts/
+    DESTINATION bin
+  )
+
   install(
     TARGETS rttest
     ARCHIVE DESTINATION lib
