@@ -31,6 +31,7 @@ struct rttest_params
   size_t sched_policy = 0;
   int sched_priority = 0;
   size_t stack_size = 0;
+  int record_buffer = 0;
 
   char * filename = 0;
 };

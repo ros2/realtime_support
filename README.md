@@ -48,6 +48,9 @@ Default update period is 1ms.
 Default stack size is 1024MB.
 
 -i Specify how many iterations to run the real-time loop.
+Specifying an iteration value less than or equal to 0 will cause rttest to run forever or until interrupted with Ctrl-C.
+If running forever, rttest will not save a data buffer and writing results to a file will not work.
+Default value is 1000.
 
 -tp Set the thread priority of all threads launched by the test program.
 Individual thread priority can be set using the `rttest_set_sched_priority` command.

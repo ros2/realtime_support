@@ -126,6 +126,11 @@ struct rttest_params * Rttest::get_params()
 int Rttest::record_jitter(const struct timespec * deadline,
   const struct timespec * result_time, const size_t iteration)
 {
+  size_t i = iteration;
+  // Check if settings authorize buffer recording
+  if (this->params.iterations == 0) {
+    i = 0;
+  }
   struct timespec jitter;
   int parity = 1;
   if (timespec_gt(result_time, deadline)) {
@@ -139,7 +144,7 @@ int Rttest::record_jitter(const struct timespec * deadline,
   if (iteration > this->sample_buffer.buffer_size) {
     return -1;
   }
-  this->sample_buffer.latency_samples[iteration] = parity * timespec_to_long(&jitter);
+  this->sample_buffer.latency_samples[i] = parity * timespec_to_long(&jitter);
   return 0;
 }
 
@@ -180,8 +185,15 @@ int Rttest::read_args(int argc, char ** argv)
   while ((c = getopt(argc, argv, args_string.c_str())) != -1) {
     switch (c) {
       case 'i':
-        iterations = atoi(optarg);
-        break;
+        {
+          int arg = atoi(optarg);
+          if (arg < 0) {
+            iterations = 0;
+          } else {
+            iterations = arg;
+          }
+          break;
+        }
       case 'u':
         {
           // parse units
@@ -329,6 +341,10 @@ int Rttest::init(size_t iterations, struct timespec update_period,
 void Rttest::initialize_dynamic_memory()
 {
   size_t iterations = this->params.iterations;
+  if (iterations == 0) {
+    // Allocate a sample buffer of size 1
+    iterations = 1;
+  }
   this->sample_buffer.buffer_size = iterations;
   this->sample_buffer.latency_samples =
     (int *) std::malloc(iterations * sizeof(int));
@@ -372,6 +388,9 @@ int Rttest::get_next_rusage(size_t i)
   }
   assert(this->prev_usage.ru_majflt >= prev_maj_pagefaults);
   assert(this->prev_usage.ru_minflt >= prev_min_pagefaults);
+  if (this->params.iterations == 0) {
+    i = 0;
+  }
   this->sample_buffer.major_pagefaults[i] =
     this->prev_usage.ru_majflt - prev_maj_pagefaults;
   this->sample_buffer.minor_pagefaults[i] =
@@ -618,23 +637,30 @@ int rttest_set_sched_priority(size_t sched_priority, int policy)
 
 int Rttest::accumulate_statistics(size_t iteration)
 {
-  if (iteration > params.iterations) {
+  size_t i = iteration;
+  if (params.iterations == 0) {
+    i = 0;
+  } else if (iteration > params.iterations) {
     return -1;
   }
-  int latency = sample_buffer.latency_samples[iteration];
+  int latency = sample_buffer.latency_samples[i];
   if (latency > this->results.max_latency) {
     this->results.max_latency = latency;
   }
   if (latency < this->results.min_latency) {
     this->results.min_latency = latency;
   }
-  double mean = 0;
-  for (size_t i = 0; i <= iteration; ++i) {
-    mean += sample_buffer.latency_samples[i];
+
+  if (iteration > 0) {
+    // Accumulate the mean
+    this->results.mean_latency = this->results.mean_latency +
+      (sample_buffer.latency_samples[i] - this->results.mean_latency)/(iteration+1);
+  } else {
+    // Initialize the mean
+    this->results.mean_latency = sample_buffer.latency_samples[i];
   }
-  this->results.mean_latency = mean / (iteration + 1);
-  this->results.minor_pagefaults += sample_buffer.minor_pagefaults[iteration];
-  this->results.major_pagefaults += sample_buffer.major_pagefaults[iteration];
+  this->results.minor_pagefaults += sample_buffer.minor_pagefaults[i];
+  this->results.major_pagefaults += sample_buffer.major_pagefaults[i];
 }
 
 int Rttest::calculate_statistics(struct rttest_results * output)
@@ -789,6 +815,10 @@ int Rttest::write_results()
 
 int Rttest::write_results_file(char * filename)
 {
+  if (this->params.iterations == 0) {
+    fprintf(stderr, "No samples buffer was saved, not writing results\n");
+    return -1;
+  }
   if (filename == NULL) {
     fprintf(stderr, "No results filename given, not writing results\n");
     return -1;
