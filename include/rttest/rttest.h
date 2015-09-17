@@ -31,13 +31,14 @@ struct rttest_params
   size_t sched_policy = 0;
   int sched_priority = 0;
   size_t stack_size = 0;
-  int record_buffer = 0;
 
   char * filename = 0;
 };
 
 struct rttest_results
 {
+  // Max iteration that this result describes
+  size_t iteration = 0;
   int min_latency = INT_MAX;
   int max_latency = INT_MIN;
   double mean_latency = 0;
@@ -163,6 +164,9 @@ int rttest_calculate_statistics(struct rttest_results * results);
 
 /// \brief Get accumulated statistics
 int rttest_get_statistics(struct rttest_results & results);
+
+/// \brief Get latency sample at the given iteration
+int rttest_get_sample_at(const size_t iteration, int & sample);
 
 /// \brief Write the sample buffer to a file.
 /// \return Error code to propagate to main

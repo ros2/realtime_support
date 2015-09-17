@@ -95,6 +95,8 @@ public:
 
   int calculate_statistics(struct rttest_results * results);
 
+  int get_sample_at(const size_t iteration, int & sample) const;
+
   int write_results();
 
   int write_results_file(char * filename);
@@ -141,7 +143,7 @@ int Rttest::record_jitter(const struct timespec * deadline,
     parity = -1;
   }
   // Record jitter
-  if (iteration > this->sample_buffer.buffer_size) {
+  if (i > this->sample_buffer.buffer_size) {
     return -1;
   }
   this->sample_buffer.latency_samples[i] = parity * timespec_to_long(&jitter);
@@ -638,6 +640,7 @@ int rttest_set_sched_priority(size_t sched_priority, int policy)
 int Rttest::accumulate_statistics(size_t iteration)
 {
   size_t i = iteration;
+  this->results.iteration = iteration;
   if (params.iterations == 0) {
     i = 0;
   } else if (iteration > params.iterations) {
@@ -732,6 +735,26 @@ int rttest_get_statistics(struct rttest_results & output)
   return 0;
 }
 
+int Rttest::get_sample_at(const size_t iteration, int & sample) const {
+  if (this->params.iterations == 0) {
+    sample = this->sample_buffer.latency_samples[0];
+  } else if (iteration < this->params.iterations) {
+    sample = this->sample_buffer.latency_samples[iteration];
+  } else {
+    return -1;
+  }
+  return 0;
+}
+
+int rttest_get_sample_at(const size_t iteration, int & sample)
+{
+  auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+  if (!thread_rttest_instance) {
+    return -1;
+  }
+  return thread_rttest_instance->get_sample_at(iteration, sample);
+}
+
 std::string rttest_results_to_string(struct rttest_results * results, char * name)
 {
   if (!results) {
@@ -816,7 +839,7 @@ int Rttest::write_results()
 int Rttest::write_results_file(char * filename)
 {
   if (this->params.iterations == 0) {
-    fprintf(stderr, "No samples buffer was saved, not writing results\n");
+    fprintf(stderr, "No sample buffer was saved, not writing results\n");
     return -1;
   }
   if (filename == NULL) {
@@ -825,15 +848,15 @@ int Rttest::write_results_file(char * filename)
   }
 
   if (this->sample_buffer.latency_samples == NULL) {
-    fprintf(stderr, "Samples buffer was NULL, not writing results\n");
+    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
     return -1;
   }
   if (this->sample_buffer.minor_pagefaults == NULL) {
-    fprintf(stderr, "Samples buffer was NULL, not writing results\n");
+    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
     return -1;
   }
   if (this->sample_buffer.major_pagefaults == NULL) {
-    fprintf(stderr, "Samples buffer was NULL, not writing results\n");
+    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
     return -1;
   }
 
