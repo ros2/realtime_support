@@ -71,6 +71,16 @@ def main():
     if show:
         pyplot.show()
 
+    # Create a latency histogram
+    pyplot.figure(4)
+    pyplot.hist(latency, bins=100)
+    pyplot.title("Latency histogram")
+    pyplot.xlabel("Latency (ns)")
+    pyplot.ylabel("Frequency")
+    pyplot.savefig(outfile + "_latency_hist.svg")
+    if show:
+        pyplot.show()
+
 
 if __name__ == "__main__":
     main()
