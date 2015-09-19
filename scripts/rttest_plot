@@ -39,6 +39,7 @@ def main():
     array = numpy.array(rawlines)
     # Units for time and latency are nanoseconds
     time = array[1:, 1].astype(int)
+    time = time - time[0]
     latency = numpy.absolute(array[1:, 2].astype(int))
     min_pagefaults = array[1:, 3].astype(int)
     maj_pagefaults = array[1:, 4].astype(int)
