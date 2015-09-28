@@ -295,7 +295,7 @@ int rttest_init_new_thread()
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest;
+    rttest_instance_map[thread_id] = new Rttest();
   } else {
     fprintf(stderr, "rttest instance for %lu already exists!\n", thread_id);
     return -1;
@@ -372,7 +372,7 @@ int rttest_init(size_t iterations, struct timespec update_period,
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest;
+    rttest_instance_map[thread_id] = new Rttest();
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
@@ -572,6 +572,7 @@ int Rttest::lock_and_prefault_dynamic()
     char * ptr;
     try {
       ptr = new char[64 * page_size];
+      memset(ptr, 0, 64 * page_size);
     } catch (std::bad_alloc & e) {
       fprintf(stderr, "Caught exception: %s\n", e.what());
       fprintf(stderr, "Unlocking memory and continuing.\n");
