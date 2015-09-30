@@ -16,7 +16,7 @@ if(${ament_cmake_FOUND})
   find_package(Threads REQUIRED)
 
   include_directories(rttest ${PROJECT_SOURCE_DIR}/include/rttest)
-  add_library(rttest ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
+  add_library(rttest SHARED ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
   target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
 
   ament_export_include_directories(include)

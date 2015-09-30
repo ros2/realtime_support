@@ -40,3 +40,8 @@ mean_latency = numpy.mean(latency)
 print "Min latency:", min_latency
 print "Max latency:", max_latency
 print "Mean latency:", mean_latency
+
+# How many samples were above 0.03 ms (30000 ns)?
+
+indices = numpy.where(latency > 30000)
+print "# of samples overrun:", len(samples)
