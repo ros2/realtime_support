@@ -658,7 +658,7 @@ int Rttest::accumulate_statistics(size_t iteration)
   if (iteration > 0) {
     // Accumulate the mean
     this->results.mean_latency = this->results.mean_latency +
-      (sample_buffer.latency_samples[i] - this->results.mean_latency)/(iteration+1);
+      (sample_buffer.latency_samples[i] - this->results.mean_latency) / (iteration + 1);
   } else {
     // Initialize the mean
     this->results.mean_latency = sample_buffer.latency_samples[i];
@@ -736,7 +736,8 @@ int rttest_get_statistics(struct rttest_results & output)
   return 0;
 }
 
-int Rttest::get_sample_at(const size_t iteration, int & sample) const {
+int Rttest::get_sample_at(const size_t iteration, int & sample) const
+{
   if (this->params.iterations == 0) {
     sample = this->sample_buffer.latency_samples[0];
   } else if (iteration < this->params.iterations) {
