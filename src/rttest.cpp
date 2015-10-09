@@ -273,7 +273,7 @@ int Rttest::read_args(int argc, char ** argv)
     }
   }
 
-  this->init(iterations, update_period, sched_policy, sched_priority,
+  return this->init(iterations, update_period, sched_policy, sched_priority,
     stack_size, filename);
 }
 
@@ -306,6 +306,7 @@ int rttest_init_new_thread()
   rttest_instance_map[thread_id]->set_params(
     rttest_instance_map[initial_thread_id]->get_params());
   rttest_instance_map[thread_id]->initialize_dynamic_memory();
+  return 0;
 }
 
 int rttest_read_args(int argc, char ** argv)
@@ -665,6 +666,7 @@ int Rttest::accumulate_statistics(size_t iteration)
   }
   this->results.minor_pagefaults += sample_buffer.minor_pagefaults[i];
   this->results.major_pagefaults += sample_buffer.major_pagefaults[i];
+  return 0;
 }
 
 int Rttest::calculate_statistics(struct rttest_results * output)
@@ -757,7 +759,7 @@ int rttest_get_sample_at(const size_t iteration, int & sample)
   return thread_rttest_instance->get_sample_at(iteration, sample);
 }
 
-std::string rttest_results_to_string(struct rttest_results * results, char * name)
+const char * rttest_results_to_string(struct rttest_results * results, char * name)
 {
   if (!results) {
     return "ERROR: rttest got NULL results string!";
@@ -779,7 +781,7 @@ std::string rttest_results_to_string(struct rttest_results * results, char * nam
   sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
   sstring << std::endl;
 
-  return sstring.str();
+  return sstring.str().c_str();
 }
 
 int rttest_finish()
@@ -835,7 +837,7 @@ int rttest_write_results()
 
 int Rttest::write_results()
 {
-  this->write_results_file(this->params.filename);
+  return this->write_results_file(this->params.filename);
 }
 
 int Rttest::write_results_file(char * filename)
