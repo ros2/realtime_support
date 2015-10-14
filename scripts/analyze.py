@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# Copyright 2014-2015 Open Source Robotics Foundation, Inc.
+#!/usr/bin/env python3
+# Copyright 2015 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import numpy
 
 import argparse
 
-parser = argparse.ArgumentParser(description="Plot rttest output")
+parser = argparse.ArgumentParser(description='Plot rttest output')
 parser.add_argument('filename', metavar='filename')
 args = parser.parse_args()
 filename = args.filename
@@ -29,7 +29,7 @@ rawlines = []
 
 with open(filename) as f:
     rawlines = f.readlines()
-rawlines = [line.rstrip().split(" ") for line in rawlines]
+rawlines = [line.rstrip().split(' ') for line in rawlines]
 array = numpy.array(rawlines)
 latency = numpy.absolute(array[1:, 2].astype(int))
 
@@ -37,11 +37,11 @@ min_latency = numpy.min(latency)
 max_latency = numpy.max(latency)
 mean_latency = numpy.mean(latency)
 
-print "Min latency:", min_latency
-print "Max latency:", max_latency
-print "Mean latency:", mean_latency
+print('Min latency:', min_latency)
+print('Max latency:', max_latency)
+print('Mean latency:', mean_latency)
 
 # How many samples were above 0.03 ms (30000 ns)?
 
 indices = numpy.where(latency > 30000)
-print "# of samples overrun:", len(samples)
+print('# of samples overrun:', len(indices))

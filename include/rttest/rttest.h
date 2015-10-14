@@ -165,8 +165,17 @@ int rttest_calculate_statistics(struct rttest_results * results);
 /// \brief Get accumulated statistics
 int rttest_get_statistics(struct rttest_results & results);
 
-/// \brief Get latency sample at the given iteration
+/// \brief Get latency sample at the given iteration.
+/// \param[in] iteration Iteration of the test to get the sample from
+/// \param[out] The resulting sample: time in nanoseconds between the expected
+/// wakeup time and the actual wakeup time
 int rttest_get_sample_at(const size_t iteration, int & sample);
+
+/// \brief Get the test results as a C-style string.
+/// \param[in] results The results struct
+/// \param[in] name The name of the test. NULL if the test is unnamed.
+/// \return The results string (includes pagefaults and latency statistics)
+const char * rttest_results_to_string(struct rttest_results * results, char * name);
 
 /// \brief Write the sample buffer to a file.
 /// \return Error code to propagate to main
