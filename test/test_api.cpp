@@ -41,7 +41,7 @@ TEST(TestApi, read_args_get_params) {
                    const_cast<char *>("-f"), const_cast<char *>("foo.txt")};
   EXPECT_EQ(0, rttest_read_args(argc, argv));
   struct rttest_params params;
-  EXPECT_EQ(0, rttest_get_params(params));
+  EXPECT_EQ(0, rttest_get_params(&params));
 
   EXPECT_EQ(params.iterations, 4321);
   EXPECT_EQ(params.update_period.tv_sec, 0);
@@ -62,7 +62,7 @@ TEST(TestApi, init) {
   EXPECT_EQ(0,
     rttest_init(4321, update_period, SCHED_FIFO, 42, stack_size, const_cast<char *>("foo.txt")));
   struct rttest_params params;
-  EXPECT_EQ(0, rttest_get_params(params));
+  EXPECT_EQ(0, rttest_get_params(&params));
 
   EXPECT_EQ(params.iterations, 4321);
   EXPECT_EQ(params.update_period.tv_sec, update_period.tv_sec);
@@ -132,7 +132,7 @@ TEST(TestApi, get_statistics) {
   runtime_min_pgflts = usage.ru_minflt - initial_min_pgflts;
   runtime_maj_pgflts = usage.ru_majflt - initial_maj_pgflts;
   struct rttest_results results;
-  EXPECT_EQ(0, rttest_get_statistics(results));
+  EXPECT_EQ(0, rttest_get_statistics(&results));
   EXPECT_EQ(runtime_min_pgflts, results.minor_pagefaults);
   EXPECT_EQ(runtime_maj_pgflts, results.major_pagefaults);
 

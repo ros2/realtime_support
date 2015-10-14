@@ -812,7 +812,11 @@ int rttest_finish()
   if (!thread_rttest_instance) {
     return -1;
   }
-  return thread_rttest_instance->finish();
+  int status = thread_rttest_instance->finish();
+
+  delete thread_rttest_instance;
+  thread_rttest_instance = NULL;
+  return status;
 }
 
 int Rttest::finish()
