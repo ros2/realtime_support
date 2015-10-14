@@ -67,6 +67,7 @@ public:
   struct rttest_results results;
 
   Rttest();
+  ~Rttest();
 
   int read_args(int argc, char ** argv);
 
@@ -104,6 +105,8 @@ public:
 
   int write_results_file(char * filename);
 
+  std::string results_to_string(char * name);
+
   int finish();
 
   struct rttest_params * get_params();
@@ -114,12 +117,31 @@ public:
 };
 
 // Global variables, for tracking threads
-std::map<pthread_t, Rttest *> rttest_instance_map;
+std::map<pthread_t, Rttest> rttest_instance_map;
 pthread_t initial_thread_id = 0;
 
 Rttest::Rttest() {
+  memset(&this->sample_buffer, 0, sizeof(struct rttest_sample_buffer));
+  memset(&this->results, 0, sizeof(struct rttest_results));
   this->results.min_latency = INT_MAX;
   this->results.max_latency = INT_MIN;
+}
+
+Rttest::~Rttest() {
+  if (this->sample_buffer.latency_samples != NULL) {
+    free(this->sample_buffer.latency_samples);
+    this->sample_buffer.latency_samples = NULL;
+  }
+
+  if (this->sample_buffer.minor_pagefaults != NULL) {
+    free(this->sample_buffer.minor_pagefaults);
+    this->sample_buffer.minor_pagefaults = NULL;
+  }
+
+  if (this->sample_buffer.major_pagefaults != NULL) {
+    free(this->sample_buffer.major_pagefaults);
+    this->sample_buffer.major_pagefaults = NULL;
+  }
 }
 
 // Functions
@@ -164,7 +186,7 @@ Rttest * get_rttest_thread_instance(pthread_t thread_id)
   if (rttest_instance_map.count(thread_id) == 0) {
     return NULL;
   }
-  return rttest_instance_map[thread_id];
+  return &rttest_instance_map[thread_id];
 }
 
 int Rttest::read_args(int argc, char ** argv)
@@ -230,7 +252,6 @@ int Rttest::read_args(int argc, char ** argv)
         break;
       case 's':
         {
-          // translate string to number. is there a utility for this?
           std::string input(optarg);
           if (input == "fifo") {
             sched_policy = SCHED_FIFO;
@@ -308,7 +329,7 @@ int rttest_init_new_thread()
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest();
+    rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
   } else {
     fprintf(stderr, "rttest instance for %lu already exists!\n", thread_id);
     return -1;
@@ -316,9 +337,9 @@ int rttest_init_new_thread()
   if (initial_thread_id == 0 || rttest_instance_map.count(initial_thread_id) == 0) {
     return -1;
   }
-  rttest_instance_map[thread_id]->set_params(
-    rttest_instance_map[initial_thread_id]->get_params());
-  rttest_instance_map[thread_id]->initialize_dynamic_memory();
+  rttest_instance_map[thread_id].set_params(
+    rttest_instance_map[initial_thread_id].get_params());
+  rttest_instance_map[thread_id].initialize_dynamic_memory();
   return 0;
 }
 
@@ -328,11 +349,12 @@ int rttest_read_args(int argc, char ** argv)
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (!thread_rttest_instance) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest;
+    //rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
+    rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
-    thread_rttest_instance = rttest_instance_map[thread_id];
+    thread_rttest_instance = &rttest_instance_map[thread_id];
   }
   return thread_rttest_instance->read_args(argc, argv);
 }
@@ -386,10 +408,13 @@ int rttest_init(size_t iterations, struct timespec update_period,
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest();
+    std::pair<pthread_t, Rttest> instance;
+    instance.first = thread_id;
+    rttest_instance_map.emplace(instance);
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
+    thread_rttest_instance = &rttest_instance_map[thread_id];
   }
   return thread_rttest_instance->init(iterations, update_period,
            sched_policy, sched_priority, stack_size, filename);
@@ -501,8 +526,8 @@ int Rttest::spin_once(void *(*user_function)(void *), void * args,
     if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0) {
       return -1;
     }
-    std::cout << "Initial major pagefaults: " << this->prev_usage.ru_majflt << std::endl;
-    std::cout << "Initial minor pagefaults: " << this->prev_usage.ru_minflt << std::endl;
+    printf("Initial major pagefaults: %zu\n", this->prev_usage.ru_majflt);
+    printf("Initial minor pagefaults: %zu\n", this->prev_usage.ru_minflt);
   }
   struct timespec wakeup_time, current_time;
   multiply_timespec(update_period, i, &wakeup_time);
@@ -761,12 +786,13 @@ int Rttest::get_sample_at(const size_t iteration, int & sample) const
 {
   if (this->params.iterations == 0) {
     sample = this->sample_buffer.latency_samples[0];
-  } else if (iteration < this->params.iterations) {
-    sample = this->sample_buffer.latency_samples[iteration];
-  } else {
-    return -1;
+    return 0;
   }
-  return 0;
+  if (iteration < this->params.iterations) {
+    sample = this->sample_buffer.latency_samples[iteration];
+    return 0;
+  }
+  return -1;
 }
 
 int rttest_get_sample_at(const size_t iteration, int * sample)
@@ -781,11 +807,8 @@ int rttest_get_sample_at(const size_t iteration, int * sample)
   return thread_rttest_instance->get_sample_at(iteration, *sample);
 }
 
-const char * rttest_results_to_string(struct rttest_results * results, char * name)
+std::string Rttest::results_to_string(char * name)
 {
-  if (!results) {
-    return "ERROR: rttest got NULL results string!";
-  }
   std::stringstream sstring;
 
   sstring << "rttest statistics";
@@ -794,16 +817,16 @@ const char * rttest_results_to_string(struct rttest_results * results, char * na
   } else {
     sstring << ":" << std::endl;
   }
-  sstring << "  - Minor pagefaults: " << results->minor_pagefaults << std::endl;
-  sstring << "  - Major pagefaults: " << results->major_pagefaults << std::endl;
+  sstring << "  - Minor pagefaults: " << results.minor_pagefaults << std::endl;
+  sstring << "  - Major pagefaults: " << results.major_pagefaults << std::endl;
   sstring << "  Latency (time after deadline was missed):" << std::endl;
-  sstring << "    - Min: " << results->min_latency << " ns" << std::endl;
-  sstring << "    - Max: " << results->max_latency << " ns" << std::endl;
-  sstring << "    - Mean: " << results->mean_latency << " ns" << std::endl;
-  sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
+  sstring << "    - Min: " << results.min_latency << " ns" << std::endl;
+  sstring << "    - Max: " << results.max_latency << " ns" << std::endl;
+  sstring << "    - Mean: " << results.mean_latency << " ns" << std::endl;
+  sstring << "    - Standard deviation: " << results.latency_stddev << std::endl;
   sstring << std::endl;
 
-  return sstring.str().c_str();
+  return sstring.str();
 }
 
 int rttest_finish()
@@ -812,7 +835,11 @@ int rttest_finish()
   if (!thread_rttest_instance) {
     return -1;
   }
-  return thread_rttest_instance->finish();
+  int status = thread_rttest_instance->finish();
+
+  rttest_instance_map.erase(pthread_self());
+
+  return status;
 }
 
 int Rttest::finish()
@@ -822,19 +849,7 @@ int Rttest::finish()
 
   // Print statistics to screen
   this->calculate_statistics(&this->results);
-  std::cout << rttest_results_to_string(&this->results, this->params.filename);
-
-  if (this->sample_buffer.latency_samples != NULL) {
-    free(this->sample_buffer.latency_samples);
-  }
-
-  if (this->sample_buffer.minor_pagefaults != NULL) {
-    free(this->sample_buffer.minor_pagefaults);
-  }
-
-  if (this->sample_buffer.major_pagefaults != NULL) {
-    free(this->sample_buffer.major_pagefaults);
-  }
+  printf("%s\n", this->results_to_string(this->params.filename));
 
   return 0;
 }

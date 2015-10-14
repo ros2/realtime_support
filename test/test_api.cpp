@@ -32,7 +32,6 @@ void * test_callback(void * args)
 // check that arguments are read from the commandline and accessed via get_params
 TEST(TestApi, read_args_get_params) {
   int argc = 13;
-  //char* const argv[] = {"test_data", "-i", "4321", "-u", "50us", "-t", "42", "-s", "fifo", "-m", "100kb", "-f", "foo.txt"};
   char * argv[] = {const_cast<char *>("test_data"), const_cast<char *>("-i"),
                    const_cast<char *>("4321"), const_cast<char *>("-u"), const_cast<char *>("50us"),
                    const_cast<char *>("-t"), const_cast<char *>("42"), const_cast<char *>("-s"),
@@ -41,7 +40,7 @@ TEST(TestApi, read_args_get_params) {
                    const_cast<char *>("-f"), const_cast<char *>("foo.txt")};
   EXPECT_EQ(0, rttest_read_args(argc, argv));
   struct rttest_params params;
-  EXPECT_EQ(0, rttest_get_params(params));
+  EXPECT_EQ(0, rttest_get_params(&params));
 
   EXPECT_EQ(params.iterations, 4321);
   EXPECT_EQ(params.update_period.tv_sec, 0);
@@ -62,7 +61,7 @@ TEST(TestApi, init) {
   EXPECT_EQ(0,
     rttest_init(4321, update_period, SCHED_FIFO, 42, stack_size, const_cast<char *>("foo.txt")));
   struct rttest_params params;
-  EXPECT_EQ(0, rttest_get_params(params));
+  EXPECT_EQ(0, rttest_get_params(&params));
 
   EXPECT_EQ(params.iterations, 4321);
   EXPECT_EQ(params.update_period.tv_sec, update_period.tv_sec);
@@ -132,7 +131,7 @@ TEST(TestApi, get_statistics) {
   runtime_min_pgflts = usage.ru_minflt - initial_min_pgflts;
   runtime_maj_pgflts = usage.ru_majflt - initial_maj_pgflts;
   struct rttest_results results;
-  EXPECT_EQ(0, rttest_get_statistics(results));
+  EXPECT_EQ(0, rttest_get_statistics(&results));
   EXPECT_EQ(runtime_min_pgflts, results.minor_pagefaults);
   EXPECT_EQ(runtime_maj_pgflts, results.major_pagefaults);
 
@@ -157,22 +156,4 @@ TEST(TestApi, running) {
   EXPECT_EQ(1, rttest_running());
   EXPECT_EQ(0, rttest_finish());
   EXPECT_EQ(0, rttest_running());
-}
-
-TEST(TestApi, results_to_string) {
-  struct timespec update_period;
-  update_period.tv_sec = 0;
-  update_period.tv_nsec = 1000000;
-  size_t iterations = 100;
-  rttest_init(iterations, update_period, SCHED_RR, 80, 0, NULL);
-  size_t counter = 0;
-  EXPECT_EQ(0, rttest_spin(test_callback, static_cast<void *>(&counter)));
-  EXPECT_EQ(counter, iterations);
-  struct rttest_results results;
-  const char * results_string =  rttest_results_to_string(&results, NULL);
-  ASSERT_TRUE(results_string != NULL);
-
-  printf("Results string:\n%s\n", results_string);
-
-  EXPECT_EQ(0, rttest_finish());
 }
