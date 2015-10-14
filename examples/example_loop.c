@@ -14,13 +14,14 @@
 #include <stdio.h>
 #include <sched.h>
 
-#include "rttest/rttest.h"
+#include <rttest/rttest.h>
 
 int i = 0;
 
-void my_loop_callback(void * args)
+void * my_loop_callback(void * args)
 {
   ++i;
+  return 0;
 }
 
 int main(int argc, char ** argv)

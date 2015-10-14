@@ -19,6 +19,7 @@
 #include <iostream>
 #include <numeric>
 #include <fstream>
+#include <limits.h>
 #include <malloc.h>
 #include <map>
 #include <sched.h>
@@ -64,6 +65,8 @@ private:
 public:
   int running = 0;
   struct rttest_results results;
+
+  Rttest();
 
   int read_args(int argc, char ** argv);
 
@@ -113,6 +116,11 @@ public:
 // Global variables, for tracking threads
 std::map<pthread_t, Rttest *> rttest_instance_map;
 pthread_t initial_thread_id = 0;
+
+Rttest::Rttest() {
+  this->results.min_latency = INT_MAX;
+  this->results.max_latency = INT_MIN;
+}
 
 // Functions
 void Rttest::set_params(struct rttest_params * params)
@@ -277,7 +285,7 @@ int Rttest::read_args(int argc, char ** argv)
     stack_size, filename);
 }
 
-int rttest_get_params(struct rttest_params & params_in)
+int rttest_get_params(struct rttest_params * params_in)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
 
@@ -285,7 +293,12 @@ int rttest_get_params(struct rttest_params & params_in)
     return -1;
   }
 
-  params_in = *thread_rttest_instance->get_params();
+  if (params_in == NULL) {
+    params_in = thread_rttest_instance->get_params();
+  } else {
+    *params_in = *thread_rttest_instance->get_params();
+  }
+
   return 0;
 }
 
@@ -728,13 +741,19 @@ int rttest_calculate_statistics(struct rttest_results * results)
   return thread_rttest_instance->calculate_statistics(results);
 }
 
-int rttest_get_statistics(struct rttest_results & output)
+int rttest_get_statistics(struct rttest_results * output)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
   if (!thread_rttest_instance) {
     return -1;
   }
-  output = thread_rttest_instance->results;
+  if (output == NULL) {
+    output = &thread_rttest_instance->results;
+  } else {
+    // if output is not null, try to copy the results struct into the memory location
+    *output = thread_rttest_instance->results;
+  }
+
   return 0;
 }
 
@@ -750,13 +769,16 @@ int Rttest::get_sample_at(const size_t iteration, int & sample) const
   return 0;
 }
 
-int rttest_get_sample_at(const size_t iteration, int & sample)
+int rttest_get_sample_at(const size_t iteration, int * sample)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
   if (!thread_rttest_instance) {
     return -1;
   }
-  return thread_rttest_instance->get_sample_at(iteration, sample);
+  if (sample == NULL) {
+    return -1;
+  }
+  return thread_rttest_instance->get_sample_at(iteration, *sample);
 }
 
 const char * rttest_results_to_string(struct rttest_results * results, char * name)
