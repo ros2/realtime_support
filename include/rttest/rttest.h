@@ -16,7 +16,7 @@
 #define RTTEST_H_
 
 #include <time.h>
-#include <limits.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -26,26 +26,26 @@ extern "C"
 // rttest can have one instance per thread!
 struct rttest_params
 {
-  size_t iterations = 0;
+  size_t iterations;
   struct timespec update_period;
-  size_t sched_policy = 0;
-  int sched_priority = 0;
-  size_t stack_size = 0;
+  size_t sched_policy;
+  int sched_priority;
+  size_t stack_size;
 
-  char * filename = 0;
+  char * filename;
 };
 
 struct rttest_results
 {
   // Max iteration that this result describes
-  size_t iteration = 0;
-  int min_latency = INT_MAX;
-  int max_latency = INT_MIN;
-  double mean_latency = 0;
-  double latency_stddev = 0;
+  size_t iteration;
+  int min_latency;
+  int max_latency;
+  double mean_latency;
+  double latency_stddev;
 
-  size_t minor_pagefaults = 0;
-  size_t major_pagefaults = 0;
+  size_t minor_pagefaults;
+  size_t major_pagefaults;
 };
 
 /// \brief Initialize rttest with arguments
@@ -72,7 +72,7 @@ int rttest_init(size_t iterations, struct timespec update_period,
 /// \brief Fill an rttest_params struct with the current rttest params.
 /// \param[in] params Reference to the struct to fill in
 /// \return Error code
-int rttest_get_params(struct rttest_params & params);
+int rttest_get_params(struct rttest_params * params);
 
 /// \brief Create a new rttest instance for a new thread.
 /// The thread's parameters are based on the first thread that called rttest_init.
@@ -163,10 +163,19 @@ int rttest_get_next_rusage(size_t i);
 int rttest_calculate_statistics(struct rttest_results * results);
 
 /// \brief Get accumulated statistics
-int rttest_get_statistics(struct rttest_results & results);
+int rttest_get_statistics(struct rttest_results * results);
 
-/// \brief Get latency sample at the given iteration
-int rttest_get_sample_at(const size_t iteration, int & sample);
+/// \brief Get latency sample at the given iteration.
+/// \param[in] iteration Iteration of the test to get the sample from
+/// \param[out] The resulting sample: time in nanoseconds between the expected
+/// wakeup time and the actual wakeup time
+int rttest_get_sample_at(const size_t iteration, int * sample);
+
+/// \brief Get the test results as a C-style string.
+/// \param[in] results The results struct
+/// \param[in] name The name of the test. NULL if the test is unnamed.
+/// \return The results string (includes pagefaults and latency statistics)
+const char * rttest_results_to_string(struct rttest_results * results, char * name);
 
 /// \brief Write the sample buffer to a file.
 /// \return Error code to propagate to main

@@ -158,3 +158,21 @@ TEST(TestApi, running) {
   EXPECT_EQ(0, rttest_finish());
   EXPECT_EQ(0, rttest_running());
 }
+
+TEST(TestApi, results_to_string) {
+  struct timespec update_period;
+  update_period.tv_sec = 0;
+  update_period.tv_nsec = 1000000;
+  size_t iterations = 100;
+  rttest_init(iterations, update_period, SCHED_RR, 80, 0, NULL);
+  size_t counter = 0;
+  EXPECT_EQ(0, rttest_spin(test_callback, static_cast<void *>(&counter)));
+  EXPECT_EQ(counter, iterations);
+  struct rttest_results results;
+  const char * results_string =  rttest_results_to_string(&results, NULL);
+  ASSERT_TRUE(results_string != NULL);
+
+  printf("Results string:\n%s\n", results_string);
+
+  EXPECT_EQ(0, rttest_finish());
+}
