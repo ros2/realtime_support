@@ -104,6 +104,8 @@ public:
 
   int write_results_file(char * filename);
 
+  std::string results_to_string(char * name);
+
   int finish();
 
   struct rttest_params * get_params();
@@ -781,11 +783,8 @@ int rttest_get_sample_at(const size_t iteration, int * sample)
   return thread_rttest_instance->get_sample_at(iteration, *sample);
 }
 
-const char * rttest_results_to_string(struct rttest_results * results, char * name)
+std::string Rttest::results_to_string(char * name)
 {
-  if (!results) {
-    return "ERROR: rttest got NULL results string!";
-  }
   std::stringstream sstring;
 
   sstring << "rttest statistics";
@@ -794,16 +793,16 @@ const char * rttest_results_to_string(struct rttest_results * results, char * na
   } else {
     sstring << ":" << std::endl;
   }
-  sstring << "  - Minor pagefaults: " << results->minor_pagefaults << std::endl;
-  sstring << "  - Major pagefaults: " << results->major_pagefaults << std::endl;
+  sstring << "  - Minor pagefaults: " << results.minor_pagefaults << std::endl;
+  sstring << "  - Major pagefaults: " << results.major_pagefaults << std::endl;
   sstring << "  Latency (time after deadline was missed):" << std::endl;
-  sstring << "    - Min: " << results->min_latency << " ns" << std::endl;
-  sstring << "    - Max: " << results->max_latency << " ns" << std::endl;
-  sstring << "    - Mean: " << results->mean_latency << " ns" << std::endl;
-  sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
+  sstring << "    - Min: " << results.min_latency << " ns" << std::endl;
+  sstring << "    - Max: " << results.max_latency << " ns" << std::endl;
+  sstring << "    - Mean: " << results.mean_latency << " ns" << std::endl;
+  sstring << "    - Standard deviation: " << results.latency_stddev << std::endl;
   sstring << std::endl;
 
-  return sstring.str().c_str();
+  return sstring.str();
 }
 
 int rttest_finish()
@@ -826,7 +825,7 @@ int Rttest::finish()
 
   // Print statistics to screen
   this->calculate_statistics(&this->results);
-  std::cout << rttest_results_to_string(&this->results, this->params.filename);
+  std::cout << this->results_to_string(this->params.filename);
 
   if (this->sample_buffer.latency_samples != NULL) {
     free(this->sample_buffer.latency_samples);
