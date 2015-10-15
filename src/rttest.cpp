@@ -67,6 +67,7 @@ public:
   struct rttest_results results;
 
   Rttest();
+  ~Rttest();
 
   int read_args(int argc, char ** argv);
 
@@ -116,12 +117,30 @@ public:
 };
 
 // Global variables, for tracking threads
-std::map<pthread_t, Rttest *> rttest_instance_map;
+std::map<pthread_t, Rttest> rttest_instance_map;
 pthread_t initial_thread_id = 0;
 
 Rttest::Rttest() {
+  memset(&this->results, 0, sizeof(struct rttest_results));
   this->results.min_latency = INT_MAX;
   this->results.max_latency = INT_MIN;
+}
+
+Rttest::~Rttest() {
+  if (this->sample_buffer.latency_samples != NULL) {
+    free(this->sample_buffer.latency_samples);
+    this->sample_buffer.latency_samples = NULL;
+  }
+
+  if (this->sample_buffer.minor_pagefaults != NULL) {
+    free(this->sample_buffer.minor_pagefaults);
+    this->sample_buffer.minor_pagefaults = NULL;
+  }
+
+  if (this->sample_buffer.major_pagefaults != NULL) {
+    free(this->sample_buffer.major_pagefaults);
+    this->sample_buffer.major_pagefaults = NULL;
+  }
 }
 
 // Functions
@@ -166,7 +185,7 @@ Rttest * get_rttest_thread_instance(pthread_t thread_id)
   if (rttest_instance_map.count(thread_id) == 0) {
     return NULL;
   }
-  return rttest_instance_map[thread_id];
+  return &rttest_instance_map[thread_id];
 }
 
 int Rttest::read_args(int argc, char ** argv)
@@ -310,7 +329,7 @@ int rttest_init_new_thread()
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest();
+    rttest_instance_map.emplace(thread_id, Rttest());
   } else {
     fprintf(stderr, "rttest instance for %lu already exists!\n", thread_id);
     return -1;
@@ -318,9 +337,9 @@ int rttest_init_new_thread()
   if (initial_thread_id == 0 || rttest_instance_map.count(initial_thread_id) == 0) {
     return -1;
   }
-  rttest_instance_map[thread_id]->set_params(
-    rttest_instance_map[initial_thread_id]->get_params());
-  rttest_instance_map[thread_id]->initialize_dynamic_memory();
+  rttest_instance_map[thread_id].set_params(
+    rttest_instance_map[initial_thread_id].get_params());
+  rttest_instance_map[thread_id].initialize_dynamic_memory();
   return 0;
 }
 
@@ -330,11 +349,11 @@ int rttest_read_args(int argc, char ** argv)
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (!thread_rttest_instance) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest;
+    rttest_instance_map.emplace(thread_id, Rttest());
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
-    thread_rttest_instance = rttest_instance_map[thread_id];
+    thread_rttest_instance = &rttest_instance_map[thread_id];
   }
   return thread_rttest_instance->read_args(argc, argv);
 }
@@ -388,10 +407,11 @@ int rttest_init(size_t iterations, struct timespec update_period,
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest();
+    rttest_instance_map.emplace(thread_id, Rttest());
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
+    thread_rttest_instance = &rttest_instance_map[thread_id];
   }
   return thread_rttest_instance->init(iterations, update_period,
            sched_policy, sched_priority, stack_size, filename);
@@ -813,8 +833,8 @@ int rttest_finish()
   }
   int status = thread_rttest_instance->finish();
 
-  delete thread_rttest_instance;
-  thread_rttest_instance = NULL;
+  rttest_instance_map.erase(pthread_self());
+
   return status;
 }
 
@@ -825,19 +845,7 @@ int Rttest::finish()
 
   // Print statistics to screen
   this->calculate_statistics(&this->results);
-  std::cout << this->results_to_string(this->params.filename);
-
-  if (this->sample_buffer.latency_samples != NULL) {
-    free(this->sample_buffer.latency_samples);
-  }
-
-  if (this->sample_buffer.minor_pagefaults != NULL) {
-    free(this->sample_buffer.minor_pagefaults);
-  }
-
-  if (this->sample_buffer.major_pagefaults != NULL) {
-    free(this->sample_buffer.major_pagefaults);
-  }
+  std::cout << this->results_to_string(this->params.filename) << std::endl;
 
   return 0;
 }

@@ -32,7 +32,6 @@ void * test_callback(void * args)
 // check that arguments are read from the commandline and accessed via get_params
 TEST(TestApi, read_args_get_params) {
   int argc = 13;
-  //char* const argv[] = {"test_data", "-i", "4321", "-u", "50us", "-t", "42", "-s", "fifo", "-m", "100kb", "-f", "foo.txt"};
   char * argv[] = {const_cast<char *>("test_data"), const_cast<char *>("-i"),
                    const_cast<char *>("4321"), const_cast<char *>("-u"), const_cast<char *>("50us"),
                    const_cast<char *>("-t"), const_cast<char *>("42"), const_cast<char *>("-s"),
