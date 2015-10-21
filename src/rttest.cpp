@@ -121,6 +121,7 @@ std::map<pthread_t, Rttest> rttest_instance_map;
 pthread_t initial_thread_id = 0;
 
 Rttest::Rttest() {
+  memset(&this->sample_buffer, 0, sizeof(struct rttest_sample_buffer));
   memset(&this->results, 0, sizeof(struct rttest_results));
   this->results.min_latency = INT_MAX;
   this->results.max_latency = INT_MIN;
@@ -251,7 +252,6 @@ int Rttest::read_args(int argc, char ** argv)
         break;
       case 's':
         {
-          // translate string to number. is there a utility for this?
           std::string input(optarg);
           if (input == "fifo") {
             sched_policy = SCHED_FIFO;
@@ -329,7 +329,7 @@ int rttest_init_new_thread()
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map.emplace(thread_id, Rttest());
+    rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
   } else {
     fprintf(stderr, "rttest instance for %lu already exists!\n", thread_id);
     return -1;
@@ -349,7 +349,8 @@ int rttest_read_args(int argc, char ** argv)
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (!thread_rttest_instance) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map.emplace(thread_id, Rttest());
+    //rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
+    rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
@@ -407,7 +408,9 @@ int rttest_init(size_t iterations, struct timespec update_period,
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map.emplace(thread_id, Rttest());
+    std::pair<pthread_t, Rttest> instance;
+    instance.first = thread_id;
+    rttest_instance_map.emplace(instance);
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
