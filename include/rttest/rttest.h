@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RTTEST_H_
-#define RTTEST_H_
+#ifndef RTTEST__RTTEST_H_
+#define RTTEST__RTTEST_H_
 
 #include <time.h>
+#include <sched.h>
 #include <stddef.h>
 
 #ifdef __cplusplus
@@ -87,7 +88,7 @@ int rttest_init_new_thread();
 /// \return Error code to propagate to main
 int rttest_spin(void *(*user_function)(void *), void * args);
 
-// TODO better signature for user function
+// TODO(jacquelinekay) better signature for user function
 /// \brief Spin at the specified wakeup period for the specified number of
 /// iterations. rttest_spin will attempt to time the execution of user_function
 /// according to update_period.
@@ -103,7 +104,6 @@ int rttest_spin_period(void *(*user_function)(void *), void * args,
 /// \brief Schedule a function call based on the start time, update period,
 /// and the iteration of the spin call.
 /// The statistics of the wakeup will be collected as the 'ith' entry in the data buffer.
-/// TODO: implement asynchronous scheduling/logging
 /// \param[in] user_function Function pointer to execute on interrupt.
 /// \param[in] update_period
 /// \param[out] Error code to propagate to main function.
@@ -193,4 +193,4 @@ int rttest_running();
 }
 #endif
 
-#endif
+#endif  // RTTEST__RTTEST_H_

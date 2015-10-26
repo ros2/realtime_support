@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <gtest/gtest.h>
 #include <sys/resource.h>
 
 #include <array>
-#include <gtest/gtest.h>
-#include "rttest.h"
-#include "utils.h"
+
+#include "rttest/rttest.h"
+#include "rttest/utils.h"
 
 void * test_callback(void * args)
 {

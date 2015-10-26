@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RTTEST_UTILS_H_
-#define RTTEST_UTILS_H_
+#ifndef RTTEST__UTILS_H_
+#define RTTEST__UTILS_H_
 
 #include <time.h>
 
@@ -33,7 +33,7 @@ static inline bool timespec_gt(const struct timespec * t1,
 
 static inline void normalize_timespec(struct timespec * t)
 {
-  // TODO: maybe could use some work
+  // TODO(jacquelinekay) improve
   while (t->tv_nsec >= NSEC_PER_SEC) {
     t->tv_nsec -= NSEC_PER_SEC;
     t->tv_sec++;
@@ -85,4 +85,4 @@ static inline void multiply_timespec(const struct timespec * t, const uint32_t i
   long_to_timespec(result_nsec, result);
 }
 
-#endif
+#endif  // RTTEST__UTILS_H_

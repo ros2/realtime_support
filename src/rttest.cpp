@@ -12,30 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <rttest.h>
+
+#include <limits.h>
+#include <malloc.h>
+#include <sys/mman.h>
+#include <sys/resource.h>
+#include <string.h>
+#include <unistd.h>
+#include <utils.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <cmath>
-#include <iostream>
-#include <numeric>
 #include <fstream>
-#include <limits.h>
-#include <malloc.h>
+#include <functional>
+#include <iostream>
 #include <map>
-#include <sched.h>
-#include <string.h>
+#include <numeric>
 #include <sstream>
-#include <sys/mman.h>
-#include <sys/resource.h>
-#include <unistd.h>
+#include <string>
+#include <utility>
 #include <vector>
-
-#include <utils.h>
-#include <rttest.h>
 
 extern "C"
 {
-
 struct rttest_sample_buffer
 {
   // Stored in nanoseconds
@@ -120,14 +122,16 @@ public:
 std::map<pthread_t, Rttest> rttest_instance_map;
 pthread_t initial_thread_id = 0;
 
-Rttest::Rttest() {
+Rttest::Rttest()
+{
   memset(&this->sample_buffer, 0, sizeof(struct rttest_sample_buffer));
   memset(&this->results, 0, sizeof(struct rttest_results));
   this->results.min_latency = INT_MAX;
   this->results.max_latency = INT_MIN;
 }
 
-Rttest::~Rttest() {
+Rttest::~Rttest()
+{
   if (this->sample_buffer.latency_samples != NULL) {
     free(this->sample_buffer.latency_samples);
     this->sample_buffer.latency_samples = NULL;
@@ -191,7 +195,6 @@ Rttest * get_rttest_thread_instance(pthread_t thread_id)
 
 int Rttest::read_args(int argc, char ** argv)
 {
-  //parse arguments
   // -i,--iterations
   size_t iterations = 1000;
   // -u,--update-period
@@ -303,7 +306,7 @@ int Rttest::read_args(int argc, char ** argv)
   }
 
   return this->init(iterations, update_period, sched_policy, sched_priority,
-    stack_size, filename);
+           stack_size, filename);
 }
 
 int rttest_get_params(struct rttest_params * params_in)
@@ -349,7 +352,6 @@ int rttest_read_args(int argc, char ** argv)
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (!thread_rttest_instance) {
     // Create the new Rttest instance for this thread
-    //rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
     rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
@@ -385,17 +387,17 @@ void Rttest::initialize_dynamic_memory()
   }
   this->sample_buffer.buffer_size = iterations;
   this->sample_buffer.latency_samples =
-    (int *) std::malloc(iterations * sizeof(int));
+    reinterpret_cast<int *>(std::malloc(iterations * sizeof(int)));
   memset(this->sample_buffer.latency_samples, 0,
     iterations * sizeof(int));
 
   this->sample_buffer.minor_pagefaults =
-    (size_t *) std::malloc(iterations * sizeof(size_t));
+    reinterpret_cast<size_t *>(std::malloc(iterations * sizeof(size_t)));
   memset(this->sample_buffer.minor_pagefaults, 0,
     iterations * sizeof(size_t));
 
   this->sample_buffer.major_pagefaults =
-    (size_t *) std::malloc(iterations * sizeof(size_t));
+    reinterpret_cast<size_t *>(std::malloc(iterations * sizeof(size_t)));
   memset(this->sample_buffer.major_pagefaults, 0,
     iterations * sizeof(size_t));
 }
