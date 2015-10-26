@@ -15,6 +15,7 @@
 #ifndef RTTEST__UTILS_H_
 #define RTTEST__UTILS_H_
 
+#include <stdint.h>
 #include <time.h>
 
 #define NSEC_PER_SEC 1000000000

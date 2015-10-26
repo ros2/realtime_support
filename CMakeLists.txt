@@ -15,7 +15,7 @@ find_package(ament_cmake QUIET)
 if(${ament_cmake_FOUND})
   find_package(Threads REQUIRED)
 
-  include_directories(rttest ${PROJECT_SOURCE_DIR}/include/rttest)
+  include_directories(rttest ${PROJECT_SOURCE_DIR}/include)
   add_library(rttest SHARED ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
   target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
 
@@ -38,6 +38,7 @@ if(${ament_cmake_FOUND})
         ${_AMENT_EXPORT_LIBRARY_TARGETS})
       add_dependencies(gtest_rttest_api ${PROJECT_NAME})
       ament_target_dependencies(gtest_rttest_api "rttest")
+      target_include_directories(gtest_rttest_api PUBLIC include)
     endif()
   endif()
 
@@ -64,7 +65,7 @@ else()
   # pure cmake build
   set(INSTALL_LIB_DIR lib CACHE PATH "install dir for libraries")
   set(INSTALL_BIN_DIR bin CACHE PATH "install dir for executables")
-  set(INSTALL_INCLUDE_DIR include/rttest CACHE PATH "install dir for headers")
+  set(INSTALL_INCLUDE_DIR include CACHE PATH "install dir for headers")
 
   set(DEF_INSTALL_CMAKE_DIR lib/cmake/rttest)
   set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "install dir for cmake files")
@@ -73,7 +74,7 @@ else()
   add_library(rttest ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
   target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
 
-  include_directories(rttest ${PROJECT_SOURCE_DIR}/include/rttest)
+  include_directories(rttest ${PROJECT_SOURCE_DIR}/include)
 
   install(TARGETS rttest
     LIBRARY DESTINATION ${INSTALL_LIB_DIR}

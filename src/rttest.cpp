@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <rttest.h>
+#include <rttest/rttest.h>
+#include <rttest/utils.h>
 
 #include <limits.h>
 #include <malloc.h>
@@ -20,7 +21,6 @@
 #include <sys/resource.h>
 #include <string.h>
 #include <unistd.h>
-#include <utils.h>
 
 #include <algorithm>
 #include <cassert>
@@ -305,8 +305,8 @@ int Rttest::read_args(int argc, char ** argv)
     }
   }
 
-  return this->init(iterations, update_period, sched_policy, sched_priority,
-           stack_size, filename);
+  return this->init(
+    iterations, update_period, sched_policy, sched_priority, stack_size, filename);
 }
 
 int rttest_get_params(struct rttest_params * params_in)
@@ -386,18 +386,18 @@ void Rttest::initialize_dynamic_memory()
     iterations = 1;
   }
   this->sample_buffer.buffer_size = iterations;
-  this->sample_buffer.latency_samples =
-    reinterpret_cast<int *>(std::malloc(iterations * sizeof(int)));
+  this->sample_buffer.latency_samples = static_cast<int *>(
+    std::malloc(iterations * sizeof(int)));
   memset(this->sample_buffer.latency_samples, 0,
     iterations * sizeof(int));
 
-  this->sample_buffer.minor_pagefaults =
-    reinterpret_cast<size_t *>(std::malloc(iterations * sizeof(size_t)));
+  this->sample_buffer.minor_pagefaults = static_cast<size_t *>(
+    std::malloc(iterations * sizeof(size_t)));
   memset(this->sample_buffer.minor_pagefaults, 0,
     iterations * sizeof(size_t));
 
-  this->sample_buffer.major_pagefaults =
-    reinterpret_cast<size_t *>(std::malloc(iterations * sizeof(size_t)));
+  this->sample_buffer.major_pagefaults = static_cast<size_t *>(
+    std::malloc(iterations * sizeof(size_t)));
   memset(this->sample_buffer.major_pagefaults, 0,
     iterations * sizeof(size_t));
 }
