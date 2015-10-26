@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# Copyright 2014-2015 Open Source Robotics Foundation, Inc.
+#!/usr/bin/env python3
+# Copyright 2015 Open Source Robotics Foundation, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ import numpy
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Plot rttest output")
+    parser = argparse.ArgumentParser(description='Plot rttest output')
     parser.add_argument('filename', metavar='filename')
-    parser.add_argument('-s', '--show', help="Show plots", action="store_true")
+    parser.add_argument('-s', '--show', help='Show plots', action='store_true')
     parser.add_argument('-o', '--outfile',
                         help="Name of file to write plot output", default=None)
     args = parser.parse_args()
@@ -35,10 +35,11 @@ def main():
 
     with open(filename) as f:
         rawlines = f.readlines()
-    rawlines = [line.rstrip().split(" ") for line in rawlines]
+    rawlines = [line.rstrip().split(' ') for line in rawlines]
     array = numpy.array(rawlines)
     # Units for time and latency are nanoseconds
     time = array[1:, 1].astype(int)
+    time = time - time[0]
     latency = numpy.absolute(array[1:, 2].astype(int))
     min_pagefaults = array[1:, 3].astype(int)
     maj_pagefaults = array[1:, 4].astype(int)
@@ -48,7 +49,7 @@ def main():
     pyplot.title('Scheduling latency vs. time for: ' + filename)
     pyplot.xlabel('Time (ns)')
     pyplot.ylabel('Latency (ns)')
-    pyplot.savefig(outfile + "_latency.svg")
+    pyplot.savefig(outfile + '_latency.svg')
     if show:
         pyplot.show()
     # Plot column 3 (minor pagefaults) against column 1 (time, ns)
@@ -57,7 +58,7 @@ def main():
     pyplot.title('Minor pagefaults vs. time for: ' + filename)
     pyplot.xlabel('Time (ns)')
     pyplot.ylabel('Minor pagefaults')
-    pyplot.savefig(outfile + "_minflt.svg")
+    pyplot.savefig(outfile + '_minflt.svg')
 
     if show:
         pyplot.show()
@@ -67,10 +68,20 @@ def main():
     pyplot.title('Major pagefaults vs. time for: ' + filename)
     pyplot.xlabel('Time (ns)')
     pyplot.ylabel('Major pagefaults')
-    pyplot.savefig(outfile + "_majflt.svg")
+    pyplot.savefig(outfile + '_majflt.svg')
+    if show:
+        pyplot.show()
+
+    # Create a latency histogram
+    pyplot.figure(4)
+    pyplot.hist(latency, bins=100)
+    pyplot.title('Latency histogram')
+    pyplot.xlabel('Latency (ns)')
+    pyplot.ylabel('Frequency')
+    pyplot.savefig(outfile + '_latency_hist.svg')
     if show:
         pyplot.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

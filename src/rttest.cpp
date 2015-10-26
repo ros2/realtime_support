@@ -19,6 +19,7 @@
 #include <iostream>
 #include <numeric>
 #include <fstream>
+#include <limits.h>
 #include <malloc.h>
 #include <map>
 #include <sched.h>
@@ -65,6 +66,9 @@ public:
   int running = 0;
   struct rttest_results results;
 
+  Rttest();
+  ~Rttest();
+
   int read_args(int argc, char ** argv);
 
   int init(size_t iterations, struct timespec update_period,
@@ -95,9 +99,13 @@ public:
 
   int calculate_statistics(struct rttest_results * results);
 
+  int get_sample_at(const size_t iteration, int & sample) const;
+
   int write_results();
 
   int write_results_file(char * filename);
+
+  std::string results_to_string(char * name);
 
   int finish();
 
@@ -109,8 +117,32 @@ public:
 };
 
 // Global variables, for tracking threads
-std::map<pthread_t, Rttest *> rttest_instance_map;
+std::map<pthread_t, Rttest> rttest_instance_map;
 pthread_t initial_thread_id = 0;
+
+Rttest::Rttest() {
+  memset(&this->sample_buffer, 0, sizeof(struct rttest_sample_buffer));
+  memset(&this->results, 0, sizeof(struct rttest_results));
+  this->results.min_latency = INT_MAX;
+  this->results.max_latency = INT_MIN;
+}
+
+Rttest::~Rttest() {
+  if (this->sample_buffer.latency_samples != NULL) {
+    free(this->sample_buffer.latency_samples);
+    this->sample_buffer.latency_samples = NULL;
+  }
+
+  if (this->sample_buffer.minor_pagefaults != NULL) {
+    free(this->sample_buffer.minor_pagefaults);
+    this->sample_buffer.minor_pagefaults = NULL;
+  }
+
+  if (this->sample_buffer.major_pagefaults != NULL) {
+    free(this->sample_buffer.major_pagefaults);
+    this->sample_buffer.major_pagefaults = NULL;
+  }
+}
 
 // Functions
 void Rttest::set_params(struct rttest_params * params)
@@ -126,6 +158,11 @@ struct rttest_params * Rttest::get_params()
 int Rttest::record_jitter(const struct timespec * deadline,
   const struct timespec * result_time, const size_t iteration)
 {
+  size_t i = iteration;
+  // Check if settings authorize buffer recording
+  if (this->params.iterations == 0) {
+    i = 0;
+  }
   struct timespec jitter;
   int parity = 1;
   if (timespec_gt(result_time, deadline)) {
@@ -136,10 +173,10 @@ int Rttest::record_jitter(const struct timespec * deadline,
     parity = -1;
   }
   // Record jitter
-  if (iteration > this->sample_buffer.buffer_size) {
+  if (i > this->sample_buffer.buffer_size) {
     return -1;
   }
-  this->sample_buffer.latency_samples[iteration] = parity * timespec_to_long(&jitter);
+  this->sample_buffer.latency_samples[i] = parity * timespec_to_long(&jitter);
   return 0;
 }
 
@@ -149,7 +186,7 @@ Rttest * get_rttest_thread_instance(pthread_t thread_id)
   if (rttest_instance_map.count(thread_id) == 0) {
     return NULL;
   }
-  return rttest_instance_map[thread_id];
+  return &rttest_instance_map[thread_id];
 }
 
 int Rttest::read_args(int argc, char ** argv)
@@ -180,8 +217,15 @@ int Rttest::read_args(int argc, char ** argv)
   while ((c = getopt(argc, argv, args_string.c_str())) != -1) {
     switch (c) {
       case 'i':
-        iterations = atoi(optarg);
-        break;
+        {
+          int arg = atoi(optarg);
+          if (arg < 0) {
+            iterations = 0;
+          } else {
+            iterations = arg;
+          }
+          break;
+        }
       case 'u':
         {
           // parse units
@@ -208,7 +252,6 @@ int Rttest::read_args(int argc, char ** argv)
         break;
       case 's':
         {
-          // translate string to number. is there a utility for this?
           std::string input(optarg);
           if (input == "fifo") {
             sched_policy = SCHED_FIFO;
@@ -259,11 +302,11 @@ int Rttest::read_args(int argc, char ** argv)
     }
   }
 
-  this->init(iterations, update_period, sched_policy, sched_priority,
+  return this->init(iterations, update_period, sched_policy, sched_priority,
     stack_size, filename);
 }
 
-int rttest_get_params(struct rttest_params & params_in)
+int rttest_get_params(struct rttest_params * params_in)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
 
@@ -271,7 +314,12 @@ int rttest_get_params(struct rttest_params & params_in)
     return -1;
   }
 
-  params_in = *thread_rttest_instance->get_params();
+  if (params_in == NULL) {
+    params_in = thread_rttest_instance->get_params();
+  } else {
+    *params_in = *thread_rttest_instance->get_params();
+  }
+
   return 0;
 }
 
@@ -281,7 +329,7 @@ int rttest_init_new_thread()
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest;
+    rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
   } else {
     fprintf(stderr, "rttest instance for %lu already exists!\n", thread_id);
     return -1;
@@ -289,9 +337,10 @@ int rttest_init_new_thread()
   if (initial_thread_id == 0 || rttest_instance_map.count(initial_thread_id) == 0) {
     return -1;
   }
-  rttest_instance_map[thread_id]->set_params(
-    rttest_instance_map[initial_thread_id]->get_params());
-  rttest_instance_map[thread_id]->initialize_dynamic_memory();
+  rttest_instance_map[thread_id].set_params(
+    rttest_instance_map[initial_thread_id].get_params());
+  rttest_instance_map[thread_id].initialize_dynamic_memory();
+  return 0;
 }
 
 int rttest_read_args(int argc, char ** argv)
@@ -300,11 +349,12 @@ int rttest_read_args(int argc, char ** argv)
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (!thread_rttest_instance) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest;
+    //rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
+    rttest_instance_map.emplace(std::make_pair(thread_id, Rttest()));
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
-    thread_rttest_instance = rttest_instance_map[thread_id];
+    thread_rttest_instance = &rttest_instance_map[thread_id];
   }
   return thread_rttest_instance->read_args(argc, argv);
 }
@@ -329,6 +379,10 @@ int Rttest::init(size_t iterations, struct timespec update_period,
 void Rttest::initialize_dynamic_memory()
 {
   size_t iterations = this->params.iterations;
+  if (iterations == 0) {
+    // Allocate a sample buffer of size 1
+    iterations = 1;
+  }
   this->sample_buffer.buffer_size = iterations;
   this->sample_buffer.latency_samples =
     (int *) std::malloc(iterations * sizeof(int));
@@ -354,10 +408,13 @@ int rttest_init(size_t iterations, struct timespec update_period,
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
   if (thread_rttest_instance == nullptr) {
     // Create the new Rttest instance for this thread
-    rttest_instance_map[thread_id] = new Rttest;
+    std::pair<pthread_t, Rttest> instance;
+    instance.first = thread_id;
+    rttest_instance_map.emplace(instance);
     if (rttest_instance_map.size() == 1 && initial_thread_id == 0) {
       initial_thread_id = thread_id;
     }
+    thread_rttest_instance = &rttest_instance_map[thread_id];
   }
   return thread_rttest_instance->init(iterations, update_period,
            sched_policy, sched_priority, stack_size, filename);
@@ -372,6 +429,9 @@ int Rttest::get_next_rusage(size_t i)
   }
   assert(this->prev_usage.ru_majflt >= prev_maj_pagefaults);
   assert(this->prev_usage.ru_minflt >= prev_min_pagefaults);
+  if (this->params.iterations == 0) {
+    i = 0;
+  }
   this->sample_buffer.major_pagefaults[i] =
     this->prev_usage.ru_majflt - prev_maj_pagefaults;
   this->sample_buffer.minor_pagefaults[i] =
@@ -466,8 +526,8 @@ int Rttest::spin_once(void *(*user_function)(void *), void * args,
     if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0) {
       return -1;
     }
-    std::cout << "Initial major pagefaults: " << this->prev_usage.ru_majflt << std::endl;
-    std::cout << "Initial minor pagefaults: " << this->prev_usage.ru_minflt << std::endl;
+    printf("Initial major pagefaults: %zu\n", this->prev_usage.ru_majflt);
+    printf("Initial minor pagefaults: %zu\n", this->prev_usage.ru_minflt);
   }
   struct timespec wakeup_time, current_time;
   multiply_timespec(update_period, i, &wakeup_time);
@@ -551,6 +611,7 @@ int Rttest::lock_and_prefault_dynamic()
     char * ptr;
     try {
       ptr = new char[64 * page_size];
+      memset(ptr, 0, 64 * page_size);
     } catch (std::bad_alloc & e) {
       fprintf(stderr, "Caught exception: %s\n", e.what());
       fprintf(stderr, "Unlocking memory and continuing.\n");
@@ -618,23 +679,32 @@ int rttest_set_sched_priority(size_t sched_priority, int policy)
 
 int Rttest::accumulate_statistics(size_t iteration)
 {
-  if (iteration > params.iterations) {
+  size_t i = iteration;
+  this->results.iteration = iteration;
+  if (params.iterations == 0) {
+    i = 0;
+  } else if (iteration > params.iterations) {
     return -1;
   }
-  int latency = sample_buffer.latency_samples[iteration];
+  int latency = sample_buffer.latency_samples[i];
   if (latency > this->results.max_latency) {
     this->results.max_latency = latency;
   }
   if (latency < this->results.min_latency) {
     this->results.min_latency = latency;
   }
-  double mean = 0;
-  for (size_t i = 0; i <= iteration; ++i) {
-    mean += sample_buffer.latency_samples[i];
+
+  if (iteration > 0) {
+    // Accumulate the mean
+    this->results.mean_latency = this->results.mean_latency +
+      (sample_buffer.latency_samples[i] - this->results.mean_latency) / (iteration + 1);
+  } else {
+    // Initialize the mean
+    this->results.mean_latency = sample_buffer.latency_samples[i];
   }
-  this->results.mean_latency = mean / (iteration + 1);
-  this->results.minor_pagefaults += sample_buffer.minor_pagefaults[iteration];
-  this->results.major_pagefaults += sample_buffer.major_pagefaults[iteration];
+  this->results.minor_pagefaults += sample_buffer.minor_pagefaults[i];
+  this->results.major_pagefaults += sample_buffer.major_pagefaults[i];
+  return 0;
 }
 
 int Rttest::calculate_statistics(struct rttest_results * output)
@@ -696,21 +766,49 @@ int rttest_calculate_statistics(struct rttest_results * results)
   return thread_rttest_instance->calculate_statistics(results);
 }
 
-int rttest_get_statistics(struct rttest_results & output)
+int rttest_get_statistics(struct rttest_results * output)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
   if (!thread_rttest_instance) {
     return -1;
   }
-  output = thread_rttest_instance->results;
+  if (output == NULL) {
+    output = &thread_rttest_instance->results;
+  } else {
+    // if output is not null, try to copy the results struct into the memory location
+    *output = thread_rttest_instance->results;
+  }
+
   return 0;
 }
 
-std::string rttest_results_to_string(struct rttest_results * results, char * name)
+int Rttest::get_sample_at(const size_t iteration, int & sample) const
 {
-  if (!results) {
-    return "ERROR: rttest got NULL results string!";
+  if (this->params.iterations == 0) {
+    sample = this->sample_buffer.latency_samples[0];
+    return 0;
   }
+  if (iteration < this->params.iterations) {
+    sample = this->sample_buffer.latency_samples[iteration];
+    return 0;
+  }
+  return -1;
+}
+
+int rttest_get_sample_at(const size_t iteration, int * sample)
+{
+  auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+  if (!thread_rttest_instance) {
+    return -1;
+  }
+  if (sample == NULL) {
+    return -1;
+  }
+  return thread_rttest_instance->get_sample_at(iteration, *sample);
+}
+
+std::string Rttest::results_to_string(char * name)
+{
   std::stringstream sstring;
 
   sstring << "rttest statistics";
@@ -719,13 +817,13 @@ std::string rttest_results_to_string(struct rttest_results * results, char * nam
   } else {
     sstring << ":" << std::endl;
   }
-  sstring << "  - Minor pagefaults: " << results->minor_pagefaults << std::endl;
-  sstring << "  - Major pagefaults: " << results->major_pagefaults << std::endl;
+  sstring << "  - Minor pagefaults: " << results.minor_pagefaults << std::endl;
+  sstring << "  - Major pagefaults: " << results.major_pagefaults << std::endl;
   sstring << "  Latency (time after deadline was missed):" << std::endl;
-  sstring << "    - Min: " << results->min_latency << " ns" << std::endl;
-  sstring << "    - Max: " << results->max_latency << " ns" << std::endl;
-  sstring << "    - Mean: " << results->mean_latency << " ns" << std::endl;
-  sstring << "    - Standard deviation: " << results->latency_stddev << std::endl;
+  sstring << "    - Min: " << results.min_latency << " ns" << std::endl;
+  sstring << "    - Max: " << results.max_latency << " ns" << std::endl;
+  sstring << "    - Mean: " << results.mean_latency << " ns" << std::endl;
+  sstring << "    - Standard deviation: " << results.latency_stddev << std::endl;
   sstring << std::endl;
 
   return sstring.str();
@@ -737,7 +835,11 @@ int rttest_finish()
   if (!thread_rttest_instance) {
     return -1;
   }
-  return thread_rttest_instance->finish();
+  int status = thread_rttest_instance->finish();
+
+  rttest_instance_map.erase(pthread_self());
+
+  return status;
 }
 
 int Rttest::finish()
@@ -747,19 +849,7 @@ int Rttest::finish()
 
   // Print statistics to screen
   this->calculate_statistics(&this->results);
-  std::cout << rttest_results_to_string(&this->results, this->params.filename);
-
-  if (this->sample_buffer.latency_samples != NULL) {
-    free(this->sample_buffer.latency_samples);
-  }
-
-  if (this->sample_buffer.minor_pagefaults != NULL) {
-    free(this->sample_buffer.minor_pagefaults);
-  }
-
-  if (this->sample_buffer.major_pagefaults != NULL) {
-    free(this->sample_buffer.major_pagefaults);
-  }
+  printf("%s\n", this->results_to_string(this->params.filename));
 
   return 0;
 }
@@ -784,26 +874,30 @@ int rttest_write_results()
 
 int Rttest::write_results()
 {
-  this->write_results_file(this->params.filename);
+  return this->write_results_file(this->params.filename);
 }
 
 int Rttest::write_results_file(char * filename)
 {
+  if (this->params.iterations == 0) {
+    fprintf(stderr, "No sample buffer was saved, not writing results\n");
+    return -1;
+  }
   if (filename == NULL) {
     fprintf(stderr, "No results filename given, not writing results\n");
     return -1;
   }
 
   if (this->sample_buffer.latency_samples == NULL) {
-    fprintf(stderr, "Samples buffer was NULL, not writing results\n");
+    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
     return -1;
   }
   if (this->sample_buffer.minor_pagefaults == NULL) {
-    fprintf(stderr, "Samples buffer was NULL, not writing results\n");
+    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
     return -1;
   }
   if (this->sample_buffer.major_pagefaults == NULL) {
-    fprintf(stderr, "Samples buffer was NULL, not writing results\n");
+    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
     return -1;
   }
 
