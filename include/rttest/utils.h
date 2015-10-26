@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RTTEST_UTILS_H_
-#define RTTEST_UTILS_H_
+#ifndef RTTEST__UTILS_H_
+#define RTTEST__UTILS_H_
 
 #include <time.h>
 
@@ -33,7 +33,7 @@ static inline bool timespec_gt(const struct timespec * t1,
 
 static inline void normalize_timespec(struct timespec * t)
 {
-  // TODO: maybe could use some work
+  // TODO(jacquelinekay) improve
   while (t->tv_nsec >= NSEC_PER_SEC) {
     t->tv_nsec -= NSEC_PER_SEC;
     t->tv_sec++;
@@ -64,25 +64,24 @@ static inline bool subtract_timespecs(const struct timespec * t1,
   return true;
 }
 
-static inline unsigned long timespec_to_long(const struct timespec * t)
+static inline size_t timespec_to_long(const struct timespec * t)
 {
   return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
 }
 
-static inline void long_to_timespec(const unsigned long input, struct timespec * t)
+static inline void long_to_timespec(const size_t input, struct timespec * t)
 {
-  //return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
-  unsigned long nsecs = input % 1000000000;
-  unsigned long secs = (input - nsecs) / 1000000000;
+  size_t nsecs = input % 1000000000;
+  size_t secs = (input - nsecs) / 1000000000;
   t->tv_sec = secs;
   t->tv_nsec = nsecs;
 }
 
-static inline void multiply_timespec(const struct timespec * t, const unsigned long i,
+static inline void multiply_timespec(const struct timespec * t, const size_t i,
   struct timespec * result)
 {
-  unsigned long result_nsec = i * timespec_to_long(t);
+  size_t result_nsec = i * timespec_to_long(t);
   long_to_timespec(result_nsec, result);
 }
 
-#endif
+#endif  // RTTEST__UTILS_H_
