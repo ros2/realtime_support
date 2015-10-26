@@ -849,7 +849,7 @@ int Rttest::finish()
 
   // Print statistics to screen
   this->calculate_statistics(&this->results);
-  printf("%s\n", this->results_to_string(this->params.filename));
+  printf("%s\n", this->results_to_string(this->params.filename).c_str());
 
   return 0;
 }
