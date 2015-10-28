@@ -64,24 +64,24 @@ static inline bool subtract_timespecs(const struct timespec * t1,
   return true;
 }
 
-static inline unsigned long timespec_to_long(const struct timespec * t)
+static inline uint32_t timespec_to_long(const struct timespec * t)
 {
   return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
 }
 
-static inline void long_to_timespec(const unsigned long input, struct timespec * t)
+static inline void long_to_timespec(const uint32_t input, struct timespec * t)
 {
   //return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
-  unsigned long nsecs = input % 1000000000;
-  unsigned long secs = (input - nsecs) / 1000000000;
+  uint32_t nsecs = input % 1000000000;
+  uint32_t secs = (input - nsecs) / 1000000000;
   t->tv_sec = secs;
   t->tv_nsec = nsecs;
 }
 
-static inline void multiply_timespec(const struct timespec * t, const unsigned long i,
+static inline void multiply_timespec(const struct timespec * t, const uint32_t i,
   struct timespec * result)
 {
-  unsigned long result_nsec = i * timespec_to_long(t);
+  uint32_t result_nsec = i * timespec_to_long(t);
   long_to_timespec(result_nsec, result);
 }
 
