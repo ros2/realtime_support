@@ -49,7 +49,7 @@ if(${ament_cmake_FOUND})
   )
 
   install(
-    DIRECTORY scripts/
+    PROGRAMS scripts/rttest_plot
     DESTINATION bin
   )
 
