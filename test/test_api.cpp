@@ -15,9 +15,10 @@
 #include <sys/resource.h>
 
 #include <array>
-#include <gtest/gtest.h>
-#include "rttest.h"
-#include "utils.h"
+#include "gtest/gtest.h"
+
+#include "rttest/rttest.h"
+#include "rttest/utils.h"
 
 void * test_callback(void * args)
 {
