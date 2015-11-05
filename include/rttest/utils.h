@@ -72,7 +72,6 @@ static inline uint32_t timespec_to_long(const struct timespec * t)
 
 static inline void long_to_timespec(const uint32_t input, struct timespec * t)
 {
-  //return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
   uint32_t nsecs = input % 1000000000;
   uint32_t secs = (input - nsecs) / 1000000000;
   t->tv_sec = secs;
