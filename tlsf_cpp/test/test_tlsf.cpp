@@ -316,7 +316,7 @@ protected:
 };
 
 
-TEST_F(AllocatorTest, allocator_shared_ptr) {
+TEST_F(AllocatorTest, CLASSNAME(allocator_shared_ptr, RMW_IMPLEMENTATION)) {
   initialize(false, "allocator_shared_ptr");
   size_t counter = 0;
   auto callback = [&counter](std_msgs::msg::UInt32::SharedPtr msg) -> void
@@ -344,7 +344,7 @@ TEST_F(AllocatorTest, allocator_shared_ptr) {
   fail = false;
 }
 
-TEST_F(AllocatorTest, allocator_unique_ptr) {
+TEST_F(AllocatorTest, CLASSNAME(allocator_unique_ptr, RMW_IMPLEMENTATION)) {
   initialize(true, "allocator_unique_ptr");
   size_t counter = 0;
   auto callback =
