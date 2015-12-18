@@ -303,7 +303,11 @@ protected:
     publisher_ = node_->create_publisher<std_msgs::msg::UInt32>(name, 10, alloc);
     memory_strategy_ =
       std::make_shared<AllocatorMemoryStrategy<TLSFAllocator<void>>>(alloc);
-    executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>(memory_strategy_);
+
+    rclcpp::executor::ExecutorArgs args;
+    args.memory_strategy = memory_strategy_;
+    rclcpp::executors::SingleThreadedExecutor executor(args);
+    executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>(args);
 
     executor_->add_node(node_);
   }
