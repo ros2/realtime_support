@@ -33,6 +33,8 @@ struct rttest_params
   int sched_priority;
   size_t stack_size;
 
+  // TODO(dirk-thomas) currently this pointer is never deallocated or copied
+  // so whatever value is being assigned must stay valid forever
   char * filename;
 };
 
