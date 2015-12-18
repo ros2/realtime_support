@@ -262,7 +262,7 @@ using TLSFAllocator = tlsf_heap_allocator<T>;
 
 using rclcpp::memory_strategies::allocator_memory_strategy::AllocatorMemoryStrategy;
 
-class AllocatorTest : public::testing::Test
+class CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION) : public::testing::Test
 {
 protected:
   std::string test_name_;
@@ -306,17 +306,17 @@ protected:
     executor_->add_node(node_);
   }
 
-  AllocatorTest()
+  CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION)()
   {
   }
 
-  ~AllocatorTest()
+  ~CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION)()
   {
   }
 };
 
 
-TEST_F(AllocatorTest, CLASSNAME(allocator_shared_ptr, RMW_IMPLEMENTATION)) {
+TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_shared_ptr) {
   initialize(false, "allocator_shared_ptr");
   size_t counter = 0;
   auto callback = [&counter](std_msgs::msg::UInt32::SharedPtr msg) -> void
@@ -344,7 +344,7 @@ TEST_F(AllocatorTest, CLASSNAME(allocator_shared_ptr, RMW_IMPLEMENTATION)) {
   fail = false;
 }
 
-TEST_F(AllocatorTest, CLASSNAME(allocator_unique_ptr, RMW_IMPLEMENTATION)) {
+TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
   initialize(true, "allocator_unique_ptr");
   size_t counter = 0;
   auto callback =
