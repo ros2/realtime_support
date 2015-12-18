@@ -177,7 +177,7 @@ int Rttest::record_jitter(const struct timespec * deadline,
     parity = -1;
   }
   // Record jitter
-  if (i > this->sample_buffer.buffer_size) {
+  if (i >= this->sample_buffer.buffer_size) {
     return -1;
   }
   this->sample_buffer.latency_samples[i] = parity * timespec_to_long(&jitter);
