@@ -38,8 +38,68 @@
 
 extern "C"
 {
-struct rttest_sample_buffer
+class rttest_sample_buffer
 {
+public:
+  rttest_sample_buffer()
+  : latency_samples(nullptr),
+    major_pagefaults(nullptr),
+    minor_pagefaults(nullptr),
+    buffer_size(0)
+  {}
+  ~rttest_sample_buffer()
+  {
+    resize(0);
+  }
+  void resize(size_t new_buffer_size)
+  {
+    if (new_buffer_size > 0) {
+      resize(0);
+      this->buffer_size = new_buffer_size;
+      this->latency_samples = static_cast<int *>(
+        std::malloc(new_buffer_size * sizeof(int)));
+      // TODO(dirk-thomas) this must check if the memory was allocated, same below
+      memset(this->latency_samples, 0,
+        new_buffer_size * sizeof(int));
+
+      this->major_pagefaults = static_cast<size_t *>(
+        std::malloc(new_buffer_size * sizeof(size_t)));
+      memset(this->major_pagefaults, 0,
+        new_buffer_size * sizeof(size_t));
+
+      this->minor_pagefaults = static_cast<size_t *>(
+        std::malloc(new_buffer_size * sizeof(size_t)));
+      memset(this->minor_pagefaults, 0,
+        new_buffer_size * sizeof(size_t));
+    } else {
+      if (this->latency_samples) {
+        free(this->latency_samples);
+        this->latency_samples = nullptr;
+      }
+      if (this->major_pagefaults) {
+        free(this->major_pagefaults);
+        this->major_pagefaults = nullptr;
+      }
+      if (this->minor_pagefaults) {
+        free(this->minor_pagefaults);
+        this->minor_pagefaults = nullptr;
+      }
+      this->buffer_size = 0;
+    }
+  }
+  rttest_sample_buffer(const rttest_sample_buffer & other)
+  : rttest_sample_buffer()
+  {
+    *this = other;
+  }
+  void operator=(const rttest_sample_buffer & other)
+  {
+    resize(other.buffer_size);
+    memcpy(this->latency_samples, other.latency_samples, this->buffer_size * sizeof(int));
+    memcpy(this->major_pagefaults, other.major_pagefaults, this->buffer_size * sizeof(size_t));
+    memcpy(this->minor_pagefaults, other.minor_pagefaults, this->buffer_size * sizeof(size_t));
+  }
+
   // Stored in nanoseconds
   // A negative latency means that the event was early (unlikely)
   int * latency_samples;
@@ -124,29 +184,13 @@ pthread_t initial_thread_id = 0;
 
 Rttest::Rttest()
 {
-  memset(&this->sample_buffer, 0, sizeof(struct rttest_sample_buffer));
   memset(&this->results, 0, sizeof(struct rttest_results));
   this->results.min_latency = INT_MAX;
   this->results.max_latency = INT_MIN;
 }
 
 Rttest::~Rttest()
-{
-  if (this->sample_buffer.latency_samples != NULL) {
-    free(this->sample_buffer.latency_samples);
-    this->sample_buffer.latency_samples = NULL;
-  }
-
-  if (this->sample_buffer.minor_pagefaults != NULL) {
-    free(this->sample_buffer.minor_pagefaults);
-    this->sample_buffer.minor_pagefaults = NULL;
-  }
-
-  if (this->sample_buffer.major_pagefaults != NULL) {
-    free(this->sample_buffer.major_pagefaults);
-    this->sample_buffer.major_pagefaults = NULL;
-  }
-}
+{}
 
 // Functions
 void Rttest::set_params(struct rttest_params * params)
@@ -385,21 +429,7 @@ void Rttest::initialize_dynamic_memory()
     // Allocate a sample buffer of size 1
     iterations = 1;
   }
-  this->sample_buffer.buffer_size = iterations;
-  this->sample_buffer.latency_samples = static_cast<int *>(
-    std::malloc(iterations * sizeof(int)));
-  memset(this->sample_buffer.latency_samples, 0,
-    iterations * sizeof(int));
-
-  this->sample_buffer.minor_pagefaults = static_cast<size_t *>(
-    std::malloc(iterations * sizeof(size_t)));
-  memset(this->sample_buffer.minor_pagefaults, 0,
-    iterations * sizeof(size_t));
-
-  this->sample_buffer.major_pagefaults = static_cast<size_t *>(
-    std::malloc(iterations * sizeof(size_t)));
-  memset(this->sample_buffer.major_pagefaults, 0,
-    iterations * sizeof(size_t));
+  this->sample_buffer.resize(iterations);
 }
 
 int rttest_init(size_t iterations, struct timespec update_period,
