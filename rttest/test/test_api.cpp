@@ -49,7 +49,7 @@ TEST(TestApi, read_args_get_params) {
   EXPECT_EQ(params.sched_priority, 42);
   EXPECT_EQ(params.sched_policy, SCHED_FIFO);
   EXPECT_EQ(params.stack_size, 100);
-  EXPECT_EQ(params.filename, "foo.txt");
+  EXPECT_EQ(strcmp(params.filename, "foo.txt"), 0);
   EXPECT_EQ(0, rttest_finish());
 }
 
@@ -70,7 +70,7 @@ TEST(TestApi, init) {
   EXPECT_EQ(params.sched_priority, 42);
   EXPECT_EQ(params.sched_policy, SCHED_FIFO);
   EXPECT_EQ(params.stack_size, stack_size);
-  EXPECT_EQ(params.filename, "foo.txt");
+  EXPECT_EQ(strcmp(params.filename, "foo.txt"), 0);
 
   EXPECT_EQ(0, rttest_finish());
 }
