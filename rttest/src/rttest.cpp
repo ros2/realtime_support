@@ -51,6 +51,8 @@ public:
   {
     resize(0);
   }
+
+  /// Free the current buffer and allocate a new buffer if new_buffer_size is greater than zero.
   void resize(size_t new_buffer_size)
   {
     if (new_buffer_size > 0) {
@@ -58,17 +60,28 @@ public:
       this->buffer_size = new_buffer_size;
       this->latency_samples = static_cast<int *>(
         std::malloc(new_buffer_size * sizeof(int)));
-      // TODO(dirk-thomas) this must check if the memory was allocated, same below
+      if (!this->latency_samples) {
+        fprintf(stderr, "Failed to allocate latency samples buffer\n");
+        exit(-1);
+      }
       memset(this->latency_samples, 0,
         new_buffer_size * sizeof(int));
 
       this->major_pagefaults = static_cast<size_t *>(
         std::malloc(new_buffer_size * sizeof(size_t)));
+      if (!this->major_pagefaults) {
+        fprintf(stderr, "Failed to allocate major pagefaults buffer\n");
+        exit(-1);
+      }
       memset(this->major_pagefaults, 0,
         new_buffer_size * sizeof(size_t));
 
       this->minor_pagefaults = static_cast<size_t *>(
         std::malloc(new_buffer_size * sizeof(size_t)));
+      if (!this->minor_pagefaults) {
+        fprintf(stderr, "Failed to allocate minor pagefaults buffer\n");
+        exit(-1);
+      }
       memset(this->minor_pagefaults, 0,
         new_buffer_size * sizeof(size_t));
     } else {
@@ -253,7 +266,7 @@ int Rttest::read_args(int argc, char ** argv)
   size_t stack_size = 1024 * 1024;
   // -f,--filename
   // Don't write a file unless filename specified
-  char * filename = NULL;
+  char * filename = nullptr;
   int index;
   int c;
 
@@ -332,8 +345,6 @@ int Rttest::read_args(int argc, char ** argv)
         break;
       case 'f':
         filename = optarg;
-        fprintf(stderr, "Writing results to file: %s\n", filename);
-        // check if file exists
         break;
       case '?':
         if (args_string.find(optopt) != std::string::npos) {
@@ -415,7 +426,19 @@ int Rttest::init(size_t iterations, struct timespec update_period,
   this->params.sched_priority = sched_priority;
   this->params.stack_size = stack_size;
 
-  this->params.filename = filename;
+  if (filename != nullptr) {
+    size_t n = strlen(filename);
+    this->params.filename = static_cast<char *>(std::malloc(n * sizeof(char) + 1));
+    if (!this->params.filename) {
+      fprintf(stderr, "Failed to allocate major pagefaults buffer\n");
+      return -1;
+    }
+    this->params.filename[n] = 0;
+    strncpy(this->params.filename, filename, n);
+    fprintf(stderr, "Writing results to file: %s\n", this->params.filename);
+  } else {
+    this->params.filename = nullptr;
+  }
 
   this->initialize_dynamic_memory();
   this->running = 1;
@@ -882,6 +905,7 @@ int Rttest::finish()
   // Print statistics to screen
   this->calculate_statistics(&this->results);
   printf("%s\n", this->results_to_string(this->params.filename).c_str());
+  free(this->params.filename);
 
   return 0;
 }

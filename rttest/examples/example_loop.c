@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
     perror("Couldn't lock memory");
     return -1;
   }
-  rttest_prefault_stack();
+  rttest_lock_and_prefault_dynamic();
 
   rttest_spin(my_loop_callback, NULL);
 
