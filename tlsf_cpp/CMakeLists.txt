@@ -19,9 +19,6 @@ if(AMENT_ENABLE_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  set(test_executable_extension "")
-  set(test_executable_subfolder "")
-
   # get the rmw implementations ahead of time
   find_package(rmw_implementation_cmake REQUIRED)
   get_available_rmw_implementations(middleware_implementations)
@@ -51,9 +48,7 @@ if(AMENT_ENABLE_TESTING)
     endif()
   endmacro()
 
-
   call_for_each_rmw_implementation(add_gtest)
-
 endif()
 
 include_directories(include)
