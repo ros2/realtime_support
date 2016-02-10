@@ -264,7 +264,7 @@ using TLSFAllocator = tlsf_heap_allocator<T>;
 
 using rclcpp::memory_strategies::allocator_memory_strategy::AllocatorMemoryStrategy;
 
-class CLASSNAME (AllocatorTest, RMW_IMPLEMENTATION) : public::testing::Test
+class CLASSNAME (AllocatorTest, RMW_IMPLEMENTATION) : public ::testing::Test
 {
 protected:
   std::string test_name_;
