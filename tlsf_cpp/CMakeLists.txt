@@ -70,6 +70,7 @@ endmacro()
 
 call_for_each_rmw_implementation(example_target GENERATE_DEFAULT)
 
+ament_export_include_directories(include)
 ament_export_dependencies("tlsf")
 
 ament_package()
