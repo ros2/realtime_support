@@ -61,7 +61,7 @@ macro(example_target)
   add_executable(allocator_example${target_suffix}
     example/allocator_example.cpp)
   ament_target_dependencies(allocator_example${target_suffix}
-    "rclcpp"
+    "rclcpp${target_suffx}"
     "std_msgs"
     "tlsf")
   install(TARGETS allocator_example${target_suffix}
