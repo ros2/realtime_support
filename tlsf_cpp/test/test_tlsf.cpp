@@ -306,7 +306,6 @@ protected:
 
     rclcpp::executor::ExecutorArgs args;
     args.memory_strategy = memory_strategy_;
-    rclcpp::executors::SingleThreadedExecutor executor(args);
     executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>(args);
 
     executor_->add_node(node_);
@@ -363,7 +362,6 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
 
   TLSFAllocator<std_msgs::msg::UInt32> msg_alloc;
 
-  rclcpp::utilities::sleep_for(std::chrono::milliseconds(1));
   // After test_initialization, global new should only be called from within TLSFAllocator.
   test_init = true;
   for (uint32_t i = 0; i < iterations; i++) {
