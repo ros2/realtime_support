@@ -43,7 +43,7 @@ if(AMENT_ENABLE_TESTING)
       target_compile_definitions(${target}${target_suffix}
         PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
       ament_target_dependencies(${target}${target_suffix}
-        "rclcpp${target_suffix}" "std_msgs" "tlsf_cpp" "tlsf")
+        "rclcpp${target_suffix}" "std_msgs" "tlsf")
     endif()
   endmacro()
 
