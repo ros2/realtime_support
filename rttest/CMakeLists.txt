@@ -22,7 +22,7 @@ if(${ament_cmake_FOUND})
   ament_export_include_directories(include)
   ament_export_libraries(rttest pthread)
 
-  if(AMENT_ENABLE_TESTING)
+  if(BUILD_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
     find_package(ament_lint_auto REQUIRED)
     ament_lint_auto_find_test_dependencies()
