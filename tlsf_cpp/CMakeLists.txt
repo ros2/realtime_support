@@ -32,7 +32,6 @@ if(BUILD_TESTING)
   # get typesupport of rmw implementation to include / link against the corresponding interfaces
 
   macro(add_gtest)
-    get_rmw_typesupport(typesupport_impl "${rmw_implementation}")
     get_rclcpp_information("${rmw_implementation}" "rclcpp${target_suffix}")
 
     ament_add_gtest(${target}${target_suffix} "test/test_tlsf.cpp" TIMEOUT 15)
