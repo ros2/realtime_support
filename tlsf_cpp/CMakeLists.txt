@@ -34,7 +34,8 @@ if(BUILD_TESTING)
   macro(add_gtest)
     get_rclcpp_information("${rmw_implementation}" "rclcpp${target_suffix}")
 
-    ament_add_gtest(${target}${target_suffix} "test/test_tlsf.cpp" TIMEOUT 15)
+    ament_add_gtest(${target}${target_suffix} "test/test_tlsf.cpp" TIMEOUT 15
+      ENV RCL_ASSERT_RMW_ID_MATCHES=${rmw_implementation})
     if(TARGET ${target}${target_suffix})
       target_link_libraries(${target}${target_suffix}
         ${_AMENT_EXPORT_ABSOLUTE_LIBRARIES}
