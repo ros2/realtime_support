@@ -240,25 +240,6 @@ void operator delete(void * ptr) noexcept
 #pragma GCC diagnostic pop
 }
 
-void operator delete(void * ptr, size_t) noexcept
-{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  __malloc_hook = prev_malloc_hook;
-
-  if (ptr != nullptr) {
-    if (test_init) {
-      // Check the stacktrace to see the call originated in librmw or a DDS implementation
-      fail |= !check_stacktrace(rmw_tokens, num_rmw_tokens);
-    }
-
-    std::free(ptr);
-    ptr = nullptr;
-  }
-  __malloc_hook = testing_malloc;
-#pragma GCC diagnostic pop
-}
-
 template<typename T = void>
 using TLSFAllocator = tlsf_heap_allocator<T>;
 
