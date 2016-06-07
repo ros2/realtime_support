@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 project(tlsf_cpp)
-if(WIN32 OR APPLE)
-  message(STATUS "tlsf allocator does not target Windows or OSX, skipping...")
+if(WIN32 OR APPLE OR ANDROID)
+  message(STATUS "tlsf allocator does not target Windows, OSX or Android, skipping...")
   return()
 endif()
 
