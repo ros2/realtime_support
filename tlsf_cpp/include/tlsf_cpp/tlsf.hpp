@@ -25,8 +25,6 @@
 
 #include "tlsf/tlsf.h"
 
-// Custom allocator deleter
-
 template<typename T, size_t DefaultPoolSize = 1024 *1024>
 struct tlsf_heap_allocator
 {
@@ -92,21 +90,6 @@ struct tlsf_heap_allocator
   void deallocate(T * ptr, size_t)
   {
     tlsf_free(ptr);
-  }
-
-  template<typename U, typename ... Args,
-  typename std::enable_if<!std::is_const<U>::value>::type * = nullptr>
-  void
-  construct(U * ptr, Args && ... args)
-  {
-    ::new(ptr)U(std::forward<Args>(args) ...);
-  }
-
-  template<typename U>
-  void
-  destroy(U * ptr)
-  {
-    ptr->~U();
   }
 
   template<typename U>
