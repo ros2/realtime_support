@@ -25,28 +25,8 @@
 
 #include "tlsf/tlsf.h"
 
-// Custom allocator deleter
-
-// Necessary for using custom allocator with std::basic_string in GCC 4.8
-// See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56437
-template<typename T>
-struct allocator_pointer_traits
-{
-  using size_type = std::size_t;
-  using pointer = T *;
-  using const_pointer = const pointer;
-  using difference_type = typename std::pointer_traits<pointer>::difference_type;
-  using reference = T &;
-  using const_reference = const reference;
-};
-
-template<>
-struct allocator_pointer_traits<void>
-{
-};
-
 template<typename T, size_t DefaultPoolSize = 1024 *1024>
-struct tlsf_heap_allocator : public allocator_pointer_traits<T>
+struct tlsf_heap_allocator
 {
   // Needed for std::allocator_traits
   using value_type = T;
@@ -110,21 +90,6 @@ struct tlsf_heap_allocator : public allocator_pointer_traits<T>
   void deallocate(T * ptr, size_t)
   {
     tlsf_free(ptr);
-  }
-
-  template<typename U, typename ... Args,
-  typename std::enable_if<!std::is_const<U>::value>::type * = nullptr>
-  void
-  construct(U * ptr, Args && ... args)
-  {
-    ::new(ptr)U(std::forward<Args>(args) ...);
-  }
-
-  template<typename U>
-  void
-  destroy(U * ptr)
-  {
-    ptr->~U();
   }
 
   template<typename U>
