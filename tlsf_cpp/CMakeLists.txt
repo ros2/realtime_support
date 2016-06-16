@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 
 project(tlsf_cpp)
 if(WIN32 OR APPLE OR ANDROID)
@@ -53,7 +53,7 @@ endif()
 include_directories(include)
 
 macro(example_target)
-  if(NOT "${target_suffix} " STREQUAL " ")
+  if(NOT target_suffix STREQUAL "")
     get_rclcpp_information("${rmw_implementation}" "rclcpp${target_suffix}")
   endif()
 
