@@ -53,7 +53,7 @@ endif()
 include_directories(include)
 
 macro(example_target)
-  if(NOT "${target_suffix} " STREQUAL " ")
+  if(NOT target_suffix STREQUAL "")
     get_rclcpp_information("${rmw_implementation}" "rclcpp${target_suffix}")
   endif()
 
