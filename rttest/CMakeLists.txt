@@ -20,7 +20,8 @@ if(${ament_cmake_FOUND})
   target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
 
   ament_export_include_directories(include)
-  ament_export_libraries(rttest pthread)
+  set(exported_libraries rttest pthread)
+  ament_export_libraries(${exported_libraries})
 
   if(BUILD_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
@@ -33,12 +34,8 @@ if(${ament_cmake_FOUND})
       TIMEOUT 15
     )
     if(TARGET gtest_rttest_api)
-      target_link_libraries(gtest_rttest_api
-        ${_AMENT_EXPORT_ABSOLUTE_LIBRARIES}
-        ${_AMENT_EXPORT_LIBRARY_TARGETS})
-      add_dependencies(gtest_rttest_api ${PROJECT_NAME})
-      ament_target_dependencies(gtest_rttest_api "rttest")
-      target_include_directories(gtest_rttest_api PUBLIC include)
+      target_link_libraries(gtest_rttest_api ${exported_libraries})
+      ament_target_dependencies(gtest_rttest_api ${PROJECT_NAME})
     endif()
   endif()
 
