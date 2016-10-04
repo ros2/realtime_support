@@ -54,13 +54,13 @@ macro(example_target)
     get_rclcpp_information("${rmw_implementation}" "rclcpp${target_suffix}")
   endif()
 
-  add_executable(allocator_example${target_suffix}
+  add_executable(tlsf_allocator_example${target_suffix}
     example/allocator_example.cpp)
-  ament_target_dependencies(allocator_example${target_suffix}
+  ament_target_dependencies(tlsf_allocator_example${target_suffix}
     "rclcpp${target_suffx}"
     "std_msgs"
     "tlsf")
-  install(TARGETS allocator_example${target_suffix}
+  install(TARGETS tlsf_allocator_example${target_suffix}
     DESTINATION bin)
 endmacro()
 
