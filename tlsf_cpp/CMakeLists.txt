@@ -21,9 +21,9 @@ if(BUILD_TESTING)
 
   # get the rmw implementations ahead of time
   find_package(rmw_implementation_cmake REQUIRED)
-  get_available_rmw_implementations(middleware_implementations)
-  foreach(middleware_impl ${middleware_implementations})
-    find_package("${middleware_impl}" REQUIRED)
+  get_available_rmw_implementations(rmw_implementations)
+  foreach(rmw_implementation ${rmw_implementations})
+    find_package("${rmw_implementation}" REQUIRED)
   endforeach()
 
   # There is only one target
