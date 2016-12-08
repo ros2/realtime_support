@@ -6,7 +6,7 @@ if(WIN32 OR APPLE OR ANDROID)
   return()
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra")
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)

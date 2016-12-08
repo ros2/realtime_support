@@ -7,7 +7,7 @@ if(WIN32 OR APPLE OR ANDROID)
   return()
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "-std=c++14")
 
 find_package(ament_cmake QUIET)
 
