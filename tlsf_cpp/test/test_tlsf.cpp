@@ -245,7 +245,7 @@ void operator delete(void * ptr) noexcept
 //  see http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3536.html
 //  "The workaround is to define a sized version that simply calls the unsized
 //  version."
-void operator delete(void *ptr, size_t sz) noexcept
+void operator delete(void * ptr, size_t sz) noexcept
 {
   (void)sz;  // unused parameter, since we're passing this to unsized delete
   operator delete(ptr);
