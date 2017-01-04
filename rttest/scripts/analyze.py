@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy
-
 import argparse
+
+import numpy
 
 parser = argparse.ArgumentParser(description='Plot rttest output')
 parser.add_argument('filename', metavar='filename')
