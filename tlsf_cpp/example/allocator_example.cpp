@@ -51,10 +51,10 @@ int main(int argc, char ** argv)
       rclcpp::intra_process_manager::IntraProcessManagerImpl<TLSFAllocator<void>>>();
     // Constructs the intra-process manager with a custom allocator.
     context->get_sub_context<rclcpp::intra_process_manager::IntraProcessManager>(ipm_state);
-    node = rclcpp::Node::make_shared("allocator_example", true);
+    node = rclcpp::Node::make_shared("allocator_example", "", true);
   } else {
     printf("Intra-process pipeline is OFF.\n");
-    node = rclcpp::Node::make_shared("allocator_example", false);
+    node = rclcpp::Node::make_shared("allocator_example", "", false);
   }
 
   uint32_t counter = 0;
