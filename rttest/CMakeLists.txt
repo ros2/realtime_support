@@ -7,7 +7,10 @@ if(WIN32 OR APPLE OR ANDROID)
   return()
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=c++14")
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 
 find_package(ament_cmake QUIET)
 
