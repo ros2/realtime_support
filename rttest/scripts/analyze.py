@@ -22,7 +22,7 @@ parser.add_argument('filename', metavar='filename')
 args = parser.parse_args()
 filename = args.filename
 
-outfile = filename + "_plot"
+outfile = filename + '_plot'
 
 rawlines = []
 

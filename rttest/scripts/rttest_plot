@@ -23,11 +23,11 @@ def main():
     parser.add_argument('filename', metavar='filename')
     parser.add_argument('-s', '--show', help='Show plots', action='store_true')
     parser.add_argument('-o', '--outfile',
-                        help="Name of file to write plot output", default=None)
+                        help='Name of file to write plot output')
     args = parser.parse_args()
     filename = args.filename
     show = args.show
-    outfile = filename + "_plot"
+    outfile = filename + '_plot'
     if args.outfile is not None:
         outfile = args.outfile
 
