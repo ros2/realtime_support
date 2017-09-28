@@ -89,7 +89,7 @@ void init_malloc_hook()
 
 
 /// Set the hook for malloc initialize so that init_malloc_hook gets called.
-void(*volatile __malloc_initialize_hook)(void) = init_malloc_hook;
+void (*volatile __malloc_initialize_hook)(void) = init_malloc_hook;
 
 /** Check a demangled stack backtrace of the caller function for the given tokens.
  ** Adapted from: https://panthema.net/2008/0901-stacktrace-demangled
@@ -264,10 +264,10 @@ protected:
   rclcpp::node::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_;
   rclcpp::memory_strategy::MemoryStrategy::SharedPtr memory_strategy_;
-  rclcpp::publisher::Publisher<std_msgs::msg::UInt32,
-  TLSFAllocator<void>>::SharedPtr publisher_;
-  rclcpp::message_memory_strategy::MessageMemoryStrategy<std_msgs::msg::UInt32,
-  TLSFAllocator<void>>::SharedPtr msg_memory_strategy_;
+  rclcpp::publisher::Publisher<
+    std_msgs::msg::UInt32, TLSFAllocator<void>>::SharedPtr publisher_;
+  rclcpp::message_memory_strategy::MessageMemoryStrategy<
+    std_msgs::msg::UInt32, TLSFAllocator<void>>::SharedPtr msg_memory_strategy_;
   std::shared_ptr<TLSFAllocator<void>> alloc;
 
   bool intra_process_;
@@ -288,10 +288,9 @@ protected:
 
     node_ = rclcpp::Node::make_shared(name, "", context, intra_process);
     alloc = std::make_shared<TLSFAllocator<void>>();
-    msg_memory_strategy_ =
-      std::make_shared<rclcpp::message_memory_strategy::MessageMemoryStrategy
-      <std_msgs::msg::UInt32,
-      TLSFAllocator<void>>>(alloc);
+    msg_memory_strategy_ = std::make_shared<
+      rclcpp::message_memory_strategy::MessageMemoryStrategy<
+        std_msgs::msg::UInt32, TLSFAllocator<void>>>(alloc);
     publisher_ = node_->create_publisher<std_msgs::msg::UInt32>(name, 10, alloc);
     memory_strategy_ =
       std::make_shared<AllocatorMemoryStrategy<TLSFAllocator<void>>>(alloc);

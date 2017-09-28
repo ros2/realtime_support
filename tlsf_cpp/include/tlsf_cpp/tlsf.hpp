@@ -25,7 +25,7 @@
 
 #include "tlsf/tlsf.h"
 
-template<typename T, size_t DefaultPoolSize = 1024 *1024>
+template<typename T, size_t DefaultPoolSize = 1024 * 1024>
 struct tlsf_heap_allocator
 {
   // Needed for std::allocator_traits
@@ -104,7 +104,8 @@ struct tlsf_heap_allocator
 
 // Needed for std::allocator_traits
 template<typename T, typename U>
-constexpr bool operator==(const tlsf_heap_allocator<T> & a,
+constexpr bool operator==(
+  const tlsf_heap_allocator<T> & a,
   const tlsf_heap_allocator<U> & b) noexcept
 {
   return a.memory_pool == b.memory_pool;
@@ -112,14 +113,16 @@ constexpr bool operator==(const tlsf_heap_allocator<T> & a,
 
 // Needed for std::allocator_traits
 template<typename T, typename U>
-constexpr bool operator!=(const tlsf_heap_allocator<T> & a,
+constexpr bool operator!=(
+  const tlsf_heap_allocator<T> & a,
   const tlsf_heap_allocator<U> & b) noexcept
 {
   return a.memory_pool != b.memory_pool;
 }
 
 template<typename T, typename U, size_t X, size_t Y>
-constexpr bool operator==(const tlsf_heap_allocator<T, X> & a,
+constexpr bool operator==(
+  const tlsf_heap_allocator<T, X> & a,
   const tlsf_heap_allocator<U, Y> & b) noexcept
 {
   return a.memory_pool == b.memory_pool;
@@ -127,7 +130,8 @@ constexpr bool operator==(const tlsf_heap_allocator<T, X> & a,
 
 // Needed for std::allocator_traits
 template<typename T, typename U, size_t X, size_t Y>
-constexpr bool operator!=(const tlsf_heap_allocator<T, X> & a,
+constexpr bool operator!=(
+  const tlsf_heap_allocator<T, X> & a,
   const tlsf_heap_allocator<U, Y> & b) noexcept
 {
   return a.memory_pool != b.memory_pool;

@@ -33,12 +33,14 @@ void * test_callback(void * args)
 // check that arguments are read from the commandline and accessed via get_params
 TEST(TestApi, read_args_get_params) {
   int argc = 13;
-  char * argv[] = {const_cast<char *>("test_data"), const_cast<char *>("-i"),
-                   const_cast<char *>("4321"), const_cast<char *>("-u"), const_cast<char *>("50us"),
-                   const_cast<char *>("-t"), const_cast<char *>("42"), const_cast<char *>("-s"),
-                   const_cast<char *>("fifo"), const_cast<char *>("-m"),
-                   const_cast<char *>("100kb"),
-                   const_cast<char *>("-f"), const_cast<char *>("foo.txt")};
+  char * argv[] = {
+    const_cast<char *>("test_data"), const_cast<char *>("-i"),
+    const_cast<char *>("4321"), const_cast<char *>("-u"), const_cast<char *>("50us"),
+    const_cast<char *>("-t"), const_cast<char *>("42"), const_cast<char *>("-s"),
+    const_cast<char *>("fifo"), const_cast<char *>("-m"),
+    const_cast<char *>("100kb"),
+    const_cast<char *>("-f"), const_cast<char *>("foo.txt")
+  };
   EXPECT_EQ(0, rttest_read_args(argc, argv));
   struct rttest_params params;
   EXPECT_EQ(0, rttest_get_params(&params));

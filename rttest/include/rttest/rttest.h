@@ -68,7 +68,8 @@ int rttest_read_args(int argc, char ** argv);
 /// rttest_prefault_stack() is called.
 /// \param[in] filename Name of the file to save results to.
 /// \return Error code to propagate to main
-int rttest_init(size_t iterations, struct timespec update_period,
+int rttest_init(
+  size_t iterations, struct timespec update_period,
   size_t sched_policy, int sched_priority, size_t stack_size,
   char * filename);
 
@@ -100,7 +101,8 @@ int rttest_spin(void *(*user_function)(void *), void * args);
 /// \param[in] update_period Update period (overrides param read in rttest_init)
 /// \param[in] iterations Iterations (overrides param read in rttest_init)
 /// \return Error code to propagate to main
-int rttest_spin_period(void *(*user_function)(void *), void * args,
+int rttest_spin_period(
+  void *(*user_function)(void *), void * args,
   const struct timespec * update_period, const size_t iterations);
 
 /// \brief Schedule a function call based on the start time, update period,
@@ -110,7 +112,8 @@ int rttest_spin_period(void *(*user_function)(void *), void * args,
 /// \param[in] update_period
 /// \param[out] Error code to propagate to main function.
 /// \return Error code to propagate to main
-int rttest_spin_once_period(void *(*user_function)(void *), void * args,
+int rttest_spin_once_period(
+  void *(*user_function)(void *), void * args,
   const struct timespec * start_time,
   const struct timespec * update_period, const size_t i);
 
@@ -121,7 +124,8 @@ int rttest_spin_once_period(void *(*user_function)(void *), void * args,
 /// \param[in] user_function Function pointer to execute on interrupt.
 /// \param[out] Error code to propagate to main function.
 /// \return Error code to propagate to main
-int rttest_spin_once(void *(*user_function)(void *), void * args,
+int rttest_spin_once(
+  void *(*user_function)(void *), void * args,
   const struct timespec * start_time, const size_t i);
 
 /// \brief Lock currently paged memory using mlockall.

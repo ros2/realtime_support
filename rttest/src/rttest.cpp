@@ -132,7 +132,8 @@ private:
 
   pthread_t thread_id;
 
-  int record_jitter(const struct timespec * deadline,
+  int record_jitter(
+    const struct timespec * deadline,
     const struct timespec * result_time, const size_t iteration);
 
   int accumulate_statistics(size_t iteration);
@@ -146,19 +147,23 @@ public:
 
   int read_args(int argc, char ** argv);
 
-  int init(size_t iterations, struct timespec update_period,
+  int init(
+    size_t iterations, struct timespec update_period,
     size_t sched_policy, int sched_priority, size_t stack_size,
     char * filename);
 
   int spin(void *(*user_function)(void *), void * args);
 
-  int spin_period(void *(*user_function)(void *), void * args,
+  int spin_period(
+    void *(*user_function)(void *), void * args,
     const struct timespec * update_period, const size_t iterations);
 
-  int spin_once(void *(*user_function)(void *), void * args,
+  int spin_once(
+    void *(*user_function)(void *), void * args,
     const struct timespec * start_time, const size_t i);
 
-  int spin_once(void *(*user_function)(void *), void * args,
+  int spin_once(
+    void *(*user_function)(void *), void * args,
     const struct timespec * start_time,
     const struct timespec * update_period, const size_t i);
 
@@ -216,7 +221,8 @@ struct rttest_params * Rttest::get_params()
   return &(this->params);
 }
 
-int Rttest::record_jitter(const struct timespec * deadline,
+int Rttest::record_jitter(
+  const struct timespec * deadline,
   const struct timespec * result_time, const size_t iteration)
 {
   size_t i = iteration;
@@ -416,7 +422,8 @@ int rttest_read_args(int argc, char ** argv)
   return thread_rttest_instance->read_args(argc, argv);
 }
 
-int Rttest::init(size_t iterations, struct timespec update_period,
+int Rttest::init(
+  size_t iterations, struct timespec update_period,
   size_t sched_policy, int sched_priority, size_t stack_size,
   char * filename)
 {
@@ -455,7 +462,8 @@ void Rttest::initialize_dynamic_memory()
   this->sample_buffer.resize(iterations);
 }
 
-int rttest_init(size_t iterations, struct timespec update_period,
+int rttest_init(
+  size_t iterations, struct timespec update_period,
   size_t sched_policy, int sched_priority, size_t stack_size,
   char * filename)
 {
@@ -512,7 +520,8 @@ int rttest_spin(void *(*user_function)(void *), void * args)
   return thread_rttest_instance->spin(user_function, args);
 }
 
-int rttest_spin_once_period(void *(*user_function)(void *), void * args,
+int rttest_spin_once_period(
+  void *(*user_function)(void *), void * args,
   const struct timespec * start_time,
   const struct timespec * update_period, const size_t i)
 {
@@ -523,7 +532,8 @@ int rttest_spin_once_period(void *(*user_function)(void *), void * args,
   return thread_rttest_instance->spin_once(user_function, args, start_time, update_period, i);
 }
 
-int rttest_spin_once(void *(*user_function)(void *), void * args,
+int rttest_spin_once(
+  void *(*user_function)(void *), void * args,
   const struct timespec * start_time, const size_t i)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
@@ -539,7 +549,8 @@ int Rttest::spin(void *(*user_function)(void *), void * args)
            this->params.iterations);
 }
 
-int Rttest::spin_period(void *(*user_function)(void *), void * args,
+int Rttest::spin_period(
+  void *(*user_function)(void *), void * args,
   const struct timespec * update_period, const size_t iterations)
 {
   struct timespec start_time;
@@ -564,13 +575,15 @@ int Rttest::spin_period(void *(*user_function)(void *), void * args,
   return 0;
 }
 
-int Rttest::spin_once(void *(*user_function)(void *), void * args,
+int Rttest::spin_once(
+  void *(*user_function)(void *), void * args,
   const struct timespec * start_time, const size_t i)
 {
   return this->spin_once(user_function, args, start_time, &this->params.update_period, i);
 }
 
-int Rttest::spin_once(void *(*user_function)(void *), void * args,
+int Rttest::spin_once(
+  void *(*user_function)(void *), void * args,
   const struct timespec * start_time,
   const struct timespec * update_period, const size_t i)
 {
@@ -598,7 +611,8 @@ int Rttest::spin_once(void *(*user_function)(void *), void * args,
   return 0;
 }
 
-int rttest_spin_period(void *(*user_function)(void *), void * args,
+int rttest_spin_period(
+  void *(*user_function)(void *), void * args,
   const struct timespec * update_period, const size_t iterations)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
