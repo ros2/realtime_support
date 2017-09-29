@@ -67,9 +67,9 @@ int main(int argc, char ** argv)
   // Create a custom allocator and pass the allocator to the publisher and subscriber.
   auto alloc = std::make_shared<TLSFAllocator<void>>();
   auto publisher = node->create_publisher<std_msgs::msg::UInt32>("allocator_example", 10, alloc);
-  auto msg_mem_strat =
-    std::make_shared<rclcpp::message_memory_strategy::MessageMemoryStrategy<std_msgs::msg::UInt32,
-    TLSFAllocator<void>>>(alloc);
+  auto msg_mem_strat = std::make_shared<
+    rclcpp::message_memory_strategy::MessageMemoryStrategy<
+      std_msgs::msg::UInt32, TLSFAllocator<void>>>(alloc);
   auto subscriber = node->create_subscription<std_msgs::msg::UInt32>(
     "allocator_example", 10, callback, nullptr, false, msg_mem_strat, alloc);
 

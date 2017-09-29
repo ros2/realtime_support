@@ -20,7 +20,8 @@
 
 #define NSEC_PER_SEC 1000000000
 
-static inline bool timespec_gt(const struct timespec * t1,
+static inline bool timespec_gt(
+  const struct timespec * t1,
   const struct timespec * t2)
 {
   if (t1->tv_sec > t2->tv_sec) {
@@ -41,7 +42,8 @@ static inline void normalize_timespec(struct timespec * t)
   }
 }
 
-static inline void add_timespecs(const struct timespec * t1,
+static inline void add_timespecs(
+  const struct timespec * t1,
   const struct timespec * t2,
   struct timespec * dst)
 {
@@ -50,7 +52,8 @@ static inline void add_timespecs(const struct timespec * t1,
   normalize_timespec(dst);
 }
 
-static inline bool subtract_timespecs(const struct timespec * t1,
+static inline bool subtract_timespecs(
+  const struct timespec * t1,
   const struct timespec * t2,
   struct timespec * dst)
 {
@@ -78,7 +81,8 @@ static inline void long_to_timespec(const uint64_t input, struct timespec * t)
   t->tv_nsec = nsecs;
 }
 
-static inline void multiply_timespec(const struct timespec * t, const uint32_t i,
+static inline void multiply_timespec(
+  const struct timespec * t, const uint32_t i,
   struct timespec * result)
 {
   uint64_t result_nsec = i * timespec_to_long(t);
