@@ -264,7 +264,7 @@ protected:
   rclcpp::node::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_;
   rclcpp::memory_strategy::MemoryStrategy::SharedPtr memory_strategy_;
-  rclcpp::publisher::Publisher<
+  rclcpp::Publisher<
     std_msgs::msg::UInt32, TLSFAllocator<void>>::SharedPtr publisher_;
   rclcpp::message_memory_strategy::MessageMemoryStrategy<
     std_msgs::msg::UInt32, TLSFAllocator<void>>::SharedPtr msg_memory_strategy_;
