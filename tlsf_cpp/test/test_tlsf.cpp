@@ -261,7 +261,7 @@ class CLASSNAME (AllocatorTest, RMW_IMPLEMENTATION) : public ::testing::Test
 protected:
   std::string test_name_;
 
-  rclcpp::node::Node::SharedPtr node_;
+  rclcpp::Node::SharedPtr node_;
   rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_;
   rclcpp::memory_strategy::MemoryStrategy::SharedPtr memory_strategy_;
   rclcpp::Publisher<
