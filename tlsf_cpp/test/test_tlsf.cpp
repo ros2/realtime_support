@@ -324,13 +324,13 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_shared_ptr) {
   // Create msg to be published
   auto msg = std::allocate_shared<std_msgs::msg::UInt32>(*alloc.get());
 
-  rclcpp::utilities::sleep_for(std::chrono::milliseconds(1));
+  rclcpp::sleep_for(std::chrono::milliseconds(1));
   // After test_initialization, global new should only be called from within TLSFAllocator.
   test_init = true;
   for (uint32_t i = 0; i < iterations; i++) {
     msg->data = i;
     publisher_->publish(msg);
-    rclcpp::utilities::sleep_for(std::chrono::milliseconds(1));
+    rclcpp::sleep_for(std::chrono::milliseconds(1));
     executor_->spin_some();
   }
   test_init = false;
@@ -360,7 +360,7 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
       std::allocator_traits<UInt32Allocator>::allocate(msg_alloc, 1));
     msg->data = i;
     publisher_->publish(msg);
-    rclcpp::utilities::sleep_for(std::chrono::milliseconds(1));
+    rclcpp::sleep_for(std::chrono::milliseconds(1));
     executor_->spin_some();
   }
   test_init = false;
