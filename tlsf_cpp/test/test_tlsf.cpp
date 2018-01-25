@@ -38,9 +38,9 @@
 
 
 // TODO(jacquelinekay) improve this ignore rule (dogfooding or no allocations)
-static const size_t num_rmw_tokens = 6;
+static const size_t num_rmw_tokens = 7;
 static const char * rmw_tokens[num_rmw_tokens] = {
-  "librmw", "dds", "DDS", "dcps", "DCPS", "fastrtps"
+  "librmw", "dds", "DDS", "dcps", "DCPS", "fastrtps", "opensplice"
 };
 
 static const size_t iterations = 1;
