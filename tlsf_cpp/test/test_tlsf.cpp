@@ -89,7 +89,7 @@ void init_malloc_hook()
 
 
 /// Set the hook for malloc initialize so that init_malloc_hook gets called.
-void (*volatile __malloc_initialize_hook)(void) = init_malloc_hook;
+void(*volatile __malloc_initialize_hook)(void) = init_malloc_hook;
 
 /** Check a demangled stack backtrace of the caller function for the given tokens.
  ** Adapted from: https://panthema.net/2008/0901-stacktrace-demangled
