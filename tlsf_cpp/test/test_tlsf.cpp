@@ -286,7 +286,10 @@ protected:
     context->get_sub_context<rclcpp::intra_process_manager::IntraProcessManager>(
       intra_process_manager_state);
 
-    node_ = rclcpp::Node::make_shared(name, "", context, intra_process);
+    const std::vector<std::string> arguments = {};
+    const bool use_global_arguments = true;
+    node_ = rclcpp::Node::make_shared(
+      name, "", context, arguments, use_global_arguments, intra_process);
     alloc = std::make_shared<TLSFAllocator<void>>();
     msg_memory_strategy_ = std::make_shared<
       rclcpp::message_memory_strategy::MessageMemoryStrategy<
