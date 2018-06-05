@@ -287,9 +287,10 @@ protected:
       intra_process_manager_state);
 
     const std::vector<std::string> arguments = {};
+    const std::vector<rclcpp::Parameter> initial_values = {};
     const bool use_global_arguments = true;
     node_ = rclcpp::Node::make_shared(
-      name, "", context, arguments, use_global_arguments, intra_process);
+      name, "", context, arguments, initial_values, use_global_arguments, intra_process);
     alloc = std::make_shared<TLSFAllocator<void>>();
     msg_memory_strategy_ = std::make_shared<
       rclcpp::message_memory_strategy::MessageMemoryStrategy<
