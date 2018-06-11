@@ -100,4 +100,6 @@ int main(int argc, char ** argv)
     rclcpp::sleep_for(std::chrono::milliseconds(1));
     executor.spin_some();
   }
+
+  return 0;
 }
