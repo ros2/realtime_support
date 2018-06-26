@@ -4,8 +4,9 @@
   <name>rttest</name>
   <version>0.4.0</version>
   <description>Instrumentation library for real-time performance testing</description>
-  <maintainer email="jackie@osrfoundation.org">Jackie Kay</maintainer>
+  <maintainer email="clalancette@openrobotics.org">Chris Lalancette</maintainer>
   <license>Apache License 2.0</license>
+  <author email="jackie@osrfoundation.org">Jackie Kay</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
