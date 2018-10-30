@@ -1,9 +1,9 @@
-#rttest
+# rttest
 
 rttest is a minimal tool for instrumenting and running tests for synchronous real-time systems.
 It provides utilities for measuring and plotting jitter, latency, and missed deadlines.
 It also provides a library with macros for instrumenting code.
-It is designed with real-time Linux-based systems in mind, such as RTLinux/RT Preempt kernel.
+It is designed with real-time Linux-based systems in mind, such as [Preempt RT](https://wiki.linuxfoundation.org/realtime) kernel.
 
 ## Build instructions
 Build from source:
