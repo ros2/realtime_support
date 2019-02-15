@@ -81,7 +81,9 @@ else()
     ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
   )
 
-  install(FILES ${PROJECT_SOURCE_DIR}/include/rttest/rttest.h ${PROJECT_SOURCE_DIR}/include/rttest/utils.h DESTINATION ${INSTALL_INCLUDE_DIR})
+  install(
+    DIRECTORY include/
+    DESTINATION ${INSTALL_INCLUDE_DIR})
 
   export(PACKAGE ${PROJECT_NAME})
 
