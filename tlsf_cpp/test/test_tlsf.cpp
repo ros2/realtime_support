@@ -269,6 +269,8 @@ protected:
   rclcpp::message_memory_strategy::MessageMemoryStrategy<
     std_msgs::msg::UInt32, TLSFAllocator<void>>::SharedPtr msg_memory_strategy_;
   std::shared_ptr<TLSFAllocator<void>> alloc;
+  rclcpp::SubscriptionOptionsWithAllocator<TLSFAllocator<void>> subscription_options_;
+  rclcpp::PublisherOptionsWithAllocator<TLSFAllocator<void>> publisher_options_;
 
   bool intra_process_;
 
@@ -293,10 +295,12 @@ protected:
 
     node_ = rclcpp::Node::make_shared(name, options);
     alloc = std::make_shared<TLSFAllocator<void>>();
+    subscription_options_.allocator = alloc;
+    publisher_options_.allocator = alloc;
     msg_memory_strategy_ = std::make_shared<
       rclcpp::message_memory_strategy::MessageMemoryStrategy<
         std_msgs::msg::UInt32, TLSFAllocator<void>>>(alloc);
-    publisher_ = node_->create_publisher<std_msgs::msg::UInt32>(name, 10, alloc);
+    publisher_ = node_->create_publisher<std_msgs::msg::UInt32>(name, 10, publisher_options_);
     memory_strategy_ =
       std::make_shared<AllocatorMemoryStrategy<TLSFAllocator<void>>>(alloc);
 
@@ -353,8 +357,7 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_shared_ptr) {
 
   rclcpp::subscription_traits::has_message_type<decltype(callback)>::type a;
   auto subscriber = node_->create_subscription<std_msgs::msg::UInt32>(
-    "allocator_shared_ptr", callback, rmw_qos_profile_default, nullptr, false, msg_memory_strategy_,
-    alloc);
+    "allocator_shared_ptr", callback, 10, subscription_options_, msg_memory_strategy_);
   // Create msg to be published
   auto msg = std::allocate_shared<std_msgs::msg::UInt32>(*alloc.get());
 
@@ -389,7 +392,7 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
     "passing a std::unique_ptr of test_msgs::msg::Empty has message type Empty");
 
   auto subscriber = node_->create_subscription<std_msgs::msg::UInt32>(
-    "allocator_unique_ptr", callback, 10, nullptr, false, msg_memory_strategy_, alloc);
+    "allocator_unique_ptr", callback, 10, subscription_options_, msg_memory_strategy_);
 
   TLSFAllocator<std_msgs::msg::UInt32> msg_alloc;
 
