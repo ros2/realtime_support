@@ -346,35 +346,6 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), type_traits_test) {
     "void unique ptr failed");
 }
 
-TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_shared_ptr) {
-  initialize(false, "allocator_shared_ptr");
-  size_t counter = 0;
-  auto callback = [&counter](std_msgs::msg::UInt32::SharedPtr msg) -> void
-    {
-      EXPECT_EQ(counter, msg->data);
-      counter++;
-    };
-
-  rclcpp::subscription_traits::has_message_type<decltype(callback)>::type a;
-  auto subscriber = node_->create_subscription<std_msgs::msg::UInt32>(
-    "allocator_shared_ptr", callback, 10, subscription_options_, msg_memory_strategy_);
-  // Create msg to be published
-  auto msg = std::allocate_shared<std_msgs::msg::UInt32>(*alloc.get());
-
-  rclcpp::sleep_for(std::chrono::milliseconds(1));
-  // After test_initialization, global new should only be called from within TLSFAllocator.
-  test_init = true;
-  for (uint32_t i = 0; i < iterations; i++) {
-    msg->data = i;
-    publisher_->publish(msg);
-    rclcpp::sleep_for(std::chrono::milliseconds(1));
-    executor_->spin_some();
-  }
-  test_init = false;
-  EXPECT_FALSE(fail);
-  fail = false;
-}
-
 TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
   initialize(true, "allocator_unique_ptr");
   size_t counter = 0;
