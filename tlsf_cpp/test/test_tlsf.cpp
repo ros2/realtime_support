@@ -373,7 +373,7 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
     auto msg = std::unique_ptr<std_msgs::msg::UInt32, UInt32Deleter>(
       std::allocator_traits<UInt32Allocator>::allocate(msg_alloc, 1));
     msg->data = i;
-    publisher_->publish(msg);
+    publisher_->publish(std::move(msg));
     rclcpp::sleep_for(std::chrono::milliseconds(1));
     executor_->spin_some();
   }
