@@ -15,6 +15,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <utility>
+
 #include "gtest/gtest.h"
 
 #ifdef __GNUC__
