@@ -365,7 +365,7 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
     "passing a std::unique_ptr of test_msgs::msg::Empty has message type Empty");
 
   auto subscriber = node_->create_subscription<std_msgs::msg::UInt32>(
-    "allocator_unique_ptr", callback, 10, subscription_options_, msg_memory_strategy_);
+    "allocator_unique_ptr", 10, callback, subscription_options_, msg_memory_strategy_);
 
   TLSFAllocator<std_msgs::msg::UInt32> msg_alloc;
 
