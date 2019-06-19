@@ -594,8 +594,8 @@ int Rttest::spin_once(
     if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0) {
       return -1;
     }
-    printf("Initial major pagefaults: %zu\n", this->prev_usage.ru_majflt);
-    printf("Initial minor pagefaults: %zu\n", this->prev_usage.ru_minflt);
+    printf("Initial major pagefaults: %ld\n", this->prev_usage.ru_majflt);
+    printf("Initial minor pagefaults: %ld\n", this->prev_usage.ru_minflt);
   }
   struct timespec wakeup_time, current_time;
   multiply_timespec(update_period, i, &wakeup_time);
