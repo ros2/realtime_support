@@ -25,7 +25,7 @@ void * test_callback(void * args)
   size_t * counter = static_cast<size_t *>(args);
   /*ASSERT_TRUE(counter != NULL);*/
   *counter = *counter + 1;
-  printf("Test callback: %lu\n", *counter);
+  printf("Test callback: %zu\n", *counter);
 
   return 0;
 }
