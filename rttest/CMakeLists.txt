@@ -38,7 +38,6 @@ if(${ament_cmake_FOUND})
     )
     if(TARGET gtest_rttest_api)
       target_link_libraries(gtest_rttest_api ${exported_libraries})
-      ament_target_dependencies(gtest_rttest_api ${PROJECT_NAME})
     endif()
   endif()
 
