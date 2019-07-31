@@ -47,12 +47,6 @@ int main(int argc, char ** argv)
 
   if (intra_process) {
     printf("Intra-process pipeline is ON.\n");
-    auto context = rclcpp::contexts::default_context::get_global_default_context();
-    auto ipm_state =
-      std::make_shared<
-      rclcpp::intra_process_manager::IntraProcessManagerImpl<Alloc>>();
-    // Constructs the intra-process manager with a custom allocator.
-    context->get_sub_context<rclcpp::intra_process_manager::IntraProcessManager>(ipm_state);
 
     auto options = rclcpp::NodeOptions()
       .use_intra_process_comms(true);
