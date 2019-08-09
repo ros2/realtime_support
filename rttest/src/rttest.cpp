@@ -141,6 +141,7 @@ private:
 public:
   int running = 0;
   struct rttest_results results;
+  bool results_initialized = false;
 
   Rttest();
   ~Rttest();
@@ -773,6 +774,7 @@ int Rttest::accumulate_statistics(size_t iteration)
   }
   this->results.minor_pagefaults += sample_buffer.minor_pagefaults[i];
   this->results.major_pagefaults += sample_buffer.major_pagefaults[i];
+  this->results_initialized = true;
   return 0;
 }
 
@@ -839,6 +841,9 @@ int rttest_get_statistics(struct rttest_results * output)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
   if (!thread_rttest_instance) {
+    return -1;
+  }
+  if (!thread_rttest_instance->results_initialized) {
     return -1;
   }
   if (output == NULL) {
