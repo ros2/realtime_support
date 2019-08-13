@@ -885,7 +885,7 @@ std::string Rttest::results_to_string(char * name)
 {
   std::stringstream sstring;
 
-  sstring << "rttest statistics";
+  sstring << std::fixed << "rttest statistics";
   if (name != NULL) {
     sstring << " for " << name << ":" << std::endl;
   } else {
