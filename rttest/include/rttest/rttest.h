@@ -18,6 +18,7 @@
 #include <time.h>
 #include <sched.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -42,8 +43,8 @@ struct rttest_results
 {
   // Max iteration that this result describes
   size_t iteration;
-  int min_latency;
-  int max_latency;
+  int64_t min_latency;
+  int64_t max_latency;
   double mean_latency;
   double latency_stddev;
 
@@ -175,7 +176,7 @@ int rttest_get_statistics(struct rttest_results * results);
 /// \param[in] iteration Iteration of the test to get the sample from
 /// \param[out] The resulting sample: time in nanoseconds between the expected
 /// wakeup time and the actual wakeup time
-int rttest_get_sample_at(const size_t iteration, int * sample);
+int rttest_get_sample_at(const size_t iteration, int64_t * sample);
 
 /// \brief Write the sample buffer to a file.
 /// \return Error code to propagate to main

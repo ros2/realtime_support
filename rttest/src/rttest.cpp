@@ -58,14 +58,14 @@ public:
     if (new_buffer_size > 0) {
       resize(0);
       this->buffer_size = new_buffer_size;
-      this->latency_samples = static_cast<int *>(
-        std::malloc(new_buffer_size * sizeof(int)));
+      this->latency_samples = static_cast<int64_t *>(
+        std::malloc(new_buffer_size * sizeof(int64_t)));
       if (!this->latency_samples) {
         fprintf(stderr, "Failed to allocate latency samples buffer\n");
         exit(-1);
       }
       memset(this->latency_samples, 0,
-        new_buffer_size * sizeof(int));
+        new_buffer_size * sizeof(int64_t));
 
       this->major_pagefaults = static_cast<size_t *>(
         std::malloc(new_buffer_size * sizeof(size_t)));
@@ -115,7 +115,7 @@ public:
 
   // Stored in nanoseconds
   // A negative latency means that the event was early (unlikely)
-  int * latency_samples;
+  int64_t * latency_samples;
 
   size_t * major_pagefaults;
   size_t * minor_pagefaults;
@@ -180,7 +180,7 @@ public:
 
   int calculate_statistics(struct rttest_results * results);
 
-  int get_sample_at(const size_t iteration, int & sample) const;
+  int get_sample_at(const size_t iteration, int64_t & sample) const;
 
   int write_results();
 
@@ -756,7 +756,7 @@ int Rttest::accumulate_statistics(size_t iteration)
   } else if (iteration > params.iterations) {
     return -1;
   }
-  int latency = sample_buffer.latency_samples[i];
+  int64_t latency = sample_buffer.latency_samples[i];
   if (latency > this->results.max_latency) {
     this->results.max_latency = latency;
   }
@@ -797,7 +797,7 @@ int Rttest::calculate_statistics(struct rttest_results * output)
     return -1;
   }
 
-  std::vector<int> latency_dataset;
+  std::vector<int64_t> latency_dataset;
   latency_dataset.assign(this->sample_buffer.latency_samples,
     this->sample_buffer.latency_samples + this->sample_buffer.buffer_size);
 
@@ -809,10 +809,10 @@ int Rttest::calculate_statistics(struct rttest_results * output)
       latency_dataset.end(), 0.0) / latency_dataset.size();
 
   // Calculate standard deviation and try to avoid overflow
-  std::vector<int> latency_diff(latency_dataset.size());
+  std::vector<int64_t> latency_diff(latency_dataset.size());
   std::transform(latency_dataset.begin(), latency_dataset.end(), latency_diff.begin(),
     std::bind2nd(std::minus<int>(), output->mean_latency));
-  int sq_sum = std::inner_product(latency_diff.begin(), latency_diff.end(),
+  int64_t sq_sum = std::inner_product(latency_diff.begin(), latency_diff.end(),
       latency_diff.begin(), 0);
   output->latency_stddev = std::sqrt(sq_sum / latency_dataset.size());
 
@@ -856,7 +856,7 @@ int rttest_get_statistics(struct rttest_results * output)
   return 0;
 }
 
-int Rttest::get_sample_at(const size_t iteration, int & sample) const
+int Rttest::get_sample_at(const size_t iteration, int64_t & sample) const
 {
   if (this->params.iterations == 0) {
     sample = this->sample_buffer.latency_samples[0];
@@ -869,7 +869,7 @@ int Rttest::get_sample_at(const size_t iteration, int & sample) const
   return -1;
 }
 
-int rttest_get_sample_at(const size_t iteration, int * sample)
+int rttest_get_sample_at(const size_t iteration, int64_t * sample)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
   if (!thread_rttest_instance) {
