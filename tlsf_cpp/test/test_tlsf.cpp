@@ -285,11 +285,6 @@ protected:
     intra_process_ = intra_process;
 
     auto context = rclcpp::contexts::default_context::get_global_default_context();
-    auto intra_process_manager_state =
-      std::make_shared<rclcpp::intra_process_manager::IntraProcessManagerImpl<UInt32Allocator>>();
-    context->get_sub_context<rclcpp::intra_process_manager::IntraProcessManager>(
-      intra_process_manager_state);
-
     auto options = rclcpp::NodeOptions()
       .context(context)
       .use_global_arguments(true)
