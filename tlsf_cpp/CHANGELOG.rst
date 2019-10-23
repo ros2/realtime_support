@@ -2,6 +2,11 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.1 (2019-10-23)
+------------------
+* Fix Intra-Process API (`#80 <https://github.com/ros2/realtime_support/issues/80>`_)
+* Contributors: Alberto Soragna
+
 0.8.0 (2019-09-26)
 ------------------
 

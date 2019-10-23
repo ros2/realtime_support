@@ -2,6 +2,11 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.1 (2019-10-23)
+------------------
+* Fix typo (`#83 <https://github.com/ros2/realtime_support/issues/83>`_)
+* Contributors: Servando
+
 0.8.0 (2019-09-26)
 ------------------
 * Switch the latency storage to int64_t (`#82 <https://github.com/ros2/realtime_support/issues/82>`_)
