@@ -983,7 +983,7 @@ int Rttest::write_results_file(char * filename)
     return -1;
   }
 
-  fstream << "iteration timestamp latency minor_pagefaults minor_pagefaults" << std::endl;
+  fstream << "iteration timestamp latency minor_pagefaults major_pagefaults" << std::endl;
   for (size_t i = 0; i < this->sample_buffer.buffer_size; ++i) {
     fstream << i << " " << timespec_to_long(&this->params.update_period) * i <<
       " " << this->sample_buffer.latency_samples[i] << " " <<
