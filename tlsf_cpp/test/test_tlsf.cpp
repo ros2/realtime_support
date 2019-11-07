@@ -45,7 +45,10 @@ static const char * rmw_tokens[num_rmw_tokens] = {
   "librmw", "dds", "DDS", "dcps", "DCPS", "fastrtps", "opensplice"
 };
 
-static const size_t iterations = 1;
+// TODO(wjwwood): uncomment this variable when the allocator has been added back to the
+//   intra-process manager.
+//   See: https://github.com/ros2/realtime_support/pull/80#issuecomment-545419570
+// static const size_t iterations = 1;
 
 static bool verbose = false;
 static bool ignore_middleware_tokens = true;
