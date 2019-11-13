@@ -2,6 +2,12 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.2 (2019-11-13)
+------------------
+* Fix clang thread safety warning (`#86 <https://github.com/ros2/realtime_support/issues/86>`_)
+* disable intra process test until intra process manager fixed up (`#84 <https://github.com/ros2/realtime_support/issues/84>`_)
+* Contributors: Anas Abou Allaban, William Woodall
+
 0.8.1 (2019-10-23)
 ------------------
 * Fix Intra-Process API (`#80 <https://github.com/ros2/realtime_support/issues/80>`_)

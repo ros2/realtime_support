@@ -2,6 +2,9 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.2 (2019-11-13)
+------------------
+
 0.8.1 (2019-10-23)
 ------------------
 * Fix typo (`#83 <https://github.com/ros2/realtime_support/issues/83>`_)
