@@ -159,8 +159,9 @@ bool check_stacktrace(const char ** tokens, size_t num_tokens, size_t max_frames
       if (status == 0) {
         funcname = ret;  // use possibly realloc()-ed string
         for (size_t j = 0; j < num_tokens; ++j) {
-          if (strstr(symbollist[i],
-            tokens[j]) != nullptr || strstr(funcname, tokens[j]) != nullptr)
+          if (
+            strstr(symbollist[i], tokens[j]) != nullptr ||
+            strstr(funcname, tokens[j]) != nullptr)
           {
             match = true;
             break;
@@ -173,8 +174,9 @@ bool check_stacktrace(const char ** tokens, size_t num_tokens, size_t max_frames
         // demangling failed. Output function name as a C function with
         // no arguments.
         for (size_t j = 0; j < num_tokens; j++) {
-          if (strstr(symbollist[i],
-            tokens[j]) != nullptr || strstr(begin_name, tokens[j]) != nullptr)
+          if (
+            strstr(symbollist[i], tokens[j]) != nullptr ||
+            strstr(begin_name, tokens[j]) != nullptr)
           {
             match = true;
             break;
