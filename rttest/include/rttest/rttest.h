@@ -33,6 +33,7 @@ struct rttest_params
   size_t sched_policy;
   int sched_priority;
   size_t stack_size;
+  size_t prefault_dynamic_size;
 
   // TODO(dirk-thomas) currently this pointer is never deallocated or copied
   // so whatever value is being assigned must stay valid forever
@@ -67,12 +68,13 @@ int rttest_read_args(int argc, char ** argv);
 /// \param[in] sched_priority The thread priority
 /// \param[in] stack_size How many bytes to prefault when
 /// rttest_prefault_stack() is called.
+/// \param[in] prefault_dynamic_size How many bytes to prefault on the heap.
 /// \param[in] filename Name of the file to save results to.
 /// \return Error code to propagate to main
 int rttest_init(
   size_t iterations, struct timespec update_period,
   size_t sched_policy, int sched_priority, size_t stack_size,
-  char * filename);
+  size_t prefault_dynamic_size, char * filename);
 
 /// \brief Fill an rttest_params struct with the current rttest params.
 /// \param[in] params Reference to the struct to fill in

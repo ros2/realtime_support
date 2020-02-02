@@ -45,7 +45,11 @@ Default update period is 1ms.
 
 -m Set maximum stack prefault size for static stack prefaulting.
 "b" for bytes, "kb" for kilobytes, "mb" for megabytes, "gb" for gigabytes (use with caution).
-Default stack size is 1024MB.
+Default stack size is 1MB.
+
+-d Set maximum heap prefault size for dynamic memory prefaulting.
+"b" for bytes, "kb" for kilobytes, "mb" for megabytes, "gb" for gigabytes (use with caution).
+Default heap size is 8192MB.
 
 -i Specify how many iterations to run the real-time loop.
 Specifying an iteration value less than or equal to 0 will cause rttest to run forever or until interrupted with Ctrl-C.
