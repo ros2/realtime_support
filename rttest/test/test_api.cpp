@@ -61,8 +61,9 @@ TEST(TestApi, init) {
   update_period.tv_nsec = 456;
   size_t stack_size = 100;
 
-  EXPECT_EQ(0,
-    rttest_init(4321, update_period, SCHED_FIFO, 42, stack_size, const_cast<char *>("foo.txt")));
+  EXPECT_EQ(
+    0, rttest_init(
+      4321, update_period, SCHED_FIFO, 42, stack_size, const_cast<char *>("foo.txt")));
   struct rttest_params params;
   EXPECT_EQ(0, rttest_get_params(&params));
 

@@ -64,8 +64,7 @@ public:
         fprintf(stderr, "Failed to allocate latency samples buffer\n");
         exit(-1);
       }
-      memset(this->latency_samples, 0,
-        new_buffer_size * sizeof(int64_t));
+      memset(this->latency_samples, 0, new_buffer_size * sizeof(int64_t));
 
       this->major_pagefaults = static_cast<size_t *>(
         std::malloc(new_buffer_size * sizeof(size_t)));
@@ -73,8 +72,7 @@ public:
         fprintf(stderr, "Failed to allocate major pagefaults buffer\n");
         exit(-1);
       }
-      memset(this->major_pagefaults, 0,
-        new_buffer_size * sizeof(size_t));
+      memset(this->major_pagefaults, 0, new_buffer_size * sizeof(size_t));
 
       this->minor_pagefaults = static_cast<size_t *>(
         std::malloc(new_buffer_size * sizeof(size_t)));
@@ -82,8 +80,7 @@ public:
         fprintf(stderr, "Failed to allocate minor pagefaults buffer\n");
         exit(-1);
       }
-      memset(this->minor_pagefaults, 0,
-        new_buffer_size * sizeof(size_t));
+      memset(this->minor_pagefaults, 0, new_buffer_size * sizeof(size_t));
     } else {
       if (this->latency_samples) {
         free(this->latency_samples);
@@ -325,7 +322,8 @@ int Rttest::read_args(int argc, char ** argv)
           } else if (input == "rr") {
             sched_policy = SCHED_RR;
           } else {
-            fprintf(stderr, "Invalid option entered for scheduling policy: %s\n",
+            fprintf(
+              stderr, "Invalid option entered for scheduling policy: %s\n",
               input.c_str());
             fprintf(stderr, "Valid options are: fifo, rr\n");
             exit(-1);
@@ -480,8 +478,9 @@ int rttest_init(
     }
     thread_rttest_instance = &rttest_instance_map[thread_id];
   }
-  return thread_rttest_instance->init(iterations, update_period,
-           sched_policy, sched_priority, stack_size, filename);
+  return thread_rttest_instance->init(
+    iterations, update_period, sched_policy, sched_priority, stack_size,
+    filename);
 }
 
 int Rttest::get_next_rusage(size_t i)
@@ -546,8 +545,8 @@ int rttest_spin_once(
 
 int Rttest::spin(void *(*user_function)(void *), void * args)
 {
-  return rttest_spin_period(user_function, args, &this->params.update_period,
-           this->params.iterations);
+  return rttest_spin_period(
+    user_function, args, &this->params.update_period, this->params.iterations);
 }
 
 int Rttest::spin_period(
@@ -798,31 +797,36 @@ int Rttest::calculate_statistics(struct rttest_results * output)
   }
 
   std::vector<int64_t> latency_dataset;
-  latency_dataset.assign(this->sample_buffer.latency_samples,
+  latency_dataset.assign(
+    this->sample_buffer.latency_samples,
     this->sample_buffer.latency_samples + this->sample_buffer.buffer_size);
 
-  output->min_latency = *std::min_element(latency_dataset.begin(),
-      latency_dataset.end());
-  output->max_latency = *std::max_element(latency_dataset.begin(),
-      latency_dataset.end());
-  output->mean_latency = std::accumulate(latency_dataset.begin(),
-      latency_dataset.end(), 0.0) / latency_dataset.size();
+  output->min_latency = *std::min_element(
+    latency_dataset.begin(), latency_dataset.end());
+  output->max_latency = *std::max_element(
+    latency_dataset.begin(), latency_dataset.end());
+  output->mean_latency = std::accumulate(
+    latency_dataset.begin(),
+    latency_dataset.end(), 0.0) / latency_dataset.size();
 
   // Calculate standard deviation and try to avoid overflow
   std::vector<int64_t> latency_diff(latency_dataset.size());
-  std::transform(latency_dataset.begin(), latency_dataset.end(), latency_diff.begin(),
+  std::transform(
+    latency_dataset.begin(), latency_dataset.end(), latency_diff.begin(),
     std::bind2nd(std::minus<int>(), output->mean_latency));
-  int64_t sq_sum = std::inner_product(latency_diff.begin(), latency_diff.end(),
-      latency_diff.begin(), 0);
+  int64_t sq_sum = std::inner_product(
+    latency_diff.begin(), latency_diff.end(), latency_diff.begin(), 0);
   output->latency_stddev = std::sqrt(sq_sum / latency_dataset.size());
 
   std::vector<size_t> min_pagefaults;
-  min_pagefaults.assign(this->sample_buffer.minor_pagefaults,
+  min_pagefaults.assign(
+    this->sample_buffer.minor_pagefaults,
     this->sample_buffer.minor_pagefaults + this->sample_buffer.buffer_size);
   output->minor_pagefaults = std::accumulate(min_pagefaults.begin(), min_pagefaults.end(), 0);
 
   std::vector<size_t> maj_pagefaults;
-  maj_pagefaults.assign(this->sample_buffer.major_pagefaults,
+  maj_pagefaults.assign(
+    this->sample_buffer.major_pagefaults,
     this->sample_buffer.major_pagefaults + this->sample_buffer.buffer_size);
   output->major_pagefaults = std::accumulate(maj_pagefaults.begin(), maj_pagefaults.end(), 0);
   return 0;
