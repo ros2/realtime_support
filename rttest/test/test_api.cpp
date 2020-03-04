@@ -32,13 +32,15 @@ void * test_callback(void * args)
 
 // check that arguments are read from the commandline and accessed via get_params
 TEST(TestApi, read_args_get_params) {
-  int argc = 13;
+  int argc = 15;
   char * argv[] = {
-    const_cast<char *>("test_data"), const_cast<char *>("-i"),
-    const_cast<char *>("4321"), const_cast<char *>("-u"), const_cast<char *>("50us"),
-    const_cast<char *>("-t"), const_cast<char *>("42"), const_cast<char *>("-s"),
-    const_cast<char *>("fifo"), const_cast<char *>("-m"),
-    const_cast<char *>("100kb"),
+    const_cast<char *>("test_data"),
+    const_cast<char *>("-i"), const_cast<char *>("4321"),
+    const_cast<char *>("-u"), const_cast<char *>("50us"),
+    const_cast<char *>("-t"), const_cast<char *>("42"),
+    const_cast<char *>("-s"), const_cast<char *>("fifo"),
+    const_cast<char *>("-m"), const_cast<char *>("100kb"),
+    const_cast<char *>("-d"), const_cast<char *>("100kb"),
     const_cast<char *>("-f"), const_cast<char *>("foo.txt")
   };
   EXPECT_EQ(0, rttest_read_args(argc, argv));
@@ -50,7 +52,8 @@ TEST(TestApi, read_args_get_params) {
   EXPECT_EQ(params.update_period.tv_nsec, 50000);
   EXPECT_EQ(params.sched_priority, 42);
   EXPECT_EQ(params.sched_policy, SCHED_FIFO);
-  EXPECT_EQ(params.stack_size, 100);
+  EXPECT_EQ(params.stack_size, 102400);
+  EXPECT_EQ(params.prefault_dynamic_size, 102400);
   EXPECT_EQ(strcmp(params.filename, "foo.txt"), 0);
   EXPECT_EQ(0, rttest_finish());
 }
@@ -60,10 +63,12 @@ TEST(TestApi, init) {
   update_period.tv_sec = 123;
   update_period.tv_nsec = 456;
   size_t stack_size = 100;
+  size_t prefault_dynamic_size = 100;
 
   EXPECT_EQ(
     0, rttest_init(
-      4321, update_period, SCHED_FIFO, 42, stack_size, const_cast<char *>("foo.txt")));
+      4321, update_period, SCHED_FIFO, 42, stack_size,
+      prefault_dynamic_size, const_cast<char *>("foo.txt")));
   struct rttest_params params;
   EXPECT_EQ(0, rttest_get_params(&params));
 
@@ -73,6 +78,7 @@ TEST(TestApi, init) {
   EXPECT_EQ(params.sched_priority, 42);
   EXPECT_EQ(params.sched_policy, SCHED_FIFO);
   EXPECT_EQ(params.stack_size, stack_size);
+  EXPECT_EQ(params.prefault_dynamic_size, prefault_dynamic_size);
   EXPECT_EQ(strcmp(params.filename, "foo.txt"), 0);
 
   EXPECT_EQ(0, rttest_finish());
@@ -83,7 +89,7 @@ TEST(TestApi, spin_once) {
   struct timespec update_period;
   update_period.tv_sec = 0;
   update_period.tv_nsec = 1000000;
-  EXPECT_EQ(0, rttest_init(1, update_period, SCHED_RR, 80, 0, NULL));
+  EXPECT_EQ(0, rttest_init(1, update_period, SCHED_RR, 80, 0, 0, NULL));
 
   size_t counter = 0;
 
@@ -102,7 +108,7 @@ TEST(TestApi, spin) {
   update_period.tv_sec = 0;
   update_period.tv_nsec = 1000000;
   size_t iterations = 100;
-  rttest_init(iterations, update_period, SCHED_RR, 80, 0, NULL);
+  rttest_init(iterations, update_period, SCHED_RR, 80, 0, 0, NULL);
   size_t counter = 0;
   EXPECT_EQ(0, rttest_spin(test_callback, static_cast<void *>(&counter)));
   EXPECT_EQ(counter, iterations);
@@ -119,7 +125,7 @@ TEST(TestApi, get_statistics) {
   struct timespec update_period, start_time;
   update_period.tv_sec = 0;
   update_period.tv_nsec = 1000000;
-  EXPECT_EQ(0, rttest_init(50, update_period, SCHED_FIFO, 80, 0, NULL));
+  EXPECT_EQ(0, rttest_init(50, update_period, SCHED_FIFO, 80, 0, 0, NULL));
   size_t counter = 0;
   getrusage(RUSAGE_SELF, &usage);
   initial_min_pgflts = usage.ru_minflt;
@@ -152,7 +158,7 @@ TEST(TestApi, running) {
   update_period.tv_sec = 0;
   update_period.tv_nsec = 1000;
   EXPECT_EQ(0, rttest_running());
-  EXPECT_EQ(0, rttest_init(50, update_period, SCHED_FIFO, 80, 0, NULL));
+  EXPECT_EQ(0, rttest_init(50, update_period, SCHED_FIFO, 80, 0, 0, NULL));
   EXPECT_EQ(1, rttest_running());
   size_t i = 0;
   size_t counter = 0;
