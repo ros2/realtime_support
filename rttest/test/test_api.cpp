@@ -63,7 +63,7 @@ TEST(TestApi, init) {
   update_period.tv_sec = 123;
   update_period.tv_nsec = 456;
   size_t stack_size = 100;
-  size_t prefault_dynamic_size = 100;
+  uint64_t prefault_dynamic_size = 100;
 
   EXPECT_EQ(
     0, rttest_init(
