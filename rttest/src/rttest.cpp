@@ -148,7 +148,7 @@ public:
   int init(
     size_t iterations, struct timespec update_period,
     size_t sched_policy, int sched_priority, size_t stack_size,
-    size_t prefault_dynamic_size, char * filename);
+    uint64_t prefault_dynamic_size, char * filename);
 
   int spin(void *(*user_function)(void *), void * args);
 
@@ -254,21 +254,21 @@ Rttest * get_rttest_thread_instance(pthread_t thread_id)
   return &rttest_instance_map[thread_id];
 }
 
-size_t rttest_parse_size_units(char * optarg)
+uint64_t rttest_parse_size_units(char * optarg)
 {
-  size_t ret;
+  uint64_t ret;
 
   std::string input(optarg);
   std::vector<std::string> tokens = {"gb", "mb", "kb", "b"};
   for (size_t i = 0; i < 4; ++i) {
     size_t idx = input.find(tokens[i]);
     if (idx != std::string::npos) {
-      ret = stoi(input.substr(0, idx)) * pow(2, (3 - i) * 10);
+      ret = std::stoll(input.substr(0, idx)) * pow(2, (3 - i) * 10);
       break;
     }
     if (i == 3) {
       // Default units are megabytes
-      ret = std::stoi(input) * pow(2, 20);
+      ret = std::stoll(input) * pow(2, 20);
     }
   }
   return ret;
@@ -289,7 +289,7 @@ int Rttest::read_args(int argc, char ** argv)
   // -m,--memory-size
   size_t stack_size = 1024 * 1024;
   // -d,--prefault-dynamic-memory-size
-  size_t prefault_dynamic_size = 8589934592UL;  // 8GB
+  uint64_t prefault_dynamic_size = 8589934592UL;  // 8GB
   // -f,--filename
   // Don't write a file unless filename specified
   char * filename = nullptr;
@@ -435,7 +435,7 @@ int rttest_read_args(int argc, char ** argv)
 int Rttest::init(
   size_t iterations, struct timespec update_period,
   size_t sched_policy, int sched_priority, size_t stack_size,
-  size_t prefault_dynamic_size, char * filename)
+  uint64_t prefault_dynamic_size, char * filename)
 {
   this->params.iterations = iterations;
   this->params.update_period = update_period;
@@ -476,7 +476,7 @@ void Rttest::initialize_dynamic_memory()
 int rttest_init(
   size_t iterations, struct timespec update_period,
   size_t sched_policy, int sched_priority, size_t stack_size,
-  size_t prefault_dynamic_size, char * filename)
+  uint64_t prefault_dynamic_size, char * filename)
 {
   auto thread_id = pthread_self();
   auto thread_rttest_instance = get_rttest_thread_instance(thread_id);
@@ -689,9 +689,9 @@ int Rttest::lock_and_prefault_dynamic()
 
   size_t array_size = sizeof(char) * 64 * page_size;
   size_t total_size = 0;
-  size_t max_size = this->params.prefault_dynamic_size;
+  uint64_t max_size = this->params.prefault_dynamic_size;
   std::vector<char *> prefaulter;
-  prefaulter.reserve((size_t)(max_size / array_size));
+  prefaulter.reserve(static_cast<size_t>(max_size / array_size));
 
   // prefault until you see no more pagefaults
   while (encountered_minflts > 0 || encountered_majflts > 0) {
