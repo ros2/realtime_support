@@ -289,7 +289,7 @@ protected:
     test_name_ = name;
     intra_process_ = intra_process;
 
-    auto context = rclcpp::contexts::default_context::get_global_default_context();
+    auto context = rclcpp::contexts::get_global_default_context();
     auto options = rclcpp::NodeOptions()
       .context(context)
       .use_global_arguments(true)
@@ -306,9 +306,9 @@ protected:
     memory_strategy_ =
       std::make_shared<AllocatorMemoryStrategy<TLSFAllocator<void>>>(alloc);
 
-    rclcpp::executor::ExecutorArgs args;
-    args.memory_strategy = memory_strategy_;
-    executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>(args);
+    rclcpp::ExecutorOptions executor_options;
+    executor_options.memory_strategy = memory_strategy_;
+    executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>(executor_options);
 
     executor_->add_node(node_);
   }
