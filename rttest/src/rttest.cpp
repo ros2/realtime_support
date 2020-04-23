@@ -840,7 +840,7 @@ int Rttest::calculate_statistics(struct rttest_results * output)
   std::vector<int64_t> latency_diff(latency_dataset.size());
   std::transform(
     latency_dataset.begin(), latency_dataset.end(), latency_diff.begin(),
-    std::bind2nd(std::minus<int>(), output->mean_latency));
+    std::bind(std::minus<int>(), std::placeholders::_1, output->mean_latency));
   int64_t sq_sum = std::inner_product(
     latency_diff.begin(), latency_diff.end(), latency_diff.begin(), 0);
   output->latency_stddev = std::sqrt(sq_sum / latency_dataset.size());
