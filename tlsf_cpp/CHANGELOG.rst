@@ -2,8 +2,8 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.0 (2020-04-30)
+------------------
 * avoid new deprecations (`#92 <https://github.com/ros2/realtime_support/issues/92>`_)
 * code style only: wrap after open parenthesis if not in one line (`#88 <https://github.com/ros2/realtime_support/issues/88>`_)
 * Contributors: Dirk Thomas, William Woodall

@@ -2,8 +2,8 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.9.0 (2020-04-30)
+------------------
 * Use std::bind instead of deprecated std::bind2nd (`#93 <https://github.com/ros2/realtime_support/issues/93>`_)
 * Use a uint64_t to store the prefault_dynamic_size. (`#90 <https://github.com/ros2/realtime_support/issues/90>`_)
 * Make dynamic prefault memory size configurable (`#89 <https://github.com/ros2/realtime_support/issues/89>`_)
