@@ -2,6 +2,12 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* avoid new deprecations (`#92 <https://github.com/ros2/realtime_support/issues/92>`_)
+* code style only: wrap after open parenthesis if not in one line (`#88 <https://github.com/ros2/realtime_support/issues/88>`_)
+* Contributors: Dirk Thomas, William Woodall
+
 0.8.2 (2019-11-13)
 ------------------
 * Fix clang thread safety warning (`#86 <https://github.com/ros2/realtime_support/issues/86>`_)
