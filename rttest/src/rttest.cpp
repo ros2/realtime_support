@@ -242,7 +242,7 @@ int Rttest::record_jitter(
   if (i >= this->sample_buffer.buffer_size) {
     return -1;
   }
-  this->sample_buffer.latency_samples[i] = parity * timespec_to_long(&jitter);
+  this->sample_buffer.latency_samples[i] = parity * timespec_to_uint64(&jitter);
   return 0;
 }
 
@@ -331,7 +331,7 @@ int Rttest::read_args(int argc, char ** argv)
             }
           }
 
-          long_to_timespec(nsec, &update_period);
+          uint64_to_timespec(nsec, &update_period);
         }
         break;
       case 't':
@@ -1011,7 +1011,7 @@ int Rttest::write_results_file(char * filename)
 
   fstream << "iteration timestamp latency minor_pagefaults major_pagefaults" << std::endl;
   for (size_t i = 0; i < this->sample_buffer.buffer_size; ++i) {
-    fstream << i << " " << timespec_to_long(&this->params.update_period) * i <<
+    fstream << i << " " << timespec_to_uint64(&this->params.update_period) * i <<
       " " << this->sample_buffer.latency_samples[i] << " " <<
       this->sample_buffer.minor_pagefaults[i] << " " <<
       this->sample_buffer.major_pagefaults[i] << std::endl;

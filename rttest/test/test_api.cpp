@@ -146,7 +146,7 @@ TEST(TestApi, get_statistics) {
   EXPECT_EQ(runtime_maj_pgflts, results.major_pagefaults);
 
   // The average latency should be at least as large as the artificial pause
-  double expected_latency = static_cast<double>(timespec_to_long(&update_period));
+  double expected_latency = static_cast<double>(timespec_to_uint64(&update_period));
   EXPECT_GE(results.mean_latency, expected_latency);
 
   EXPECT_EQ(0, rttest_finish());
