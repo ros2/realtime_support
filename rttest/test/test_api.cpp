@@ -18,7 +18,7 @@
 #include "gtest/gtest.h"
 
 #include "rttest/rttest.h"
-#include "rttest/utils.h"
+#include "rttest/utils.hpp"
 
 void * test_callback(void * args)
 {

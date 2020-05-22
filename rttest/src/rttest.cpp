@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <rttest/rttest.h>
-#include <rttest/utils.h>
 #include <rttest/math_utils.hpp>
+#include <rttest/rttest.h>
+#include <rttest/utils.hpp>
 
 #include <limits.h>
 #include <malloc.h>

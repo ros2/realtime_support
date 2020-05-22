@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RTTEST__UTILS_H_
-#define RTTEST__UTILS_H_
+#ifndef RTTEST__UTILS_HPP_
+#define RTTEST__UTILS_HPP_
 
 #include <stdint.h>
 #include <time.h>
@@ -89,4 +89,4 @@ static inline void multiply_timespec(
   uint64_to_timespec(result_nsec, result);
 }
 
-#endif  // RTTEST__UTILS_H_
+#endif  // RTTEST__UTILS_HPP_
