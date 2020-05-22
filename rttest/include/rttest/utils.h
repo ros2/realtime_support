@@ -78,7 +78,7 @@ static inline void uint64_to_timespec(const uint64_t input, struct timespec * t)
   uint64_t nsecs = input % NSEC_PER_SEC;
   uint64_t secs = (input - nsecs) / NSEC_PER_SEC;
   t->tv_sec = static_cast<time_t>(secs);
-  t->tv_nsec = static_cast<long>(nsecs);
+  t->tv_nsec = static_cast<long>(nsecs); // NOLINT for C type long
 }
 
 static inline void multiply_timespec(
