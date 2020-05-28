@@ -167,3 +167,21 @@ TEST(TestApi, running) {
   EXPECT_EQ(0, rttest_finish());
   EXPECT_EQ(0, rttest_running());
 }
+
+TEST(TestApi, timespec_to_uint64) {
+  // failed values in 32bit OS (#94)
+  time_t sec = 363464;
+  long nsec = 232837182; // NOLINT for C type long
+  uint64_t v = 363464232837182;
+
+  struct timespec t;
+  t.tv_sec = sec;
+  t.tv_nsec = nsec;
+
+  EXPECT_EQ(v, timespec_to_uint64(&t));
+
+  struct timespec t2;
+  uint64_to_timespec(v, &t2);
+  EXPECT_EQ(sec, t2.tv_sec);
+  EXPECT_EQ(nsec, t2.tv_nsec);
+}
