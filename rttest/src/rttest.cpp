@@ -14,6 +14,7 @@
 
 #include <rttest/rttest.h>
 #include <rttest/utils.h>
+#include <rttest/math_utils.hpp>
 
 #include <limits.h>
 #include <malloc.h>
@@ -837,20 +838,7 @@ int Rttest::calculate_statistics(struct rttest_results * output)
     latency_dataset.end(), 0.0) / latency_dataset.size();
 
   // Calculate standard deviation and try to avoid overflow
-  auto n = latency_dataset.size();
-  std::vector<int64_t> latency_diff(n);
-  std::transform(
-    latency_dataset.begin(), latency_dataset.end(), latency_diff.begin(),
-    std::bind(std::minus<int>(), std::placeholders::_1, output->mean_latency));
-  // forst divide by sqrt(n)
-  std::vector<double> latency_div(n);
-  std::transform(
-    latency_diff.begin(), latency_diff.end(), latency_div.begin(),
-    [n](int64_t x) -> double {return x / std::sqrt(n);});
-  // inner_product
-  double sq_sum = std::inner_product(
-    latency_div.begin(), latency_div.end(), latency_div.begin(), 0);
-  output->latency_stddev = std::sqrt(sq_sum);
+  output->latency_stddev = calculate_stddev(latency_dataset);
 
   std::vector<size_t> min_pagefaults;
   min_pagefaults.assign(

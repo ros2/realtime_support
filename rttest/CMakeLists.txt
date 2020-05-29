@@ -39,6 +39,12 @@ if(${ament_cmake_FOUND})
     if(TARGET gtest_rttest_api)
       target_link_libraries(gtest_rttest_api ${exported_libraries})
     endif()
+
+    ament_add_gtest(
+      gtest_math_utils
+      "test/test_math_util.cpp"
+      TIMEOUT 15
+    )
   endif()
 
   ament_package()
