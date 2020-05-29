@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <sys/resource.h>
+#include <string>
 
 #include <array>
 #include "gtest/gtest.h"
@@ -55,6 +56,28 @@ TEST(TestApi, read_args_get_params) {
   EXPECT_EQ(params.stack_size, 102400);
   EXPECT_EQ(params.prefault_dynamic_size, 102400);
   EXPECT_EQ(strcmp(params.filename, "foo.txt"), 0);
+  EXPECT_EQ(0, rttest_finish());
+}
+
+TEST(TestApi, read_args_update_period_over_32bit) {
+  // 4294967305 equals "static_cast<uint64_t>(UINT32_MAX) + 10"
+  // but avoid calculation to keep test simple
+  uint64_t update_period = 4294967305;
+  std::string update_period_str("4294967305ns");
+  struct timespec t;
+  uint64_to_timespec(update_period, &t);
+
+  int argc = 3;
+  char * argv[] = {
+    const_cast<char *>("test_data"),
+    const_cast<char *>("-u"), const_cast<char *>(update_period_str.c_str()),
+  };
+
+  EXPECT_EQ(0, rttest_read_args(argc, argv));
+  struct rttest_params params;
+  EXPECT_EQ(0, rttest_get_params(&params));
+  EXPECT_EQ(params.update_period.tv_sec, t.tv_sec);
+  EXPECT_EQ(params.update_period.tv_nsec, t.tv_nsec);
   EXPECT_EQ(0, rttest_finish());
 }
 

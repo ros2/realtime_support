@@ -316,18 +316,18 @@ int Rttest::read_args(int argc, char ** argv)
       case 'u':
         {
           // parse units
-          size_t nsec;
+          uint64_t nsec;
           std::string input(optarg);
           std::vector<std::string> tokens = {"ns", "us", "ms", "s"};
           for (size_t i = 0; i < 4; ++i) {
             size_t idx = input.find(tokens[i]);
             if (idx != std::string::npos) {
-              nsec = stol(input.substr(0, idx)) * pow(10, i * 3);
+              nsec = stoull(input.substr(0, idx)) * pow(10, i * 3);
               break;
             }
             if (i == 3) {
               // Default units are microseconds
-              nsec = stol(input) * 1000;
+              nsec = stoull(input) * 1000;
             }
           }
 
