@@ -63,7 +63,7 @@ TEST(TestApi, read_args_update_period_over_32bit) {
   // 4294967305 equals "static_cast<uint64_t>(UINT32_MAX) + 10"
   // but avoid calculation to keep test simple
   uint64_t update_period = 4294967305;
-  std::string update_period_str("4294967305ns");
+  std::string update_period_str(std::to_string(update_period) + "ns");
   struct timespec t;
   uint64_to_timespec(update_period, &t);
 
