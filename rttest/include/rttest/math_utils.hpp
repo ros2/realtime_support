@@ -33,7 +33,7 @@ double calculate_stddev(const container & vec)
     vec.begin(), vec.end(), diff.begin(),
     [mean](auto x) -> double {return x - mean;});
 
-  // forst divide by sqrt(n)
+  // first divide by sqrt(n)
   std::vector<double> div(n);
   std::transform(
     diff.begin(), diff.end(), div.begin(),
