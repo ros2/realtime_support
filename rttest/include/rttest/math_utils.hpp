@@ -15,10 +15,10 @@
 #ifndef RTTEST__MATH_UTILS_HPP_
 #define RTTEST__MATH_UTILS_HPP_
 
-#include <vector>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <numeric>
+#include <vector>
 
 template<typename container>
 double calculate_stddev(const container & vec)
