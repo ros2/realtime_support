@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RTTEST__UTILS_H_
-#define RTTEST__UTILS_H_
+#ifndef RTTEST__UTILS_HPP_
+#define RTTEST__UTILS_HPP_
 
 #include <stdint.h>
 #include <time.h>
@@ -68,25 +68,25 @@ static inline bool subtract_timespecs(
   return true;
 }
 
-static inline uint64_t timespec_to_long(const struct timespec * t)
+static inline uint64_t timespec_to_uint64(const struct timespec * t)
 {
-  return t->tv_sec * NSEC_PER_SEC + t->tv_nsec;
+  return static_cast<uint64_t>(t->tv_sec) * NSEC_PER_SEC + static_cast<uint64_t>(t->tv_nsec);
 }
 
-static inline void long_to_timespec(const uint64_t input, struct timespec * t)
+static inline void uint64_to_timespec(const uint64_t input, struct timespec * t)
 {
-  uint32_t nsecs = input % 1000000000;
-  uint32_t secs = (input - nsecs) / 1000000000;
-  t->tv_sec = secs;
-  t->tv_nsec = nsecs;
+  uint64_t nsecs = input % NSEC_PER_SEC;
+  uint64_t secs = (input - nsecs) / NSEC_PER_SEC;
+  t->tv_sec = static_cast<time_t>(secs);
+  t->tv_nsec = static_cast<long>(nsecs); // NOLINT for C type long
 }
 
 static inline void multiply_timespec(
   const struct timespec * t, const uint32_t i,
   struct timespec * result)
 {
-  uint64_t result_nsec = i * timespec_to_long(t);
-  long_to_timespec(result_nsec, result);
+  uint64_t result_nsec = i * timespec_to_uint64(t);
+  uint64_to_timespec(result_nsec, result);
 }
 
-#endif  // RTTEST__UTILS_H_
+#endif  // RTTEST__UTILS_HPP_
