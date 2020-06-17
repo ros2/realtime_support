@@ -2,8 +2,8 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.0 (2020-06-17)
+-------------------
 * Convert timespec to uint64 not long and vice versa  (`#94 <https://github.com/ros2/realtime_support/issues/94>`_) (`#96 <https://github.com/ros2/realtime_support/issues/96>`_)
 * Fix standard deviation overflow(`#95 <https://github.com/ros2/realtime_support/issues/95>`_) (`#97 <https://github.com/ros2/realtime_support/issues/97>`_)
 * Contributors: y-okumura-isp
