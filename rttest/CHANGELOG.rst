@@ -2,6 +2,12 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Convert timespec to uint64 not long and vice versa  (`#94 <https://github.com/ros2/realtime_support/issues/94>`_) (`#96 <https://github.com/ros2/realtime_support/issues/96>`_)
+* Fix standard deviation overflow(`#95 <https://github.com/ros2/realtime_support/issues/95>`_) (`#97 <https://github.com/ros2/realtime_support/issues/97>`_)
+* Contributors: y-okumura-isp
+
 0.9.0 (2020-04-30)
 ------------------
 * Use std::bind instead of deprecated std::bind2nd (`#93 <https://github.com/ros2/realtime_support/issues/93>`_)
