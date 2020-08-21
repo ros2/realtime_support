@@ -106,9 +106,15 @@ public:
   void operator=(const rttest_sample_buffer & other)
   {
     resize(other.buffer_size);
-    memcpy(this->latency_samples, other.latency_samples, this->buffer_size * sizeof(int));
-    memcpy(this->major_pagefaults, other.major_pagefaults, this->buffer_size * sizeof(size_t));
-    memcpy(this->minor_pagefaults, other.minor_pagefaults, this->buffer_size * sizeof(size_t));
+    if (other.latency_samples != nullptr) {
+      memcpy(this->latency_samples, other.latency_samples, this->buffer_size * sizeof(int64_t));
+    }
+    if (other.major_pagefaults != nullptr) {
+      memcpy(this->major_pagefaults, other.major_pagefaults, this->buffer_size * sizeof(size_t));
+    }
+    if (other.minor_pagefaults != nullptr) {
+      memcpy(this->minor_pagefaults, other.minor_pagefaults, this->buffer_size * sizeof(size_t));
+    }
   }
 
   // Stored in nanoseconds
