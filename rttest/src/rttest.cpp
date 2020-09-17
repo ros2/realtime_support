@@ -16,6 +16,7 @@
 #include <rttest/rttest.h>
 #include <rttest/utils.hpp>
 
+#include <alloca.h>
 #include <limits.h>
 #include <malloc.h>
 #include <sys/mman.h>
@@ -742,14 +743,8 @@ int Rttest::lock_and_prefault_dynamic()
 
 int rttest_prefault_stack_size(const size_t stack_size)
 {
-  /*
-  unsigned char stack[stack_size];
+  unsigned char * stack = static_cast<unsigned char *>(alloca(stack_size));
   memset(stack, 0, stack_size);
-  return 0;
-  */
-  unsigned char * stack = new unsigned char[stack_size];
-  memset(stack, 0, stack_size);
-  delete[] stack;
   return 0;
 }
 
