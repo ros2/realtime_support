@@ -499,8 +499,10 @@ int rttest_init(
 
 int Rttest::get_next_rusage(size_t i)
 {
-  int64_t prev_maj_pagefaults = this->prev_usage.ru_majflt;
-  int64_t prev_min_pagefaults = this->prev_usage.ru_minflt;
+  // have the linter skip these lines because getrusage uses long
+  long prev_maj_pagefaults = this->prev_usage.ru_majflt; // NOLINT
+  long prev_min_pagefaults = this->prev_usage.ru_minflt; // NOLINT
+
   if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0) {
     return -1;
   }
