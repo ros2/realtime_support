@@ -48,13 +48,13 @@ TEST(TestApi, read_args_get_params) {
   struct rttest_params params;
   EXPECT_EQ(0, rttest_get_params(&params));
 
-  EXPECT_EQ(params.iterations, 4321);
+  EXPECT_EQ(params.iterations, 4321u);
   EXPECT_EQ(params.update_period.tv_sec, 0);
   EXPECT_EQ(params.update_period.tv_nsec, 50000);
   EXPECT_EQ(params.sched_priority, 42);
-  EXPECT_EQ(params.sched_policy, SCHED_FIFO);
-  EXPECT_EQ(params.stack_size, 102400);
-  EXPECT_EQ(params.prefault_dynamic_size, 102400);
+  EXPECT_EQ(params.sched_policy, static_cast<uint>(SCHED_FIFO));
+  EXPECT_EQ(params.stack_size, 102400u);
+  EXPECT_EQ(params.prefault_dynamic_size, 102400u);
   EXPECT_EQ(strcmp(params.filename, "foo.txt"), 0);
   EXPECT_EQ(0, rttest_finish());
 }
@@ -95,11 +95,11 @@ TEST(TestApi, init) {
   struct rttest_params params;
   EXPECT_EQ(0, rttest_get_params(&params));
 
-  EXPECT_EQ(params.iterations, 4321);
+  EXPECT_EQ(params.iterations, 4321u);
   EXPECT_EQ(params.update_period.tv_sec, update_period.tv_sec);
   EXPECT_EQ(params.update_period.tv_nsec, update_period.tv_nsec);
   EXPECT_EQ(params.sched_priority, 42);
-  EXPECT_EQ(params.sched_policy, SCHED_FIFO);
+  EXPECT_EQ(params.sched_policy, static_cast<uint>(SCHED_FIFO));
   EXPECT_EQ(params.stack_size, stack_size);
   EXPECT_EQ(params.prefault_dynamic_size, prefault_dynamic_size);
   EXPECT_EQ(strcmp(params.filename, "foo.txt"), 0);
@@ -121,7 +121,7 @@ TEST(TestApi, spin_once) {
   EXPECT_EQ(0, rttest_spin_once(test_callback, static_cast<void *>(&counter), &start_time, 0));
   // Block for longer than the update period
   clock_nanosleep(CLOCK_MONOTONIC, 0, &update_period, NULL);
-  EXPECT_EQ(counter, 1);
+  EXPECT_EQ(counter, 1u);
 
   EXPECT_EQ(0, rttest_finish());
 }

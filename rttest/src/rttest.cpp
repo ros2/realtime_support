@@ -16,6 +16,7 @@
 #include <rttest/rttest.h>
 #include <rttest/utils.hpp>
 
+#include <alloca.h>
 #include <limits.h>
 #include <malloc.h>
 #include <sys/mman.h>
@@ -296,7 +297,6 @@ int Rttest::read_args(int argc, char ** argv)
   // -f,--filename
   // Don't write a file unless filename specified
   char * filename = nullptr;
-  int index;
   int c;
 
   std::string args_string = "i:u:p:t:s:m:d:f:r:";
@@ -500,8 +500,10 @@ int rttest_init(
 
 int Rttest::get_next_rusage(size_t i)
 {
-  size_t prev_maj_pagefaults = this->prev_usage.ru_majflt;
-  size_t prev_min_pagefaults = this->prev_usage.ru_minflt;
+  // have the linter skip these lines because getrusage uses long
+  long prev_maj_pagefaults = this->prev_usage.ru_majflt; // NOLINT
+  long prev_min_pagefaults = this->prev_usage.ru_minflt; // NOLINT
+
   if (getrusage(RUSAGE_THREAD, &this->prev_usage) != 0) {
     return -1;
   }
@@ -741,7 +743,7 @@ int Rttest::lock_and_prefault_dynamic()
 
 int rttest_prefault_stack_size(const size_t stack_size)
 {
-  unsigned char stack[stack_size];
+  unsigned char * stack = static_cast<unsigned char *>(alloca(stack_size));
   memset(stack, 0, stack_size);
   return 0;
 }
