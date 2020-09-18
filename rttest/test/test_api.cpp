@@ -48,7 +48,7 @@ TEST(TestApi, read_args_get_params) {
   struct rttest_params params;
   EXPECT_EQ(0, rttest_get_params(&params));
 
-  EXPECT_EQ(params.iterations, static_cast<uint>(4321));
+  EXPECT_EQ(params.iterations, 4321u);
   EXPECT_EQ(params.update_period.tv_sec, 0);
   EXPECT_EQ(params.update_period.tv_nsec, 50000);
   EXPECT_EQ(params.sched_priority, 42);
