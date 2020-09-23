@@ -448,14 +448,11 @@ int Rttest::init(
   this->params.prefault_dynamic_size = prefault_dynamic_size;
 
   if (filename != nullptr) {
-    size_t n = strlen(filename);
-    this->params.filename = static_cast<char *>(std::malloc(n * sizeof(char) + 1));
+    this->params.filename = strdup(filename);
     if (!this->params.filename) {
-      fprintf(stderr, "Failed to allocate major pagefaults buffer\n");
+      fprintf(stderr, "Failed to allocate filename buffer\n");
       return -1;
     }
-    this->params.filename[n] = 0;
-    strncpy(this->params.filename, filename, n);
     fprintf(stderr, "Writing results to file: %s\n", this->params.filename);
   } else {
     this->params.filename = nullptr;
