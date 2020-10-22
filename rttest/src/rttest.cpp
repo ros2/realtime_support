@@ -26,102 +26,55 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstdlib>
 #include <cmath>
 #include <fstream>
-#include <functional>
-#include <iostream>
+#include <ios>
 #include <map>
 #include <numeric>
+#include <ostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
-extern "C"
-{
 class rttest_sample_buffer
 {
 public:
   rttest_sample_buffer()
-  : latency_samples(nullptr),
-    major_pagefaults(nullptr),
-    minor_pagefaults(nullptr),
-    buffer_size(0)
-  {}
+  {
+  }
+
   ~rttest_sample_buffer()
   {
-    resize(0);
   }
 
-  /// Free the current buffer and allocate a new buffer if new_buffer_size is greater than zero.
-  void resize(size_t new_buffer_size)
-  {
-    if (new_buffer_size > 0) {
-      resize(0);
-      this->buffer_size = new_buffer_size;
-      this->latency_samples = static_cast<int64_t *>(
-        std::malloc(new_buffer_size * sizeof(int64_t)));
-      if (!this->latency_samples) {
-        fprintf(stderr, "Failed to allocate latency samples buffer\n");
-        exit(-1);
-      }
-      memset(this->latency_samples, 0, new_buffer_size * sizeof(int64_t));
-
-      this->major_pagefaults = static_cast<size_t *>(
-        std::malloc(new_buffer_size * sizeof(size_t)));
-      if (!this->major_pagefaults) {
-        fprintf(stderr, "Failed to allocate major pagefaults buffer\n");
-        exit(-1);
-      }
-      memset(this->major_pagefaults, 0, new_buffer_size * sizeof(size_t));
-
-      this->minor_pagefaults = static_cast<size_t *>(
-        std::malloc(new_buffer_size * sizeof(size_t)));
-      if (!this->minor_pagefaults) {
-        fprintf(stderr, "Failed to allocate minor pagefaults buffer\n");
-        exit(-1);
-      }
-      memset(this->minor_pagefaults, 0, new_buffer_size * sizeof(size_t));
-    } else {
-      if (this->latency_samples) {
-        free(this->latency_samples);
-        this->latency_samples = nullptr;
-      }
-      if (this->major_pagefaults) {
-        free(this->major_pagefaults);
-        this->major_pagefaults = nullptr;
-      }
-      if (this->minor_pagefaults) {
-        free(this->minor_pagefaults);
-        this->minor_pagefaults = nullptr;
-      }
-      this->buffer_size = 0;
-    }
-  }
   rttest_sample_buffer(const rttest_sample_buffer & other)
   : rttest_sample_buffer()
   {
     *this = other;
   }
+
   void operator=(const rttest_sample_buffer & other)
   {
-    resize(other.buffer_size);
-    if (this->buffer_size > 0) {
-      memcpy(this->latency_samples, other.latency_samples, this->buffer_size * sizeof(int64_t));
-      memcpy(this->major_pagefaults, other.major_pagefaults, this->buffer_size * sizeof(size_t));
-      memcpy(this->minor_pagefaults, other.minor_pagefaults, this->buffer_size * sizeof(size_t));
-    }
+    this->latency_samples = other.latency_samples;
+    this->major_pagefaults = other.major_pagefaults;
+    this->minor_pagefaults = other.minor_pagefaults;
+  }
+
+  void resize(size_t new_buffer_size)
+  {
+    this->latency_samples.resize(new_buffer_size);
+    this->major_pagefaults.resize(new_buffer_size);
+    this->minor_pagefaults.resize(new_buffer_size);
   }
 
   // Stored in nanoseconds
   // A negative latency means that the event was early (unlikely)
-  int64_t * latency_samples;
+  std::vector<int64_t> latency_samples;
 
-  size_t * major_pagefaults;
-  size_t * minor_pagefaults;
-
-  size_t buffer_size;
+  std::vector<size_t> major_pagefaults;
+  std::vector<size_t> minor_pagefaults;
 };
 
 class Rttest
@@ -242,7 +195,7 @@ int Rttest::record_jitter(
     parity = -1;
   }
   // Record jitter
-  if (i >= this->sample_buffer.buffer_size) {
+  if (i >= this->sample_buffer.latency_samples.size()) {
     return -1;
   }
   this->sample_buffer.latency_samples[i] = parity * timespec_to_uint64(&jitter);
@@ -267,12 +220,12 @@ uint64_t rttest_parse_size_units(char * optarg)
   for (size_t i = 0; i < 4; ++i) {
     size_t idx = input.find(tokens[i]);
     if (idx != std::string::npos) {
-      ret = std::stoll(input.substr(0, idx)) * pow(2, (3 - i) * 10);
+      ret = std::stoll(input.substr(0, idx)) * std::pow(2, (3 - i) * 10);
       break;
     }
     if (i == 3) {
       // Default units are megabytes
-      ret = std::stoll(input) * pow(2, 20);
+      ret = std::stoll(input) * std::pow(2, 20);
     }
   }
   return ret;
@@ -324,7 +277,7 @@ int Rttest::read_args(int argc, char ** argv)
           for (size_t i = 0; i < 4; ++i) {
             size_t idx = input.find(tokens[i]);
             if (idx != std::string::npos) {
-              nsec = stoull(input.substr(0, idx)) * pow(10, i * 3);
+              nsec = stoull(input.substr(0, idx)) * std::pow(10, i * 3);
               break;
             }
             if (i == 3) {
@@ -702,7 +655,7 @@ int Rttest::lock_and_prefault_dynamic()
       ptr = new char[array_size];
       memset(ptr, 0, array_size);
       total_size += array_size;
-    } catch (std::bad_alloc & e) {
+    } catch (const std::bad_alloc & e) {
       fprintf(stderr, "Caught exception: %s\n", e.what());
       fprintf(stderr, "Unlocking memory and continuing.\n");
       for (auto & ptr : prefaulter) {
@@ -812,46 +765,26 @@ int Rttest::calculate_statistics(struct rttest_results * output)
     fprintf(stderr, "Need to allocate rttest_results struct\n");
     return -1;
   }
-  if (this->sample_buffer.latency_samples == NULL) {
-    fprintf(stderr, "Pointer to latency samples was NULL\n");
-    return -1;
-  }
-  if (this->sample_buffer.minor_pagefaults == NULL) {
-    fprintf(stderr, "Pointer to minor pagefaults was NULL\n");
-    return -1;
-  }
-  if (this->sample_buffer.major_pagefaults == NULL) {
-    fprintf(stderr, "Pointer to major pagefaults was NULL\n");
-    return -1;
-  }
-
-  std::vector<int64_t> latency_dataset;
-  latency_dataset.assign(
-    this->sample_buffer.latency_samples,
-    this->sample_buffer.latency_samples + this->sample_buffer.buffer_size);
 
   output->min_latency = *std::min_element(
-    latency_dataset.begin(), latency_dataset.end());
+    this->sample_buffer.latency_samples.begin(), this->sample_buffer.latency_samples.end());
   output->max_latency = *std::max_element(
-    latency_dataset.begin(), latency_dataset.end());
+    this->sample_buffer.latency_samples.begin(), this->sample_buffer.latency_samples.end());
   output->mean_latency = std::accumulate(
-    latency_dataset.begin(),
-    latency_dataset.end(), 0.0) / latency_dataset.size();
+    this->sample_buffer.latency_samples.begin(),
+    this->sample_buffer.latency_samples.end(), 0.0) / this->sample_buffer.latency_samples.size();
 
   // Calculate standard deviation and try to avoid overflow
-  output->latency_stddev = calculate_stddev(latency_dataset);
+  output->latency_stddev = calculate_stddev(this->sample_buffer.latency_samples);
 
-  std::vector<size_t> min_pagefaults;
-  min_pagefaults.assign(
-    this->sample_buffer.minor_pagefaults,
-    this->sample_buffer.minor_pagefaults + this->sample_buffer.buffer_size);
-  output->minor_pagefaults = std::accumulate(min_pagefaults.begin(), min_pagefaults.end(), 0);
+  output->minor_pagefaults = std::accumulate(
+    this->sample_buffer.minor_pagefaults.begin(),
+    this->sample_buffer.minor_pagefaults.end(), 0);
 
-  std::vector<size_t> maj_pagefaults;
-  maj_pagefaults.assign(
-    this->sample_buffer.major_pagefaults,
-    this->sample_buffer.major_pagefaults + this->sample_buffer.buffer_size);
-  output->major_pagefaults = std::accumulate(maj_pagefaults.begin(), maj_pagefaults.end(), 0);
+  output->major_pagefaults = std::accumulate(
+    this->sample_buffer.major_pagefaults.begin(),
+    this->sample_buffer.major_pagefaults.end(), 0);
+
   return 0;
 }
 
@@ -990,19 +923,6 @@ int Rttest::write_results_file(char * filename)
     return -1;
   }
 
-  if (this->sample_buffer.latency_samples == NULL) {
-    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
-    return -1;
-  }
-  if (this->sample_buffer.minor_pagefaults == NULL) {
-    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
-    return -1;
-  }
-  if (this->sample_buffer.major_pagefaults == NULL) {
-    fprintf(stderr, "Sample buffer was NULL, not writing results\n");
-    return -1;
-  }
-
   std::ofstream fstream(filename, std::ios::out);
 
   if (!fstream.is_open()) {
@@ -1011,7 +931,7 @@ int Rttest::write_results_file(char * filename)
   }
 
   fstream << "iteration timestamp latency minor_pagefaults major_pagefaults" << std::endl;
-  for (size_t i = 0; i < this->sample_buffer.buffer_size; ++i) {
+  for (size_t i = 0; i < this->sample_buffer.latency_samples.size(); ++i) {
     fstream << i << " " << timespec_to_uint64(&this->params.update_period) * i <<
       " " << this->sample_buffer.latency_samples[i] << " " <<
       this->sample_buffer.minor_pagefaults[i] << " " <<
@@ -1030,5 +950,4 @@ int rttest_running()
     return 0;
   }
   return thread_rttest_instance->running;
-}
 }
