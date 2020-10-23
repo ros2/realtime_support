@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>
+#include <chrono>
+#include <cstdlib>
 #include <memory>
 #include <string>
-#include <vector>
+#include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -45,10 +49,7 @@ static const char * rmw_tokens[num_rmw_tokens] = {
   "librmw", "dds", "DDS", "dcps", "DCPS", "fastrtps", "opensplice"
 };
 
-// TODO(wjwwood): uncomment this variable when the allocator has been added back to the
-//   intra-process manager.
-//   See: https://github.com/ros2/realtime_support/pull/80#issuecomment-545419570
-// static const size_t iterations = 1;
+static const size_t iterations = 1;
 
 static bool verbose = false;
 static bool ignore_middleware_tokens = true;
@@ -348,10 +349,6 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), type_traits_test) {
     "void unique ptr failed");
 }
 
-/**
-// TODO(wjwwood): re-enable this test when the allocator has been added back to the
-//   intra-process manager.
-//   See: https://github.com/ros2/realtime_support/pull/80#issuecomment-545419570
 TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
   initialize(true, "allocator_unique_ptr");
   size_t counter = 0;
@@ -387,7 +384,6 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
   EXPECT_FALSE(fail);
   fail = false;
 }
-*/
 
 void print_help()
 {
