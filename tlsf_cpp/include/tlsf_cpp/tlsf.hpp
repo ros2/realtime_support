@@ -142,6 +142,9 @@ constexpr bool operator!=(
   return a.memory_pool != b.memory_pool;
 }
 
+namespace rclcpp {
+
+// Overload rclcpp::get_rcl_allocator for TLSF allocators.
 template<typename T, size_t PoolSize>
 rcl_allocator_t get_rcl_allocator(tlsf_heap_allocator<T, PoolSize> allocator)
 {
@@ -161,5 +164,7 @@ rcl_allocator_t get_rcl_allocator(tlsf_heap_allocator<T, PoolSize> allocator)
   (void)allocator;  // unused
   return rcl_allocator;
 }
+
+}  // namespace rclcpp
 
 #endif  // TLSF_CPP__TLSF_HPP_
