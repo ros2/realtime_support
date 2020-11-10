@@ -41,26 +41,13 @@
 class rttest_sample_buffer
 {
 public:
-  rttest_sample_buffer()
-  {
-  }
+  rttest_sample_buffer() = default;
 
-  ~rttest_sample_buffer()
-  {
-  }
+  ~rttest_sample_buffer() = default;
 
-  rttest_sample_buffer(const rttest_sample_buffer & other)
-  : rttest_sample_buffer()
-  {
-    *this = other;
-  }
+  rttest_sample_buffer(const rttest_sample_buffer & other) = default;
 
-  void operator=(const rttest_sample_buffer & other)
-  {
-    this->latency_samples = other.latency_samples;
-    this->major_pagefaults = other.major_pagefaults;
-    this->minor_pagefaults = other.minor_pagefaults;
-  }
+  rttest_sample_buffer & operator=(const rttest_sample_buffer & other) = default;
 
   void resize(size_t new_buffer_size)
   {
