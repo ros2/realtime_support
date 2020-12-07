@@ -68,7 +68,7 @@ class Rttest
 {
 private:
   struct rttest_params params;
-  struct rttest_sample_buffer sample_buffer;
+  rttest_sample_buffer sample_buffer;
   struct rusage prev_usage;
 
   pthread_t thread_id;
