@@ -2,8 +2,8 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.10.1 (2020-12-08)
+-------------------
 * Remove "struct" from rttest_sample_buffer variable declaration. (`#105 <https://github.com/ros2/realtime_support/issues/105>`_)
 * Convert the sample buffer to a vector. (`#104 <https://github.com/ros2/realtime_support/issues/104>`_)
 * Use strdup instead of strlen/strcpy dance. (`#100 <https://github.com/ros2/realtime_support/issues/100>`_)
