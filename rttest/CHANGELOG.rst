@@ -2,6 +2,15 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove "struct" from rttest_sample_buffer variable declaration. (`#105 <https://github.com/ros2/realtime_support/issues/105>`_)
+* Convert the sample buffer to a vector. (`#104 <https://github.com/ros2/realtime_support/issues/104>`_)
+* Use strdup instead of strlen/strcpy dance. (`#100 <https://github.com/ros2/realtime_support/issues/100>`_)
+* Enable basic warnings in rttest (`#99 <https://github.com/ros2/realtime_support/issues/99>`_)
+* Only copy an rttest_sample_buffer if it is not nullptr. (`#98 <https://github.com/ros2/realtime_support/issues/98>`_)
+* Contributors: Audrow Nash, Chris Lalancette
+
 0.10.0 (2020-06-17)
 -------------------
 * Convert timespec to uint64 not long and vice versa  (`#94 <https://github.com/ros2/realtime_support/issues/94>`_) (`#96 <https://github.com/ros2/realtime_support/issues/96>`_)
