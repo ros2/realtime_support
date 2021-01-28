@@ -46,6 +46,7 @@ TEST(TestApi, read_args_get_params) {
   };
   EXPECT_EQ(0, rttest_read_args(argc, argv));
   struct rttest_params params;
+  EXPECT_EQ(-1, rttest_get_params(NULL));
   EXPECT_EQ(0, rttest_get_params(&params));
 
   EXPECT_EQ(params.iterations, 4321u);
@@ -164,6 +165,7 @@ TEST(TestApi, get_statistics) {
   runtime_min_pgflts = usage.ru_minflt - initial_min_pgflts;
   runtime_maj_pgflts = usage.ru_majflt - initial_maj_pgflts;
   struct rttest_results results;
+  EXPECT_EQ(-1, rttest_get_statistics(NULL));
   EXPECT_EQ(0, rttest_get_statistics(&results));
   EXPECT_EQ(runtime_min_pgflts, results.minor_pagefaults);
   EXPECT_EQ(runtime_maj_pgflts, results.major_pagefaults);

@@ -325,17 +325,17 @@ int Rttest::read_args(int argc, char ** argv)
 
 int rttest_get_params(struct rttest_params * params_in)
 {
+  if (params_in == NULL) {
+    return -1;
+  }
+
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
 
   if (!thread_rttest_instance) {
     return -1;
   }
 
-  if (params_in == NULL) {
-    params_in = thread_rttest_instance->get_params();
-  } else {
-    *params_in = *thread_rttest_instance->get_params();
-  }
+  *params_in = *thread_rttest_instance->get_params();
 
   return 0;
 }
@@ -786,6 +786,10 @@ int rttest_calculate_statistics(struct rttest_results * results)
 
 int rttest_get_statistics(struct rttest_results * output)
 {
+  if (output == NULL) {
+    return -1;
+  }
+
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
   if (!thread_rttest_instance) {
     return -1;
@@ -793,12 +797,9 @@ int rttest_get_statistics(struct rttest_results * output)
   if (!thread_rttest_instance->results_initialized) {
     return -1;
   }
-  if (output == NULL) {
-    output = &thread_rttest_instance->results;
-  } else {
-    // if output is not null, try to copy the results struct into the memory location
-    *output = thread_rttest_instance->results;
-  }
+
+  // copy the results struct into the memory location
+  *output = thread_rttest_instance->results;
 
   return 0;
 }

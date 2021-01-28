@@ -172,6 +172,7 @@ int rttest_get_next_rusage(size_t i);
 int rttest_calculate_statistics(struct rttest_results * results);
 
 /// \brief Get accumulated statistics
+/// \return Error code if results struct is NULL
 int rttest_get_statistics(struct rttest_results * results);
 
 /// \brief Get latency sample at the given iteration.
