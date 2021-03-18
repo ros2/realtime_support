@@ -2,6 +2,11 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix up nonsensical handling of NULL in rttest_get\_{params,statistics} (`#107 <https://github.com/ros2/realtime_support/issues/107>`_)
+* Contributors: Chris Lalancette
+
 0.10.1 (2020-12-08)
 -------------------
 * Remove "struct" from rttest_sample_buffer variable declaration. (`#105 <https://github.com/ros2/realtime_support/issues/105>`_)
