@@ -2,8 +2,8 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.11.0 (2021-03-18)
+-------------------
 * Add in the Apache license to tlsf_cpp. (`#108 <https://github.com/ros2/realtime_support/issues/108>`_)
 * Contributors: Chris Lalancette
 

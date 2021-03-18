@@ -2,8 +2,8 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.11.0 (2021-03-18)
+-------------------
 * Fix up nonsensical handling of NULL in rttest_get\_{params,statistics} (`#107 <https://github.com/ros2/realtime_support/issues/107>`_)
 * Contributors: Chris Lalancette
 
