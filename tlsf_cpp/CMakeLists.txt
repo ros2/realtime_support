@@ -22,16 +22,25 @@ find_package(tlsf REQUIRED)
 
 include_directories(include)
 
+add_library(tlsf_cpp INTERFACE)
+target_include_directories(tlsf_cpp INTERFACE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
+target_link_libraries(tlsf_cpp INTERFACE
+  tlsf::tlsf)
+
 add_executable(tlsf_allocator_example
   example/allocator_example.cpp)
-ament_target_dependencies(tlsf_allocator_example
-  "rclcpp"
-  "std_msgs"
-  "tlsf")
+target_link_libraries(tlsf_allocator_example
+  rclcpp::rclcpp
+  ${std_msgs_TARGETS}
+  tlsf::tlsf)
+
 install(TARGETS tlsf_allocator_example
   DESTINATION bin)
 
-ament_export_include_directories(include)
+ament_export_targets(export_tlsf_cpp)
+
 ament_export_dependencies("tlsf")
 
 if(BUILD_TESTING)
@@ -51,8 +60,10 @@ if(BUILD_TESTING)
     if(TARGET ${target}${target_suffix})
       target_compile_definitions(${target}${target_suffix}
         PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
-      ament_target_dependencies(${target}${target_suffix}
-        "rclcpp" "std_msgs" "tlsf")
+      target_link_libraries(${target}${target_suffix}
+        rclcpp::rclcpp
+        ${std_msgs_TARGETS}
+        tlsf::tlsf)
     endif()
   endmacro()
 
@@ -64,3 +75,5 @@ ament_package()
 install(DIRECTORY include/
   DESTINATION include
 )
+
+install(TARGETS tlsf_cpp EXPORT export_tlsf_cpp)
