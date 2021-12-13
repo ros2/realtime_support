@@ -21,13 +21,13 @@ find_package(ament_cmake QUIET)
 if(${ament_cmake_FOUND})
   find_package(Threads REQUIRED)
 
-  include_directories(include)
   add_library(rttest SHARED src/rttest.cpp)
-  target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(rttest m stdc++ Threads::Threads)
+  target_include_directories(rttest PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
 
-  ament_export_include_directories(include)
-  set(exported_libraries rttest pthread)
-  ament_export_libraries(${exported_libraries})
+  ament_export_targets(export_rttest)
 
   if(BUILD_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
@@ -39,15 +39,14 @@ if(${ament_cmake_FOUND})
       "test/test_api.cpp"
       TIMEOUT 15
     )
-    if(TARGET gtest_rttest_api)
-      target_link_libraries(gtest_rttest_api ${exported_libraries})
-    endif()
+    target_link_libraries(gtest_rttest_api rttest)
 
     ament_add_gtest(
       gtest_math_utils
       "test/test_math_util.cpp"
       TIMEOUT 15
     )
+    target_link_libraries(gtest_math_utils rttest)
   endif()
 
   ament_package()
@@ -64,6 +63,7 @@ if(${ament_cmake_FOUND})
 
   install(
     TARGETS rttest
+    EXPORT export_rttest
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
   )
