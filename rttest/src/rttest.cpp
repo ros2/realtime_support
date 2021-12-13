@@ -94,18 +94,18 @@ public:
     size_t sched_policy, int sched_priority, size_t stack_size,
     uint64_t prefault_dynamic_size, char * filename);
 
-  int spin(void *(*user_function)(void *), void * args);
+  int spin(void * (*user_function)(void *), void * args);
 
   int spin_period(
-    void *(*user_function)(void *), void * args,
+    void * (*user_function)(void *), void * args,
     const struct timespec * update_period, const size_t iterations);
 
   int spin_once(
-    void *(*user_function)(void *), void * args,
+    void * (*user_function)(void *), void * args,
     const struct timespec * start_time, const size_t i);
 
   int spin_once(
-    void *(*user_function)(void *), void * args,
+    void * (*user_function)(void *), void * args,
     const struct timespec * start_time,
     const struct timespec * update_period, const size_t i);
 
@@ -465,7 +465,7 @@ int rttest_get_next_rusage(size_t i)
   return thread_rttest_instance->get_next_rusage(i);
 }
 
-int rttest_spin(void *(*user_function)(void *), void * args)
+int rttest_spin(void * (*user_function)(void *), void * args)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
   if (!thread_rttest_instance) {
@@ -475,7 +475,7 @@ int rttest_spin(void *(*user_function)(void *), void * args)
 }
 
 int rttest_spin_once_period(
-  void *(*user_function)(void *), void * args,
+  void * (*user_function)(void *), void * args,
   const struct timespec * start_time,
   const struct timespec * update_period, const size_t i)
 {
@@ -487,7 +487,7 @@ int rttest_spin_once_period(
 }
 
 int rttest_spin_once(
-  void *(*user_function)(void *), void * args,
+  void * (*user_function)(void *), void * args,
   const struct timespec * start_time, const size_t i)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
@@ -497,14 +497,14 @@ int rttest_spin_once(
   return thread_rttest_instance->spin_once(user_function, args, start_time, i);
 }
 
-int Rttest::spin(void *(*user_function)(void *), void * args)
+int Rttest::spin(void * (*user_function)(void *), void * args)
 {
   return rttest_spin_period(
     user_function, args, &this->params.update_period, this->params.iterations);
 }
 
 int Rttest::spin_period(
-  void *(*user_function)(void *), void * args,
+  void * (*user_function)(void *), void * args,
   const struct timespec * update_period, const size_t iterations)
 {
   struct timespec start_time;
@@ -530,14 +530,14 @@ int Rttest::spin_period(
 }
 
 int Rttest::spin_once(
-  void *(*user_function)(void *), void * args,
+  void * (*user_function)(void *), void * args,
   const struct timespec * start_time, const size_t i)
 {
   return this->spin_once(user_function, args, start_time, &this->params.update_period, i);
 }
 
 int Rttest::spin_once(
-  void *(*user_function)(void *), void * args,
+  void * (*user_function)(void *), void * args,
   const struct timespec * start_time,
   const struct timespec * update_period, const size_t i)
 {
@@ -566,7 +566,7 @@ int Rttest::spin_once(
 }
 
 int rttest_spin_period(
-  void *(*user_function)(void *), void * args,
+  void * (*user_function)(void *), void * args,
   const struct timespec * update_period, const size_t iterations)
 {
   auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
