@@ -22,7 +22,7 @@ if(${ament_cmake_FOUND})
   find_package(Threads REQUIRED)
 
   add_library(rttest SHARED src/rttest.cpp)
-  target_link_libraries(rttest m stdc++ Threads::Threads)
+  target_link_libraries(rttest PRIVATE m stdc++ Threads::Threads)
   target_include_directories(rttest PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")
