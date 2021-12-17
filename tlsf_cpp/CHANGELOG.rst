@@ -2,8 +2,8 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.12.0 (2021-12-17)
+-------------------
 * Export modern CMake targets (`#110 <https://github.com/ros2/realtime_support/issues/110>`_)
 * Remove the use of malloc hooks from the tlsf_cpp tests. (`#109 <https://github.com/ros2/realtime_support/issues/109>`_)
 * Contributors: Chris Lalancette, Shane Loretz

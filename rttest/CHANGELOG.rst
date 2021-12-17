@@ -2,8 +2,8 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.12.0 (2021-12-17)
+-------------------
 * Fixes for uncrustify 0.72 (`#111 <https://github.com/ros2/realtime_support/issues/111>`_)
 * Mark dependent targets as PRIVATE (`#112 <https://github.com/ros2/realtime_support/issues/112>`_)
 * Export modern CMake targets (`#110 <https://github.com/ros2/realtime_support/issues/110>`_)
