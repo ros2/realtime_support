@@ -2,6 +2,13 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixes for uncrustify 0.72 (`#111 <https://github.com/ros2/realtime_support/issues/111>`_)
+* Mark dependent targets as PRIVATE (`#112 <https://github.com/ros2/realtime_support/issues/112>`_)
+* Export modern CMake targets (`#110 <https://github.com/ros2/realtime_support/issues/110>`_)
+* Contributors: Chris Lalancette, Shane Loretz
+
 0.11.0 (2021-03-18)
 -------------------
 * Fix up nonsensical handling of NULL in rttest_get\_{params,statistics} (`#107 <https://github.com/ros2/realtime_support/issues/107>`_)
