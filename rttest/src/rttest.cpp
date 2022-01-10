@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <rttest/math_utils.hpp>
-#include <rttest/rttest.h>
-#include <rttest/utils.hpp>
+#include "rttest/rttest.h"
 
 #include <alloca.h>
 #include <limits.h>
@@ -37,6 +35,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "rttest/math_utils.hpp"
+#include "rttest/utils.hpp"
 
 class rttest_sample_buffer
 {
