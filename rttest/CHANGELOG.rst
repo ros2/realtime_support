@@ -2,6 +2,11 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.12.1 (2022-01-14)
+-------------------
+* Fix include order for cpplint (`#113 <https://github.com/ros2/realtime_support/issues/113>`_)
+* Contributors: Jacob Perron
+
 0.12.0 (2021-12-17)
 -------------------
 * Fixes for uncrustify 0.72 (`#111 <https://github.com/ros2/realtime_support/issues/111>`_)

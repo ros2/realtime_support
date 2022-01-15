@@ -2,6 +2,9 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.12.1 (2022-01-14)
+-------------------
+
 0.12.0 (2021-12-17)
 -------------------
 * Export modern CMake targets (`#110 <https://github.com/ros2/realtime_support/issues/110>`_)
