@@ -25,7 +25,7 @@ if(${ament_cmake_FOUND})
   target_link_libraries(rttest PRIVATE m stdc++ Threads::Threads)
   target_include_directories(rttest PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>")
+    "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
   ament_export_targets(export_rttest)
 
@@ -53,7 +53,7 @@ if(${ament_cmake_FOUND})
 
   install(
     DIRECTORY include/
-    DESTINATION include
+    DESTINATION include/${PROJECT_NAME}
   )
 
   install(
