@@ -20,12 +20,11 @@ find_package(rmw REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tlsf REQUIRED)
 
-include_directories(include)
 
 add_library(tlsf_cpp INTERFACE)
 target_include_directories(tlsf_cpp INTERFACE
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 target_link_libraries(tlsf_cpp INTERFACE
   tlsf::tlsf)
 
@@ -34,7 +33,7 @@ add_executable(tlsf_allocator_example
 target_link_libraries(tlsf_allocator_example
   rclcpp::rclcpp
   ${std_msgs_TARGETS}
-  tlsf::tlsf)
+  tlsf_cpp)
 
 install(TARGETS tlsf_allocator_example
   DESTINATION bin)
@@ -47,23 +46,20 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  # There is only one target
-  set(target test_tlsf)
-
   # get typesupport of rmw implementation to include / link against the corresponding interfaces
 
   macro(add_gtest)
-    ament_add_gtest(${target}${target_suffix} "test/test_tlsf.cpp" TIMEOUT 15
+    ament_add_gtest(test_tlsf${target_suffix} "test/test_tlsf.cpp" TIMEOUT 15
       ENV
       RCL_ASSERT_RMW_ID_MATCHES=${rmw_implementation}
       RMW_IMPLEMENTATION=${rmw_implementation})
-    if(TARGET ${target}${target_suffix})
-      target_compile_definitions(${target}${target_suffix}
+    if(TARGET test_tlsf${target_suffix})
+      target_compile_definitions(test_tlsf${target_suffix}
         PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
-      target_link_libraries(${target}${target_suffix}
+      target_link_libraries(test_tlsf${target_suffix}
         rclcpp::rclcpp
         ${std_msgs_TARGETS}
-        tlsf::tlsf)
+        tlsf_cpp)
     endif()
   endmacro()
 
@@ -73,7 +69,7 @@ endif()
 ament_package()
 
 install(DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(TARGETS tlsf_cpp EXPORT export_tlsf_cpp)
