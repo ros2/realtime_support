@@ -2,8 +2,8 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.13.0 (2022-03-01)
+-------------------
 * Install includes to include/${PROJECT_NAME} (`#114 <https://github.com/ros2/realtime_support/issues/114>`_)
 * Contributors: Shane Loretz
 
