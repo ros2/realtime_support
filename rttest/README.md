@@ -34,6 +34,12 @@ make
 ./example_loop
 ```
 
+Note that if this is run in a Docker container, the `IPC_LOCK` capability must be added to the container capabilities.
+This can be managed via the `--cap-add` flag:
+```
+docker run --cap-add IPC_LOCK
+```
+
 ## Command line arguments
 
 Passing `argc` and `argv` of an instrumented main function to `rttest_read_args` will enable command line arguments for the instrumented function.
@@ -59,4 +65,4 @@ Default value is 1000.
 -tp Set the thread priority of all threads launched by the test program.
 Individual thread priority can be set using the `rttest_set_sched_priority` command.
 
--f Specify the name of the file for writing the collected data. Plot this data file using the `rttest_plot.py` script provided in `scripts`.
+-f Specify the name of the file for writing the collected data. Plot this data file using the `rttest_plot` script provided in `scripts`.
