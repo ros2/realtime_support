@@ -58,7 +58,7 @@ if(${ament_cmake_FOUND})
 
   install(
     PROGRAMS scripts/rttest_plot
-    DESTINATION bin
+    DESTINATION lib/${PROJECT_NAME}
   )
 
   install(
