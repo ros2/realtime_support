@@ -35,7 +35,7 @@ target_link_libraries(tlsf_allocator_example
   ${std_msgs_TARGETS}
   tlsf_cpp)
 
-install(TARGETS 
+install(TARGETS
   tlsf_allocator_example
   DESTINATION lib/${PROJECT_NAME})
 
