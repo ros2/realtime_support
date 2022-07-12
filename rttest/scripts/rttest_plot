@@ -24,12 +24,15 @@ def main():
     parser.add_argument('-s', '--show', help='Show plots', action='store_true')
     parser.add_argument('-o', '--outfile',
                         help='Name of file to write plot output')
+    parser.add_argument('--hist-scale', help='Set histogram scaling',
+                        default='linear', choices=['linear', 'log', 'symlog', 'logit'])
     args = parser.parse_args()
     filename = args.filename
     show = args.show
     outfile = filename + '_plot'
     if args.outfile is not None:
         outfile = args.outfile
+    histscale = args.hist_scale
 
     rawlines = []
 
@@ -75,6 +78,7 @@ def main():
     # Create a latency histogram
     pyplot.figure(4)
     pyplot.hist(latency, bins=100)
+    pyplot.yscale(histscale)
     pyplot.title('Latency histogram')
     pyplot.xlabel('Latency (ns)')
     pyplot.ylabel('Frequency')
