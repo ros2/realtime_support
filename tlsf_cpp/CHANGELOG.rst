@@ -2,6 +2,11 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Addressing issues found in Humble testing (`#116 <https://github.com/ros2/realtime_support/issues/116>`_)
+* Contributors: Michael Carroll
+
 0.14.0 (2022-04-29)
 -------------------
 
