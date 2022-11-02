@@ -23,6 +23,7 @@ if(${ament_cmake_FOUND})
 
   add_library(rttest SHARED src/rttest.cpp)
   target_link_libraries(rttest PRIVATE m stdc++ Threads::Threads)
+  target_link_libraries(rttest PUBLIC rt)
   target_include_directories(rttest PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
@@ -80,7 +81,7 @@ else()
 
   find_package(Threads REQUIRED)
   add_library(rttest ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
-  target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
+  target_link_libraries(rttest m stdc++ rt ${CMAKE_THREAD_LIBS_INIT})
 
   include_directories(rttest ${PROJECT_SOURCE_DIR}/include)
 
