@@ -4,9 +4,13 @@
   <name>tlsf_cpp</name>
   <version>0.14.1</version>
   <description>C++ stdlib-compatible wrapper around tlsf allocator and ROS2 examples</description>
-  <maintainer email="clalancette@openrobotics.org">Chris Lalancette</maintainer>
+
+  <maintainer email="brandon@openrobotics.org">Brandon Ong</maintainer>
+
   <license>GNU Lesser Public License 2.1</license>
   <license>Apache License 2.0</license>
+
+  <author email="clalancette@openrobotics.org">Chris Lalancette</author>
   <author email="jackie@osrfoundation.org">Jackie Kay</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
