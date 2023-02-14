@@ -2,8 +2,8 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.0 (2023-02-14)
+-------------------
 * [rolling] Update maintainers - 2022-11-07 (`#121 <https://github.com/ros2/realtime_support/issues/121>`_)
 * Contributors: Audrow Nash
 
