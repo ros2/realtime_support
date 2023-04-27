@@ -2,6 +2,9 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.16.0 (2023-04-27)
+-------------------
+
 0.15.0 (2023-02-14)
 -------------------
 * [rolling] Update maintainers - 2022-11-07 (`#121 <https://github.com/ros2/realtime_support/issues/121>`_)

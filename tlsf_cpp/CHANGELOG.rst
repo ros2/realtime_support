@@ -2,6 +2,9 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.16.0 (2023-04-27)
+-------------------
+
 0.15.0 (2023-02-14)
 -------------------
 * Update realtime support to C++17. (`#122 <https://github.com/ros2/realtime_support/issues/122>`_)
