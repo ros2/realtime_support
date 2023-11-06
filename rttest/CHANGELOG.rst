@@ -2,6 +2,11 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update to C++17 (`#124 <https://github.com/ros2/realtime_support/issues/124>`_)
+* Contributors: Chris Lalancette
+
 0.16.0 (2023-04-27)
 -------------------
 
