@@ -175,6 +175,10 @@ int rttest_calculate_statistics(struct rttest_results * results);
 /// \return Error code if results struct is NULL
 int rttest_get_statistics(struct rttest_results * results);
 
+/// \brief Clear all statistics in the sample buffer
+/// \return Error code to propagate to main
+int rttest_clear_statistics();
+
 /// \brief Get latency sample at the given iteration.
 /// \param[in] iteration Iteration of the test to get the sample from
 /// \param[out] The resulting sample: time in nanoseconds between the expected
