@@ -24,19 +24,12 @@
 #include "std_msgs/msg/u_int32.hpp"
 #include "tlsf_cpp/tlsf.hpp"
 
-#ifdef RMW_IMPLEMENTATION
-# define CLASSNAME_(NAME, SUFFIX) NAME ## __ ## SUFFIX
-# define CLASSNAME(NAME, SUFFIX) CLASSNAME_(NAME, SUFFIX)
-#else
-# define CLASSNAME(NAME, SUFFIX) NAME
-#endif
-
 template<typename T = void>
 using TLSFAllocator = tlsf_heap_allocator<T>;
 
 using rclcpp::memory_strategies::allocator_memory_strategy::AllocatorMemoryStrategy;
 
-class CLASSNAME (AllocatorTest, RMW_IMPLEMENTATION) : public ::testing::Test
+class AllocatorTest : public ::testing::Test
 {
 protected:
   std::string test_name_;
@@ -85,15 +78,10 @@ protected:
 
     executor_->add_node(node_);
   }
-
-  CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION)() {
-  }
-
-  ~CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION)() {
-  }
 };
 
-TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), type_traits_test) {
+TEST_F(AllocatorTest, type_traits_test)
+{
   using UInt32TLSFAllocator = TLSFAllocator<std_msgs::msg::UInt32>;
   using UInt32TLSFDeleter = rclcpp::allocator::Deleter<UInt32TLSFAllocator, std_msgs::msg::UInt32>;
 
@@ -125,7 +113,8 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), type_traits_test) {
 // TODO(wjwwood): re-enable this test when the allocator has been added back to the
 //   intra-process manager.
 //   See: https://github.com/ros2/realtime_support/pull/80#issuecomment-545419570
-TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
+TEST_F(AllocatorTest, allocator_unique_ptr)
+{
   initialize(true, "allocator_unique_ptr");
   size_t counter = 0;
   auto callback =
