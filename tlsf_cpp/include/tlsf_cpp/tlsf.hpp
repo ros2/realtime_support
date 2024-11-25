@@ -20,9 +20,12 @@
 
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <new>
 #include <stdexcept>
 
+#include "rcl/allocator.h"
+#include "rclcpp/allocator/allocator_common.hpp"
 #include "tlsf/tlsf.h"
 
 template<typename T, size_t DefaultPoolSize = 1024 * 1024>
@@ -61,19 +64,21 @@ struct tlsf_heap_allocator
   {
     pool_size = size;
     if (!memory_pool) {
-      memory_pool = new char[pool_size];
-      memset(memory_pool, 0, pool_size);
-      init_memory_pool(pool_size, memory_pool);
+      auto memory = new char[pool_size];
+      memset(memory, 0, pool_size);
+      init_memory_pool(pool_size, memory);
+      memory_pool = std::shared_ptr<char>(
+        memory,
+        [](char * pool) {
+          destroy_memory_pool(pool);
+          delete[] pool;
+        });
     }
     return pool_size;
   }
 
   ~tlsf_heap_allocator()
   {
-    if (memory_pool) {
-      destroy_memory_pool(memory_pool);
-      memory_pool = nullptr;
-    }
   }
 
   // Needed for std::allocator_traits
@@ -98,7 +103,7 @@ struct tlsf_heap_allocator
     typedef tlsf_heap_allocator<U> other;
   };
 
-  char * memory_pool;
+  std::shared_ptr<char> memory_pool;
   size_t pool_size;
 };
 
@@ -136,5 +141,30 @@ constexpr bool operator!=(
 {
   return a.memory_pool != b.memory_pool;
 }
+
+namespace rclcpp {
+
+// Overload rclcpp::get_rcl_allocator for TLSF allocators.
+template<typename T, size_t PoolSize>
+rcl_allocator_t get_rcl_allocator(tlsf_heap_allocator<T, PoolSize> allocator)
+{
+  rcl_allocator_t rcl_allocator;
+  rcl_allocator.allocate = [](size_t size, void *) {
+      return tlsf_malloc(size);
+    };
+  rcl_allocator.deallocate = [](void * pointer, void *) {
+      return tlsf_free(pointer);
+    };
+  rcl_allocator.reallocate = [](void * pointer, size_t size, void *) {
+      return tlsf_realloc(pointer, size);
+    };
+  rcl_allocator.zero_allocate = [](size_t nmemb, size_t size, void *) {
+      return tlsf_calloc(nmemb, size);
+    };
+  (void)allocator;  // unused
+  return rcl_allocator;
+}
+
+}  // namespace rclcpp
 
 #endif  // TLSF_CPP__TLSF_HPP_
