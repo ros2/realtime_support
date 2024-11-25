@@ -72,6 +72,10 @@ private:
   rttest_sample_buffer sample_buffer;
   struct rusage prev_usage;
 
+  // The iteration that the results were cleared at
+  // Gets set when cleared_statistics() is called
+  size_t cleared_iteration = 0;
+
   pthread_t thread_id;
 
   int record_jitter(
@@ -121,6 +125,8 @@ public:
   int get_next_rusage(size_t i);
 
   int calculate_statistics(struct rttest_results * results);
+
+  void clear_statistics();
 
   int get_sample_at(const size_t iteration, int64_t & sample) const;
 
@@ -754,23 +760,25 @@ int Rttest::calculate_statistics(struct rttest_results * output)
     return -1;
   }
 
-  output->min_latency = *std::min_element(
-    this->sample_buffer.latency_samples.begin(), this->sample_buffer.latency_samples.end());
-  output->max_latency = *std::max_element(
-    this->sample_buffer.latency_samples.begin(), this->sample_buffer.latency_samples.end());
+  std::vector<int64_t> latency_samples(
+    this->sample_buffer.latency_samples.begin() + this->cleared_iteration + 1,
+    this->sample_buffer.latency_samples.end());
+
+  output->min_latency = *std::min_element(latency_samples.begin(), latency_samples.end());
+  output->max_latency = *std::max_element(latency_samples.begin(), latency_samples.end());
   output->mean_latency = std::accumulate(
-    this->sample_buffer.latency_samples.begin(),
-    this->sample_buffer.latency_samples.end(), 0.0) / this->sample_buffer.latency_samples.size();
+    latency_samples.begin(),
+    latency_samples.end(), 0.0) / latency_samples.size();
 
   // Calculate standard deviation and try to avoid overflow
-  output->latency_stddev = calculate_stddev(this->sample_buffer.latency_samples);
+  output->latency_stddev = calculate_stddev(latency_samples);
 
   output->minor_pagefaults = std::accumulate(
-    this->sample_buffer.minor_pagefaults.begin(),
+    this->sample_buffer.minor_pagefaults.begin() + this->cleared_iteration + 1,
     this->sample_buffer.minor_pagefaults.end(), 0);
 
   output->major_pagefaults = std::accumulate(
-    this->sample_buffer.major_pagefaults.begin(),
+    this->sample_buffer.major_pagefaults.begin() + this->cleared_iteration + 1,
     this->sample_buffer.major_pagefaults.end(), 0);
 
   return 0;
@@ -783,6 +791,34 @@ int rttest_calculate_statistics(struct rttest_results * results)
     return -1;
   }
   return thread_rttest_instance->calculate_statistics(results);
+}
+
+void Rttest::clear_statistics()
+{
+  size_t i;
+  if (this->params.iterations == 0) {
+    i = 0;
+  } else {
+    i = this->results.iteration;
+  }
+  this->cleared_iteration = i;
+
+  // Reset the properties of the current results
+  this->results.max_latency = this->sample_buffer.latency_samples[i];
+  this->results.min_latency = this->results.max_latency;
+  this->results.mean_latency = this->results.max_latency;
+  this->results.minor_pagefaults = this->sample_buffer.minor_pagefaults[i];
+  this->results.major_pagefaults = this->sample_buffer.major_pagefaults[i];
+}
+
+int rttest_clear_statistics()
+{
+  auto thread_rttest_instance = get_rttest_thread_instance(pthread_self());
+  if (!thread_rttest_instance) {
+    return -1;
+  }
+  thread_rttest_instance->clear_statistics();
+  return 0;
 }
 
 int rttest_get_statistics(struct rttest_results * output)
