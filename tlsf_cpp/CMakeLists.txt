@@ -17,6 +17,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rcpputils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tlsf REQUIRED)
@@ -50,8 +51,25 @@ if(BUILD_TESTING)
 
   # get typesupport of rmw implementation to include / link against the corresponding interfaces
 
+<<<<<<< HEAD
   macro(add_gtest)
     ament_add_gtest(test_tlsf${target_suffix} "test/test_tlsf.cpp" TIMEOUT 15
+=======
+  ament_add_gtest_executable(test_tlsf test/test_tlsf.cpp)
+  if(TARGET test_tlsf${target_suffix})
+    target_link_libraries(test_tlsf
+      rclcpp::rclcpp
+      rcpputils::rcpputils
+      ${std_msgs_TARGETS}
+      tlsf_cpp
+    )
+  endif()
+
+  function(add_gtest)
+    ament_add_gtest_test(test_tlsf
+      TEST_NAME test_tlsf${target_suffix}
+      TIMEOUT 15
+>>>>>>> c37c579 (Explicitly shutdown context before test exits (#129))
       ENV
       RCL_ASSERT_RMW_ID_MATCHES=${rmw_implementation}
       RMW_IMPLEMENTATION=${rmw_implementation})
