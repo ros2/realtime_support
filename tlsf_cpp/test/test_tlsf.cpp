@@ -21,6 +21,8 @@
 #include "rclcpp/strategies/allocator_memory_strategy.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include "rcpputils/scope_exit.hpp"
+
 #include "std_msgs/msg/u_int32.hpp"
 #include "tlsf_cpp/tlsf.hpp"
 
@@ -165,6 +167,9 @@ TEST_F(CLASSNAME(AllocatorTest, RMW_IMPLEMENTATION), allocator_unique_ptr) {
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
+  // Always shutdown the ROS context.
+  auto always_shutdown = rcpputils::make_scope_exit(
+    []() {rclcpp::shutdown();});
   ::testing::InitGoogleTest(&argc, argv);
 
   return RUN_ALL_TESTS();

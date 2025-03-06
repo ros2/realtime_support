@@ -17,6 +17,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rcpputils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tlsf REQUIRED)
@@ -60,6 +61,7 @@ if(BUILD_TESTING)
         PUBLIC "RMW_IMPLEMENTATION=${rmw_implementation}")
       target_link_libraries(test_tlsf${target_suffix}
         rclcpp::rclcpp
+        rcpputils::rcpputils
         ${std_msgs_TARGETS}
         tlsf_cpp)
     endif()
