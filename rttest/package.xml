@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>rttest</name>
-  <version>0.17.0</version>
+  <version>0.17.1</version>
   <description>Instrumentation library for real-time performance testing</description>
 
   <maintainer email="brandon@openrobotics.org">Brandon Ong</maintainer>
