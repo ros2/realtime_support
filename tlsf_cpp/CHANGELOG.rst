@@ -2,6 +2,11 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.18.3 (2025-04-25)
+-------------------
+* Explicitly shutdown context before test exits (`#129 <https://github.com/ros2/realtime_support/issues/129>`_)
+* Contributors: yadunund
+
 0.18.2 (2024-11-25)
 -------------------
 
