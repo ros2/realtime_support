@@ -2,6 +2,11 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix cmake deprecation (`#134 <https://github.com/ros2/realtime_support/issues/134>`_)
+* Contributors: mosfet80
+
 0.19.0 (2025-04-25)
 -------------------
 
