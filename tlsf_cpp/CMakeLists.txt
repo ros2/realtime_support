@@ -15,7 +15,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra)
 endif()
 
-find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rmw REQUIRED)
@@ -63,7 +63,7 @@ if(BUILD_TESTING)
   endif()
 
   function(add_gtest)
-    ament_add_gtest_test(test_tlsf
+    ament_add_ros_isolated_gtest_test(test_tlsf
       TEST_NAME test_tlsf${target_suffix}
       TIMEOUT 15
       ENV
