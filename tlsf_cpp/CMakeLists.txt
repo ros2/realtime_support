@@ -15,7 +15,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra)
 endif()
 
-find_package(ament_cmake_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rmw REQUIRED)
@@ -50,7 +49,7 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_ros REQUIRED)
 
   ament_add_gtest_executable(test_tlsf test/test_tlsf.cpp)
   if(TARGET test_tlsf${target_suffix})
