@@ -2,6 +2,13 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.19.2 (2026-03-24)
+-------------------
+* Use new ROSIDL aggregate CMake target (`#137 <https://github.com/ros2/realtime_support/issues/137>`_)
+* tlsf_cpp: add test isolation (`#136 <https://github.com/ros2/realtime_support/issues/136>`_)
+* Update subscription callback signatures (`#135 <https://github.com/ros2/realtime_support/issues/135>`_)
+* Contributors: Emerson Knapp, Julien Enoch, mini-1235
+
 0.19.1 (2025-07-29)
 -------------------
 * Fix cmake deprecation (`#134 <https://github.com/ros2/realtime_support/issues/134>`_)

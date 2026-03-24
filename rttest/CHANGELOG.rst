@@ -2,6 +2,9 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.19.2 (2026-03-24)
+-------------------
+
 0.19.1 (2025-07-29)
 -------------------
 * Fix cmake deprecation (`#134 <https://github.com/ros2/realtime_support/issues/134>`_)
