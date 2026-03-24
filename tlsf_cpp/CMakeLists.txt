@@ -33,7 +33,7 @@ add_executable(tlsf_allocator_example
   example/allocator_example.cpp)
 target_link_libraries(tlsf_allocator_example PRIVATE
   rclcpp::rclcpp
-  ${std_msgs_TARGETS}
+  std_msgs::std_msgs
   tlsf_cpp
 )
 
@@ -56,7 +56,7 @@ if(BUILD_TESTING)
     target_link_libraries(test_tlsf
       rclcpp::rclcpp
       rcpputils::rcpputils
-      ${std_msgs_TARGETS}
+      std_msgs::std_msgs
       tlsf_cpp
     )
   endif()
