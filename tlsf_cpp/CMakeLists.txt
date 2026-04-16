@@ -6,15 +6,16 @@ if(WIN32 OR APPLE OR ANDROID)
   return()
 endif()
 
-# Default to C++17
+# Default to C++20
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra)
 endif()
 
+find_package(rcl REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rmw REQUIRED)
@@ -27,6 +28,7 @@ target_include_directories(tlsf_cpp INTERFACE
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 target_link_libraries(tlsf_cpp INTERFACE
+  rcl::rcl
   tlsf::tlsf)
 
 add_executable(tlsf_allocator_example
@@ -43,7 +45,7 @@ install(TARGETS
 
 ament_export_targets(export_tlsf_cpp)
 
-ament_export_dependencies("tlsf")
+ament_export_dependencies("rcl" "tlsf")
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

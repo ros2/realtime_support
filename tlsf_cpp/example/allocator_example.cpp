@@ -25,6 +25,30 @@
 template<typename T>
 using TLSFAllocator = tlsf_heap_allocator<T>;
 
+// Explicit member-function specialization for AllocatorMemoryStrategy<tlsf_heap_allocator<void>>.
+// AllocatorMemoryStrategy::get_allocator() calls the deprecated get_rcl_allocator() free
+// function; by specializing the member we replace the entire body, so the deprecated call is
+// never instantiated.  tlsf_heap_allocator stores its pool in a char* and initialises it via
+// init_memory_pool(), which also registers it as the TLSF global pool, so the global
+// tlsf_malloc/tlsf_free functions reach the same pool as the pool-specific malloc_ex/free_ex.
+namespace rclcpp::memory_strategies::allocator_memory_strategy
+{
+template<>
+rcl_allocator_t
+AllocatorMemoryStrategy<tlsf_heap_allocator<void>>::get_allocator()
+{
+  rcl_allocator_t rcl_alloc = rcl_get_default_allocator();
+  rcl_alloc.allocate = [](size_t size, void *) -> void * {return tlsf_malloc(size);};
+  rcl_alloc.deallocate = [](void * ptr, void *) {tlsf_free(ptr);};
+  rcl_alloc.reallocate =
+    [](void * ptr, size_t size, void *) -> void * {return tlsf_realloc(ptr, size);};
+  rcl_alloc.zero_allocate =
+    [](size_t n, size_t s, void *) -> void * {return tlsf_calloc(n, s);};
+  rcl_alloc.state = nullptr;
+  return rcl_alloc;
+}
+}  // namespace rclcpp::memory_strategies::allocator_memory_strategy
+
 int main(int argc, char ** argv)
 {
   using rclcpp::memory_strategies::allocator_memory_strategy::AllocatorMemoryStrategy;
