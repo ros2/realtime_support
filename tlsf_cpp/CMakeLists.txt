@@ -17,7 +17,6 @@ endif()
 
 find_package(rcl REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rcpputils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tlsf REQUIRED)
@@ -52,16 +51,15 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   find_package(ament_cmake_ros REQUIRED)
+  find_package(rcpputils REQUIRED)
 
   ament_add_gtest_executable(test_tlsf test/test_tlsf.cpp)
-  if(TARGET test_tlsf${target_suffix})
-    target_link_libraries(test_tlsf
-      rclcpp::rclcpp
-      rcpputils::rcpputils
-      std_msgs::std_msgs
-      tlsf_cpp
-    )
-  endif()
+  target_link_libraries(test_tlsf
+    rclcpp::rclcpp
+    rcpputils::rcpputils
+    std_msgs::std_msgs
+    tlsf_cpp
+  )
 
   function(add_gtest)
     ament_add_ros_isolated_gtest_test(test_tlsf
@@ -74,10 +72,10 @@ if(BUILD_TESTING)
   call_for_each_rmw_implementation(add_gtest)
 endif()
 
-ament_package()
-
 install(DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
 
 install(TARGETS tlsf_cpp EXPORT export_tlsf_cpp)
+
+ament_package()
