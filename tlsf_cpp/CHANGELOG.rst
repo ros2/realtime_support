@@ -2,8 +2,8 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.20.0 (2026-04-20)
+-------------------
 
 * Remove deprecation warnings (`#139 <https://github.com/ros2/realtime_support/issues/139>`_)
 
