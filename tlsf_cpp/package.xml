@@ -15,13 +15,13 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>ament_cmake</build_depend>
+  <build_depend>rcl</build_depend>
   <build_depend>rclcpp</build_depend>
   <build_depend>rmw</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>tlsf</build_depend>
 
-  <exec_depend>ament_cmake</exec_depend>
+  <exec_depend>rcl</exec_depend>
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rmw</exec_depend>
   <exec_depend>std_msgs</exec_depend>

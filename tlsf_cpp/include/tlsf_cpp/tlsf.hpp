@@ -20,9 +20,13 @@
 
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <new>
 #include <stdexcept>
+#include <type_traits>
+#include <utility>
 
+#include "rcl/allocator.h"
 #include "tlsf/tlsf.h"
 
 template<typename T, size_t DefaultPoolSize = 1024 * 1024>
@@ -92,6 +96,25 @@ struct tlsf_heap_allocator
     tlsf_free(ptr);
   }
 
+  rcl_allocator_t get_rcl_allocator()
+  {
+    rcl_allocator_t allocator = rcl_get_default_allocator();
+    allocator.allocate = [](size_t size, void * state) -> void * {
+        return malloc_ex(size, state);
+      };
+    allocator.deallocate = [](void * ptr, void * state) {
+        free_ex(ptr, state);
+      };
+    allocator.reallocate = [](void * ptr, size_t size, void * state) -> void * {
+        return realloc_ex(ptr, size, state);
+      };
+    allocator.zero_allocate = [](size_t n, size_t size, void * state) -> void * {
+        return calloc_ex(n, size, state);
+      };
+    allocator.state = memory_pool;
+    return allocator;
+  }
+
   template<typename U>
   struct rebind
   {
@@ -136,5 +159,6 @@ constexpr bool operator!=(
 {
   return a.memory_pool != b.memory_pool;
 }
+
 
 #endif  // TLSF_CPP__TLSF_HPP_
