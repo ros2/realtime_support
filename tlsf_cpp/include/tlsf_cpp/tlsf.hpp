@@ -19,12 +19,7 @@
 #define TLSF_CPP__TLSF_HPP_
 
 #include <cstring>
-#include <iostream>
-#include <memory>
 #include <new>
-#include <stdexcept>
-#include <type_traits>
-#include <utility>
 
 #include "rcl/allocator.h"
 #include "tlsf/tlsf.h"
