@@ -18,7 +18,6 @@
 #include <utility>
 
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp/strategies/allocator_memory_strategy.hpp"
 #include "std_msgs/msg/u_int32.hpp"
 #include "tlsf_cpp/tlsf.hpp"
 
@@ -51,7 +50,6 @@ AllocatorMemoryStrategy<tlsf_heap_allocator<void>>::get_allocator()
 
 int main(int argc, char ** argv)
 {
-  using rclcpp::memory_strategies::allocator_memory_strategy::AllocatorMemoryStrategy;
   using Alloc = TLSFAllocator<void>;
   rclcpp::init(argc, argv);
 
@@ -107,13 +105,7 @@ int main(int argc, char ** argv)
   auto subscriber = node->create_subscription<std_msgs::msg::UInt32>(
     "allocator_example", 10, callback, subscription_options, msg_mem_strat);
 
-  // Create a MemoryStrategy, which handles the allocations made by the Executor during the
-  // execution path, and inject the MemoryStrategy into the Executor.
-  std::shared_ptr<rclcpp::memory_strategy::MemoryStrategy> memory_strategy =
-    std::make_shared<AllocatorMemoryStrategy<Alloc>>(alloc);
-
   rclcpp::ExecutorOptions options;
-  options.memory_strategy = memory_strategy;
   rclcpp::executors::SingleThreadedExecutor executor(options);
 
   // Add our node to the executor.
@@ -129,7 +121,6 @@ int main(int argc, char ** argv)
   rclcpp::allocator::set_allocator_for_deleter(&message_deleter, &message_alloc);
 
   rclcpp::sleep_for(std::chrono::milliseconds(1));
-
 
   uint32_t i = 0;
   while (rclcpp::ok() && i < 100) {
