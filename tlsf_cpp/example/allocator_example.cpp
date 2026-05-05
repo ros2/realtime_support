@@ -18,40 +18,14 @@
 #include <utility>
 
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp/strategies/allocator_memory_strategy.hpp"
 #include "std_msgs/msg/u_int32.hpp"
 #include "tlsf_cpp/tlsf.hpp"
 
 template<typename T>
 using TLSFAllocator = tlsf_heap_allocator<T>;
 
-// Explicit member-function specialization for AllocatorMemoryStrategy<tlsf_heap_allocator<void>>.
-// AllocatorMemoryStrategy::get_allocator() calls the deprecated get_rcl_allocator() free
-// function; by specializing the member we replace the entire body, so the deprecated call is
-// never instantiated.  tlsf_heap_allocator stores its pool in a char* and initialises it via
-// init_memory_pool(), which also registers it as the TLSF global pool, so the global
-// tlsf_malloc/tlsf_free functions reach the same pool as the pool-specific malloc_ex/free_ex.
-namespace rclcpp::memory_strategies::allocator_memory_strategy
-{
-template<>
-rcl_allocator_t
-AllocatorMemoryStrategy<tlsf_heap_allocator<void>>::get_allocator()
-{
-  rcl_allocator_t rcl_alloc = rcl_get_default_allocator();
-  rcl_alloc.allocate = [](size_t size, void *) -> void * {return tlsf_malloc(size);};
-  rcl_alloc.deallocate = [](void * ptr, void *) {tlsf_free(ptr);};
-  rcl_alloc.reallocate =
-    [](void * ptr, size_t size, void *) -> void * {return tlsf_realloc(ptr, size);};
-  rcl_alloc.zero_allocate =
-    [](size_t n, size_t s, void *) -> void * {return tlsf_calloc(n, s);};
-  rcl_alloc.state = nullptr;
-  return rcl_alloc;
-}
-}  // namespace rclcpp::memory_strategies::allocator_memory_strategy
-
 int main(int argc, char ** argv)
 {
-  using rclcpp::memory_strategies::allocator_memory_strategy::AllocatorMemoryStrategy;
   using Alloc = TLSFAllocator<void>;
   rclcpp::init(argc, argv);
 
@@ -107,13 +81,7 @@ int main(int argc, char ** argv)
   auto subscriber = node->create_subscription<std_msgs::msg::UInt32>(
     "allocator_example", 10, callback, subscription_options, msg_mem_strat);
 
-  // Create a MemoryStrategy, which handles the allocations made by the Executor during the
-  // execution path, and inject the MemoryStrategy into the Executor.
-  std::shared_ptr<rclcpp::memory_strategy::MemoryStrategy> memory_strategy =
-    std::make_shared<AllocatorMemoryStrategy<Alloc>>(alloc);
-
   rclcpp::ExecutorOptions options;
-  options.memory_strategy = memory_strategy;
   rclcpp::executors::SingleThreadedExecutor executor(options);
 
   // Add our node to the executor.
@@ -129,7 +97,6 @@ int main(int argc, char ** argv)
   rclcpp::allocator::set_allocator_for_deleter(&message_deleter, &message_alloc);
 
   rclcpp::sleep_for(std::chrono::milliseconds(1));
-
 
   uint32_t i = 0;
   while (rclcpp::ok() && i < 100) {
