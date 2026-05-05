@@ -2,6 +2,13 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.20.0 (2026-04-20)
+-------------------
+
+* Remove deprecation warnings (`#139 <https://github.com/ros2/realtime_support/issues/139>`_)
+
+* Contributors: Alejandro Hernández Cordero
+
 0.19.2 (2026-03-24)
 -------------------
 * Use new ROSIDL aggregate CMake target (`#137 <https://github.com/ros2/realtime_support/issues/137>`_)
