@@ -2,6 +2,11 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.0 (2026-05-06)
+------------------
+* cleanups and removed dead code (`#141 <https://github.com/ros2/realtime_support/issues/141>`_)
+* Contributors: Alejandro Hernández Cordero
+
 0.19.2 (2026-03-24)
 -------------------
 
