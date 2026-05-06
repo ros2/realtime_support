@@ -2,6 +2,12 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.20.1 (2026-05-06)
+-------------------
+* cleanups and removed dead code (`#141 <https://github.com/ros2/realtime_support/issues/141>`_) (`#144 <https://github.com/ros2/realtime_support/issues/144>`_)
+* fix: Removed AllocatorMemoryStrategy (backport `#140 <https://github.com/ros2/realtime_support/issues/140>`_) (`#142 <https://github.com/ros2/realtime_support/issues/142>`_)
+* Contributors: mergify[bot]
+
 0.20.0 (2026-04-20)
 -------------------
 
