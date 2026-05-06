@@ -26,10 +26,8 @@
 #include <cassert>
 #include <cmath>
 #include <fstream>
-#include <ios>
 #include <map>
 #include <numeric>
-#include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -116,8 +114,6 @@ public:
 
   int prefault_stack();
 
-  int set_thread_default_priority();
-
   int get_next_rusage(size_t i);
 
   int calculate_statistics(struct rttest_results * results);
@@ -145,13 +141,17 @@ pthread_t initial_thread_id = 0;
 
 Rttest::Rttest()
 {
+  memset(&this->params, 0, sizeof(struct rttest_params));
   memset(&this->results, 0, sizeof(struct rttest_results));
   this->results.min_latency = INT_MAX;
   this->results.max_latency = INT_MIN;
 }
 
 Rttest::~Rttest()
-{}
+{
+  free(this->params.filename);
+  this->params.filename = nullptr;
+}
 
 // Functions
 void Rttest::set_params(struct rttest_params * params)
@@ -240,7 +240,7 @@ int Rttest::read_args(int argc, char ** argv)
   char * filename = nullptr;
   int c;
 
-  std::string args_string = "i:u:p:t:s:m:d:f:r:";
+  std::string args_string = "i:u:t:s:m:d:f:";
   opterr = 0;
   optind = 1;
 
@@ -873,7 +873,6 @@ int Rttest::finish()
   // Print statistics to screen
   this->calculate_statistics(&this->results);
   printf("%s\n", this->results_to_string(this->params.filename).c_str());
-  free(this->params.filename);
 
   return 0;
 }
