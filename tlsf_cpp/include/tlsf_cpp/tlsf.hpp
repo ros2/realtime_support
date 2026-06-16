@@ -43,15 +43,12 @@ struct tlsf_heap_allocator
     initialize(DefaultPoolSize);
   }
 
-  // Needed for std::allocator_traits
-  template<typename U>
-  tlsf_heap_allocator(const tlsf_heap_allocator<U> & alloc)
-  : memory_pool(alloc.memory_pool), pool_size(alloc.pool_size)
-  {
-  }
-
-  template<typename U, size_t OtherDefaultSize>
-  tlsf_heap_allocator(const tlsf_heap_allocator<U> & alloc)
+  // Needed for std::allocator_traits.
+  // Converting constructor across both element type (U) and pool size
+  // (OtherPoolSize). Both template parameters are deduced from the argument,
+  // so this single overload covers every rebind/conversion case.
+  template<typename U, size_t OtherPoolSize>
+  tlsf_heap_allocator(const tlsf_heap_allocator<U, OtherPoolSize> & alloc)
   : memory_pool(alloc.memory_pool), pool_size(alloc.pool_size)
   {
   }

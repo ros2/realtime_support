@@ -201,19 +201,20 @@ Rttest * get_rttest_thread_instance(pthread_t thread_id)
 
 uint64_t rttest_parse_size_units(char * optarg)
 {
-  uint64_t ret;
+  uint64_t ret = 0;
 
   std::string input(optarg);
   std::vector<std::string> tokens = {"gb", "mb", "kb", "b"};
   for (size_t i = 0; i < 4; ++i) {
     size_t idx = input.find(tokens[i]);
     if (idx != std::string::npos) {
-      ret = std::stoll(input.substr(0, idx)) * std::pow(2, (3 - i) * 10);
+      // gb/mb/kb/b -> shift by 30/20/10/0 bits (exact, integer)
+      ret = std::stoull(input.substr(0, idx)) << ((3 - i) * 10);
       break;
     }
     if (i == 3) {
       // Default units are megabytes
-      ret = std::stoll(input) * std::pow(2, 20);
+      ret = std::stoull(input) << 20;
     }
   }
   return ret;
@@ -767,11 +768,11 @@ int Rttest::calculate_statistics(struct rttest_results * output)
 
   output->minor_pagefaults = std::accumulate(
     this->sample_buffer.minor_pagefaults.begin(),
-    this->sample_buffer.minor_pagefaults.end(), 0);
+    this->sample_buffer.minor_pagefaults.end(), size_t{});
 
   output->major_pagefaults = std::accumulate(
     this->sample_buffer.major_pagefaults.begin(),
-    this->sample_buffer.major_pagefaults.end(), 0);
+    this->sample_buffer.major_pagefaults.end(), size_t{});
 
   return 0;
 }
