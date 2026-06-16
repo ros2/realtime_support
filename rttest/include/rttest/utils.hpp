@@ -18,9 +18,10 @@
 #include <stdint.h>
 #include <time.h>
 
-#define NSEC_PER_SEC 1000000000
+// Typed compile-time constant replacing the former object-like macro.
+static constexpr int64_t NSEC_PER_SEC = 1000000000;
 
-static inline bool timespec_gt(
+static constexpr bool timespec_gt(
   const struct timespec * t1,
   const struct timespec * t2)
 {
@@ -33,7 +34,7 @@ static inline bool timespec_gt(
   return t1->tv_nsec > t2->tv_nsec;
 }
 
-static inline void normalize_timespec(struct timespec * t)
+static constexpr void normalize_timespec(struct timespec * t)
 {
   // TODO(jacquelinekay) improve
   while (t->tv_nsec >= NSEC_PER_SEC) {
@@ -42,7 +43,7 @@ static inline void normalize_timespec(struct timespec * t)
   }
 }
 
-static inline void add_timespecs(
+static constexpr void add_timespecs(
   const struct timespec * t1,
   const struct timespec * t2,
   struct timespec * dst)
@@ -52,7 +53,7 @@ static inline void add_timespecs(
   normalize_timespec(dst);
 }
 
-static inline bool subtract_timespecs(
+static constexpr bool subtract_timespecs(
   const struct timespec * t1,
   const struct timespec * t2,
   struct timespec * dst)
@@ -68,12 +69,12 @@ static inline bool subtract_timespecs(
   return true;
 }
 
-static inline uint64_t timespec_to_uint64(const struct timespec * t)
+static constexpr uint64_t timespec_to_uint64(const struct timespec * t)
 {
   return static_cast<uint64_t>(t->tv_sec) * NSEC_PER_SEC + static_cast<uint64_t>(t->tv_nsec);
 }
 
-static inline void uint64_to_timespec(const uint64_t input, struct timespec * t)
+static constexpr void uint64_to_timespec(const uint64_t input, struct timespec * t)
 {
   uint64_t nsecs = input % NSEC_PER_SEC;
   uint64_t secs = (input - nsecs) / NSEC_PER_SEC;
@@ -81,7 +82,7 @@ static inline void uint64_to_timespec(const uint64_t input, struct timespec * t)
   t->tv_nsec = static_cast<long>(nsecs); // NOLINT for C type long
 }
 
-static inline void multiply_timespec(
+static constexpr void multiply_timespec(
   const struct timespec * t, const uint32_t i,
   struct timespec * result)
 {
