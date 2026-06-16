@@ -117,39 +117,15 @@ struct tlsf_heap_allocator
   size_t pool_size;
 };
 
-// Needed for std::allocator_traits
-template<typename T, typename U>
-constexpr bool operator==(
-  const tlsf_heap_allocator<T> & a,
-  const tlsf_heap_allocator<U> & b) noexcept
-{
-  return a.memory_pool == b.memory_pool;
-}
-
-// Needed for std::allocator_traits
-template<typename T, typename U>
-constexpr bool operator!=(
-  const tlsf_heap_allocator<T> & a,
-  const tlsf_heap_allocator<U> & b) noexcept
-{
-  return a.memory_pool != b.memory_pool;
-}
-
-template<typename T, typename U, size_t X, size_t Y>
+// Needed for std::allocator_traits.
+// Single symmetric overload covering any element types and pool sizes;
+// C++20 synthesizes operator!= from this operator==.
+template<typename T, size_t X, typename U, size_t Y>
 constexpr bool operator==(
   const tlsf_heap_allocator<T, X> & a,
   const tlsf_heap_allocator<U, Y> & b) noexcept
 {
   return a.memory_pool == b.memory_pool;
-}
-
-// Needed for std::allocator_traits
-template<typename T, typename U, size_t X, size_t Y>
-constexpr bool operator!=(
-  const tlsf_heap_allocator<T, X> & a,
-  const tlsf_heap_allocator<U, Y> & b) noexcept
-{
-  return a.memory_pool != b.memory_pool;
 }
 
 
