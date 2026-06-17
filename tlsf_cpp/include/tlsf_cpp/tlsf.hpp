@@ -112,7 +112,7 @@ struct tlsf_heap_allocator
   template<typename U>
   struct rebind
   {
-    typedef tlsf_heap_allocator<U> other;
+    using other = tlsf_heap_allocator<U>;
   };
 
   char * memory_pool;
