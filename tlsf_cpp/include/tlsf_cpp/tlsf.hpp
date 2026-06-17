@@ -90,21 +90,23 @@ struct tlsf_heap_allocator
 
   rcl_allocator_t get_rcl_allocator()
   {
-    rcl_allocator_t allocator = rcl_get_default_allocator();
-    allocator.allocate = [](size_t size, void * state) -> void * {
-        return malloc_ex(size, state);
-      };
-    allocator.deallocate = [](void * ptr, void * state) {
-        free_ex(ptr, state);
-      };
-    allocator.reallocate = [](void * ptr, size_t size, void * state) -> void * {
-        return realloc_ex(ptr, size, state);
-      };
-    allocator.zero_allocate = [](size_t n, size_t size, void * state) -> void * {
-        return calloc_ex(n, size, state);
-      };
-    allocator.state = memory_pool;
-    return allocator;
+    // Designated initializers must follow rcl_allocator_t's declaration order:
+    // allocate, deallocate, reallocate, zero_allocate, state.
+    return rcl_allocator_t{
+      .allocate = [](size_t size, void * state) -> void * {
+          return malloc_ex(size, state);
+        },
+      .deallocate = [](void * ptr, void * state) {
+          free_ex(ptr, state);
+        },
+      .reallocate = [](void * ptr, size_t size, void * state) -> void * {
+          return realloc_ex(ptr, size, state);
+        },
+      .zero_allocate = [](size_t n, size_t size, void * state) -> void * {
+          return calloc_ex(n, size, state);
+        },
+      .state = memory_pool,
+    };
   }
 
   template<typename U>
