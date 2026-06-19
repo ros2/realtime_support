@@ -26,7 +26,7 @@
 #include <cassert>
 #include <charconv>
 #include <cmath>
-#include <format>
+#include <format>  // NOLINT(build/include_order)
 #include <fstream>
 #include <map>
 #include <numeric>

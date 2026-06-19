@@ -7,11 +7,6 @@ if(WIN32 OR APPLE OR ANDROID OR BSD)
   return()
 endif()
 
-# Default to C++17
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -20,10 +15,17 @@ find_package(ament_cmake QUIET)
 
 # ament build if it was found
 if(${ament_cmake_FOUND})
+  find_package(ament_cmake_ros_core REQUIRED)
   find_package(Threads REQUIRED)
 
   add_library(rttest SHARED src/rttest.cpp)
-  target_link_libraries(rttest PRIVATE m stdc++ Threads::Threads)
+  # ament_ros_defaults provides the C++20 (cxx_std_20) compile feature; linking
+  # it PUBLIC propagates the standard to consumers, including the test targets.
+  target_link_libraries(rttest
+    PUBLIC
+      ament_cmake_ros_core::ament_ros_defaults
+    PRIVATE
+      m stdc++ Threads::Threads)
   target_include_directories(rttest PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
@@ -81,6 +83,8 @@ else()
 
   find_package(Threads REQUIRED)
   add_library(rttest ${PROJECT_SOURCE_DIR}/src/rttest.cpp)
+  # No ament_cmake_ros_core available in the pure CMake build; set C++20 directly.
+  target_compile_features(rttest PUBLIC cxx_std_20)
   target_link_libraries(rttest m stdc++ ${CMAKE_THREAD_LIBS_INIT})
 
   include_directories(rttest ${PROJECT_SOURCE_DIR}/include)
