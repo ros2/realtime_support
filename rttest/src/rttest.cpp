@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <charconv>
 #include <cmath>
 #include <format>  // NOLINT(build/include_order)
 #include <fstream>
@@ -250,7 +251,8 @@ int Rttest::read_args(int argc, char ** argv)
     switch (c) {
       case 'i':
         {
-          int arg = atoi(optarg);
+          int arg = 0;
+          std::from_chars(optarg, optarg + strlen(optarg), arg);
           if (arg < 0) {
             iterations = 0;
           } else {
@@ -280,8 +282,12 @@ int Rttest::read_args(int argc, char ** argv)
         }
         break;
       case 't':
-        sched_priority = atoi(optarg);
-        break;
+        {
+          int prio = 0;
+          std::from_chars(optarg, optarg + strlen(optarg), prio);
+          sched_priority = prio;
+          break;
+        }
       case 's':
         {
           std::string input(optarg);
@@ -328,7 +334,7 @@ int Rttest::read_args(int argc, char ** argv)
 
 int rttest_get_params(struct rttest_params * params_in)
 {
-  if (params_in == NULL) {
+  if (params_in == nullptr) {
     return -1;
   }
 
@@ -557,7 +563,7 @@ int Rttest::spin_once(
   struct timespec wakeup_time, current_time;
   multiply_timespec(update_period, i, &wakeup_time);
   add_timespecs(start_time, &wakeup_time, &wakeup_time);
-  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeup_time, NULL);
+  clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &wakeup_time, nullptr);
   clock_gettime(CLOCK_MONOTONIC, &current_time);
 
   this->record_jitter(&wakeup_time, &current_time, i);
@@ -751,7 +757,7 @@ int Rttest::accumulate_statistics(size_t iteration)
 
 int Rttest::calculate_statistics(struct rttest_results * output)
 {
-  if (output == NULL) {
+  if (output == nullptr) {
     fprintf(stderr, "Need to allocate rttest_results struct\n");
     return -1;
   }
@@ -789,7 +795,7 @@ int rttest_calculate_statistics(struct rttest_results * results)
 
 int rttest_get_statistics(struct rttest_results * output)
 {
-  if (output == NULL) {
+  if (output == nullptr) {
     return -1;
   }
 
@@ -826,7 +832,7 @@ int rttest_get_sample_at(const size_t iteration, int64_t * sample)
   if (!thread_rttest_instance) {
     return -1;
   }
-  if (sample == NULL) {
+  if (sample == nullptr) {
     return -1;
   }
   return thread_rttest_instance->get_sample_at(iteration, *sample);
@@ -908,7 +914,7 @@ int Rttest::write_results_file(char * filename)
     fprintf(stderr, "No sample buffer was saved, not writing results\n");
     return -1;
   }
-  if (filename == NULL) {
+  if (filename == nullptr) {
     fprintf(stderr, "No results filename given, not writing results\n");
     return -1;
   }
