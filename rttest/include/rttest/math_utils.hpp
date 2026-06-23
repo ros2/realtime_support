@@ -18,10 +18,13 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
+#include <ranges>  // NOLINT
+#include <type_traits>
 #include <vector>
 
-template<typename container>
-double calculate_stddev(const container & vec)
+template<std::ranges::input_range Container>
+requires std::is_arithmetic_v<std::ranges::range_value_t<Container>>
+double calculate_stddev(const Container & vec)
 {
   double n = vec.size();
   double mean = std::accumulate(
