@@ -2,6 +2,11 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.18.4 (2025-07-15)
+-------------------
+* tlsf_cpp: add test isolation (`#136 <https://github.com/ros2/realtime_support/issues/136>`_) (`#138 <https://github.com/ros2/realtime_support/issues/138>`_)
+* Contributors: mergify[bot]
+
 0.18.3 (2025-04-25)
 -------------------
 * Explicitly shutdown context before test exits (`#129 <https://github.com/ros2/realtime_support/issues/129>`_)
