@@ -2,6 +2,14 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.1 (2026-07-15)
+------------------
+* replacing NULL with nullptr and atoi with from_chars (`#149 <https://github.com/ros2/realtime_support/issues/149>`_)
+* Modernize rttest and tlsf_cpp for C++20 (`#147 <https://github.com/ros2/realtime_support/issues/147>`_)
+* fixed page-fault accumulator and removed non-deducible converting constructor (`#146 <https://github.com/ros2/realtime_support/issues/146>`_)
+* Call rclcpp::shutdown at the end of the example. (`#145 <https://github.com/ros2/realtime_support/issues/145>`_)
+* Contributors: Alejandro Hernández Cordero, Chris Lalancette
+
 1.0.0 (2026-05-06)
 ------------------
 * cleanups and removed dead code (`#141 <https://github.com/ros2/realtime_support/issues/141>`_)
