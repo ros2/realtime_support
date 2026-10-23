@@ -2,6 +2,9 @@
 Changelog for package rttest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2026-10-23)
+------------------
+
 1.0.1 (2026-07-15)
 ------------------
 * constrain calculate_stddev with std::ranges::input_range + std::is_arithmetic_v (`#150 <https://github.com/ros2/realtime_support/issues/150>`_)

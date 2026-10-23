@@ -2,6 +2,12 @@
 Changelog for package tlsf_cpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2026-10-23)
+------------------
+* chore: use ament_cmake_ros_core for C++ default standard selection (`#153 <https://github.com/ros2/realtime_support/issues/153>`_)
+* Granular rclcpp/rclcpp.hpp (`#151 <https://github.com/ros2/realtime_support/issues/151>`_)
+* Contributors: Alejandro Hernández Cordero, Beniamino Pozzan
+
 1.0.1 (2026-07-15)
 ------------------
 * replacing NULL with nullptr and atoi with from_chars (`#149 <https://github.com/ros2/realtime_support/issues/149>`_)
